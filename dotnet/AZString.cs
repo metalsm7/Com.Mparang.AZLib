@@ -347,6 +347,42 @@ namespace Com.Mparang.AZLib {
 
         /**
          * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public static string Wrap(string pString, string pWrapString, bool pForce) {
+            StringBuilder rtnValue = new StringBuilder();
+            rtnValue.AppendFormat("{0}{1}{2}", !pForce && pString.StartsWith(pWrapString) ? "" : pWrapString, pString, !pForce && pString.EndsWith(pWrapString) ? "" : pWrapString);
+            return rtnValue.ToString();
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public static string Wrap(string pString, string pWrapString) {
+            return Wrap(pString, pWrapString, false);
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public AZString Wrap(string pWrapString, bool pForce) {
+            this.value_object = AZString.Wrap(Value, pWrapString, pForce);
+            return this;
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public AZString Wrap(string pWrapString) {
+            this.value_object = AZString.Wrap(Value, pWrapString, false);
+            return this;
+        }
+
+        /**
+         * <summary></summary>
          * Created in 2015-08-05, leeyonghun
          */
         public static string Format(string pSrc, string pFormat, string pTargetFormat) {
@@ -1275,6 +1311,62 @@ namespace Com.Mparang.AZLib {
          */
         public static string Repeat(this string pSrc, int pLength) {
             return AZString.Repeat(pSrc, pLength);
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public static string Wrap(this string pSrc, string pWrapString, bool pForce) {
+            return AZString.Wrap(pSrc, pWrapString, pForce);
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public static string Wrap(this string pSrc, string pWrapString) {
+            return AZString.Wrap(pSrc, pWrapString, false);
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public static string Join(this string[] pSrc, string pSeperator) {
+            StringBuilder rtnValue = new StringBuilder();
+            for (int cnti=0; cnti<pSrc.Length; cnti++) {
+                rtnValue.Append(pSrc[cnti]);
+                if (pSrc[cnti].Length > 0 && cnti < pSrc.Length - 1 && pSeperator.Length > 0) {
+                    rtnValue.Append(pSeperator);
+                }
+            }
+            return rtnValue.ToString();
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         */
+        public static string Join(this string[] pSrc) {
+            string rtnValue = "";
+            for (int cnti=0; cnti<pSrc.Length; cnti++) {
+                rtnValue += pSrc[cnti];
+            }
+            return rtnValue;
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-23, leeyonghun
+         * ex: arrs.Each(x => x.Wrap("'"));
+         */
+        public static string[] Each(this string[] pSrc, Func<string, string> pFunc) {
+            string[] rtnValue = pSrc;
+            for (int cnti=0; cnti<rtnValue.Length; cnti++) {
+                rtnValue[cnti] = pFunc(rtnValue[cnti]);
+            }
+            return rtnValue;
         }
 
         /**
