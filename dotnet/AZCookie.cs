@@ -1,4 +1,4 @@
-#if NET40
+#if NET40 && NET452
 using System;
 using System.Text;
 using System.Web;
@@ -386,7 +386,7 @@ namespace Com.Mparang.AZLib {
     }
 }
 #endif
-#if NETCORE1_1
+#if NETCORE1_0
 using System;
 using System.Text;
 using System.Text.Encodings.Web;

@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Text;
 //using System.Data.SQLite;
 using System.Data.SqlClient;
-#if NETCORE1_0 && NETCORE1_1 && NETSTANDARD1_4 && NETSTANDARD1_5 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 //using System.Data.SqlClient;
 using Npgsql;
 using Microsoft.Data.Sqlite;
@@ -82,7 +82,7 @@ namespace Com.Mparang.AZLib {
 		//private MySqlConnection mySqlConnection = null;
 		private SqlConnection sqlConnection = null;
         
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 		private SqliteConnection sqliteConnection = null;
         private NpgsqlConnection npgsqlConnection = null;
 #endif
@@ -90,7 +90,7 @@ namespace Com.Mparang.AZLib {
 		//private MySqlCommand mySqlCommand = null;
 		private SqlCommand sqlCommand = null;
         
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 		private SqliteCommand sqliteCommand = null;
         private NpgsqlCommand npgsqlCommand = null;
 #endif
@@ -175,7 +175,7 @@ namespace Com.Mparang.AZLib {
                             rtnValue = sqlCommand.ExecuteNonQuery();
                         }
                         break;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 					case SQL_TYPE.SQLITE:
                         //sqliteCommand = new SQLiteCommand(p_query, sqliteConnection);
                         sqliteCommand = sqliteConnection.CreateCommand();
@@ -238,7 +238,7 @@ namespace Com.Mparang.AZLib {
                         sqlCommand = new SqlCommand(p_query, sqlConnection);
                         rtnValue = sqlCommand.ExecuteScalar();
                         break;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 					case SQL_TYPE.SQLITE:
                         sqliteCommand = sqliteConnection.CreateCommand();
                         sqliteCommand.CommandText = p_query;
@@ -302,7 +302,7 @@ namespace Com.Mparang.AZLib {
 
 			//MySqlDataReader reader_mysql = null;
             SqlDataReader reader_mssql = null;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
             SqliteDataReader reader_sqlite = null;
             NpgsqlDataReader reader_npgsql = null;
 #endif
@@ -338,7 +338,7 @@ namespace Com.Mparang.AZLib {
                             break;
                         }
                         break;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 					case SQL_TYPE.SQLITE:
                         sqliteCommand = sqliteConnection.CreateCommand();
                         sqliteCommand.CommandText = p_query;
@@ -385,7 +385,7 @@ namespace Com.Mparang.AZLib {
                 if (reader_mssql != null) {
                     reader_mssql.Dispose();
                 }
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 				if (reader_sqlite != null) {
 					reader_sqlite.Dispose ();
                 }
@@ -428,7 +428,7 @@ namespace Com.Mparang.AZLib {
 
 			//MySqlDataReader reader_mysql = null;
             SqlDataReader reader_mssql = null;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
             SqliteDataReader reader_sqlite = null;
             NpgsqlDataReader reader_npgsql = null;
 #endif
@@ -487,7 +487,7 @@ namespace Com.Mparang.AZLib {
                                 idx++;  // offset check value update
                             }
                             break;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
                         case SQL_TYPE.SQLITE:
                             sqliteCommand = sqliteConnection.CreateCommand();
                             sqliteCommand.CommandText = p_query;
@@ -559,7 +559,7 @@ namespace Com.Mparang.AZLib {
                 if (reader_mssql != null) {
                     reader_mssql.Dispose();
                 }
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 				if (reader_sqlite != null) {
 					reader_sqlite.Dispose ();
                 }
@@ -587,7 +587,7 @@ namespace Com.Mparang.AZLib {
 				sqlConnection.Open ();
 				rtnValue = true;
 				break;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 			case SQL_TYPE.SQLITE:
                 sqliteConnection = new SqliteConnection(this.db_info.ConnectionString);
 				sqliteConnection.Open ();
@@ -629,7 +629,7 @@ namespace Com.Mparang.AZLib {
 				sqlCommand = null;
 				rtnValue = true;
 				break;
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
 			case SQL_TYPE.SQLITE:
 				if (sqliteConnection.State.Equals (System.Data.ConnectionState.Open)) {
 					sqliteConnection.Close ();

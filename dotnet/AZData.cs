@@ -58,7 +58,7 @@ namespace Com.Mparang.AZLib {
         public static AZData From<T>(T pSource) {
             AZData rtnValue = new AZData();
 
-#if NETCORE1_1 && NETSTANDARD1_6
+#if NETCORE1_0 && NETSTANDARD1_4
             Type type = typeof(T);
             IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
             foreach (PropertyInfo property in properties) {
@@ -66,7 +66,7 @@ namespace Com.Mparang.AZLib {
                 rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pSource, null).ToString() : property.GetValue(pSource, null));
             }
 #endif
-#if NET35
+#if NET40 && NET452
             Type type = typeof(T);
             System.Reflection.PropertyInfo[] properties = type.GetProperties();
             for (int cnti = 0; cnti < properties.Length; cnti++) {
@@ -326,7 +326,7 @@ namespace Com.Mparang.AZLib {
         public T Convert<T>() {
             Type type = typeof(T);
             object rtnValue = Activator.CreateInstance(type);
-#if NET40 && NET45 && NET452
+#if NET40 && NET452
             System.Reflection.PropertyInfo[] properties = type.GetProperties();
 
             for (int cnti = 0; cnti < properties.Length; cnti++) {
@@ -355,7 +355,7 @@ namespace Com.Mparang.AZLib {
                 }
             }
 #endif
-#if NETCORE1_1
+#if NETCORE1_0
             IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
             foreach (PropertyInfo property in properties) {
                 if (HasKey(property.Name)) {
