@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#if NETCORE1_0 && NET40 && NET452
+#if NETCORE1_0 || NET40 || NET452
 using System;
 using System.Threading;
 using System.Net;

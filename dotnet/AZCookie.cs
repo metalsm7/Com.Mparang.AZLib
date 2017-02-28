@@ -1,4 +1,4 @@
-#if NET40 && NET452
+#if NET40 || NET452
 using System;
 using System.Text;
 using System.Web;

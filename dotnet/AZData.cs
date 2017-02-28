@@ -18,6 +18,7 @@ using System;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Com.Mparang.AZLib {
     public class AZData : IEnumerator, IEnumerable {
@@ -58,7 +59,7 @@ namespace Com.Mparang.AZLib {
         public static AZData From<T>(T pSource) {
             AZData rtnValue = new AZData();
 
-#if NETCORE1_0 && NETSTANDARD1_4
+#if NETCOREAPP1_0
             Type type = typeof(T);
             IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
             foreach (PropertyInfo property in properties) {
@@ -66,7 +67,7 @@ namespace Com.Mparang.AZLib {
                 rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pSource, null).ToString() : property.GetValue(pSource, null));
             }
 #endif
-#if NET40 && NET452
+#if NET40 || NET452
             Type type = typeof(T);
             System.Reflection.PropertyInfo[] properties = type.GetProperties();
             for (int cnti = 0; cnti < properties.Length; cnti++) {
@@ -75,7 +76,7 @@ namespace Com.Mparang.AZLib {
                     continue;
                 }
                 // ICollection 구현체에 대한 재귀 오류 수정처리, 2016-05-19, 이용훈
-                rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pTarget, null).ToString() : property.GetValue(pTarget, null));
+                rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pSource, null).ToString() : property.GetValue(pSource, null));
             }
 #endif
 
@@ -326,7 +327,7 @@ namespace Com.Mparang.AZLib {
         public T Convert<T>() {
             Type type = typeof(T);
             object rtnValue = Activator.CreateInstance(type);
-#if NET40 && NET452
+#if NET40 || NET462
             System.Reflection.PropertyInfo[] properties = type.GetProperties();
 
             for (int cnti = 0; cnti < properties.Length; cnti++) {
@@ -355,7 +356,7 @@ namespace Com.Mparang.AZLib {
                 }
             }
 #endif
-#if NETCORE1_0
+#if NETCOREAPP1_0
             IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
             foreach (PropertyInfo property in properties) {
                 if (HasKey(property.Name)) {

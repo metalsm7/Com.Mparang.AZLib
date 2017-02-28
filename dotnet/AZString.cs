@@ -16,7 +16,7 @@
  */
 using System;
 using System.Text;
-//using System.Collections.Generic;
+using System.Collections.Generic;
 //using System.Reflection;
 
 namespace Com.Mparang.AZLib {
@@ -1098,7 +1098,28 @@ namespace Com.Mparang.AZLib {
                                 value = ToAZData(valueString);
                             }
                             else if (valueString[0] == '[') {
-                                value = ToAZList(valueString);
+                                valueString = valueString.Substring(1, valueString.Length - 2);
+                                //Console.WriteLine("ToAZData:" + valueString);
+
+                                //
+                                while (true) {
+                                    if (valueString.StartsWith(" ") || valueString.StartsWith("\r") || valueString.StartsWith("\n") || valueString.StartsWith("\t")) {
+                                        valueString = valueString.Substring(1);
+                                    }
+                                    else { break; }
+                                }
+                                while (true) {
+                                    if (valueString.EndsWith(" ") || valueString.EndsWith("\r") || valueString.EndsWith("\n") || valueString.EndsWith("\t")) {
+                                        valueString = valueString.Substring(0, valueString.Length - 1);
+                                    }
+                                    else { break; }
+                                }
+                                if (valueString.StartsWith("{")) {
+                                    value = ToAZList("[" + valueString + "]");
+                                }
+                                else {
+                                    value = valueString.Split(',').Each(x => (x.Trim().StartsWith("'") && x.Trim().EndsWith("'") ? x.Trim().Substring(1, x.Trim().Length - 2) : x.Trim()));
+                                }
                             }
                             else if (valueString[0] == '"' || valueString[0] == '\'') {
                                 value = (String)valueString.Substring(1, valueString.Length - 2);
@@ -1134,7 +1155,28 @@ namespace Com.Mparang.AZLib {
                                 value = ToAZData(valueString);
                             }
                             else if (valueString[0] == '[') {
-                                value = ToAZList(valueString);
+                                valueString = valueString.Substring(1, valueString.Length - 2);
+                                //Console.WriteLine("ToAZData:" + valueString);
+
+                                //
+                                while (true) {
+                                    if (valueString.StartsWith(" ") || valueString.StartsWith("\r") || valueString.StartsWith("\n") || valueString.StartsWith("\t")) {
+                                        valueString = valueString.Substring(1);
+                                    }
+                                    else { break; }
+                                }
+                                while (true) {
+                                    if (valueString.EndsWith(" ") || valueString.EndsWith("\r") || valueString.EndsWith("\n") || valueString.EndsWith("\t")) {
+                                        valueString = valueString.Substring(0, valueString.Length - 1);
+                                    }
+                                    else { break; }
+                                }
+                                if (valueString.StartsWith("{")) {
+                                    value = ToAZList("[" + valueString + "]");
+                                }
+                                else {
+                                    value = valueString.Split(',').Each(x => (x.Trim().StartsWith("'") && x.Trim().EndsWith("'") ? x.Trim().Substring(1, x.Trim().Length - 2) : x.Trim()));
+                                }
                             }
                             else if (valueString[0] == '"' || valueString[0] == '\'') {
                                 value = (String)valueString.Substring(1, valueString.Length - 2);
@@ -1333,11 +1375,15 @@ namespace Com.Mparang.AZLib {
          * <summary></summary>
          * Created in 2017-02-23, leeyonghun
          */
-        public static string Join(this string[] pSrc, string pSeperator) {
+        public static string Join<T>(this T[] pSrc, string pSeperator) {
+            if (pSrc.GetType() != typeof(int[]) && pSrc.GetType() != typeof(float[]) &&
+                pSrc.GetType() != typeof(double[]) && pSrc.GetType() != typeof(string[])) {
+                    throw new Exception("Only int, float, double, string type supported.");
+            }
             StringBuilder rtnValue = new StringBuilder();
             for (int cnti=0; cnti<pSrc.Length; cnti++) {
                 rtnValue.Append(pSrc[cnti]);
-                if (pSrc[cnti].Length > 0 && cnti < pSrc.Length - 1 && pSeperator.Length > 0) {
+                if (cnti < pSrc.Length - 1 && pSeperator.Length > 0) {
                     rtnValue.Append(pSeperator);
                 }
             }
@@ -1348,10 +1394,29 @@ namespace Com.Mparang.AZLib {
          * <summary></summary>
          * Created in 2017-02-23, leeyonghun
          */
-        public static string Join(this string[] pSrc) {
-            string rtnValue = "";
+        public static string Join<T>(this T[] pSrc) {
+            return Join(pSrc, "");
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-24, leeyonghun
+         */
+        public static bool Has<T>(this T[] pSrc, T pValue) {
+            return IndexOf<T>(pSrc, pValue) > -1 ? true : false;
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-24, leeyonghun
+         */
+        public static int IndexOf<T>(this T[] pSrc, T pValue) {
+            int rtnValue = -1;
             for (int cnti=0; cnti<pSrc.Length; cnti++) {
-                rtnValue += pSrc[cnti];
+                if (pSrc[cnti].Equals(pValue)) {
+                    rtnValue = cnti;
+                    break;
+                }
             }
             return rtnValue;
         }
@@ -1361,10 +1426,53 @@ namespace Com.Mparang.AZLib {
          * Created in 2017-02-23, leeyonghun
          * ex: arrs.Each(x => x.Wrap("'"));
          */
-        public static string[] Each(this string[] pSrc, Func<string, string> pFunc) {
-            string[] rtnValue = pSrc;
+        public static T[] Each<T>(this T[] pSrc, Func<T, T> pFunc) {
+            T[] rtnValue = pSrc;
             for (int cnti=0; cnti<rtnValue.Length; cnti++) {
                 rtnValue[cnti] = pFunc(rtnValue[cnti]);
+            }
+            return rtnValue;
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-24, leeyonghun
+         */
+        public static T Push<T>(this T[] pSrc, T pValue) {
+            T rtnValue = default(T);
+            if (pSrc != null) {
+                T[] dValue = new T[pSrc.Length + 1];
+                pSrc.CopyTo(dValue, 0);
+                dValue[pSrc.Length] = pValue;
+                pSrc = dValue;
+            }
+            return rtnValue;
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-24, leeyonghun
+         */
+        public static T Pop<T>(this T[] pSrc) {
+            T rtnValue = default(T);
+            if (pSrc != null) {
+                rtnValue = pSrc[pSrc.Length];
+                //
+                T[] replaceValue = new T[pSrc.Length - 1];
+                pSrc.CopyTo(replaceValue, 0);
+                pSrc = replaceValue;
+            }
+            return rtnValue;
+        }
+
+        /**
+         * <summary></summary>
+         * Created in 2017-02-24, leeyonghun
+         */
+        public static List<T> ToList<T>(this T[] pSrc) {
+            List<T> rtnValue = new List<T>();
+            for (int cnti = 0; cnti<pSrc.Length; cnti++) {
+                rtnValue.Add(pSrc[cnti]);
             }
             return rtnValue;
         }
