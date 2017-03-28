@@ -295,7 +295,7 @@ namespace Com.Mparang.AZLib {
                     break;
                 case Encrypt.AES256:    // AES256 인코딩된 자료에 대한 반환 처리
                     try {
-                    value = new AZEncrypt.AES256().Enc(value, p_encrypt_key);
+                        value = new AZEncrypt.AES256().Dec(value, p_encrypt_key);
                         /*net.imcore.AES256Cipher aes = new net.imcore.AES256Cipher();
                         value = aes.Decode(value, p_encrypt_key);
                         aes = null;*/

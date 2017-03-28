@@ -29,6 +29,34 @@ namespace Com.Mparang.AZLib {
                 allDone = new ManualResetEvent(false);
             }
 
+            public string ReadSync(string url) {
+                string rtnValue = "";
+#if NET40
+                try {
+                    System.Net.HttpWebRequest myRequest = (System.Net.HttpWebRequest)WebRequest.Create(url);
+                    myRequest.Method = "GET";
+                    System.Net.HttpWebResponse myResponse = (System.Net.HttpWebResponse)myRequest.GetResponse();
+                    System.IO.StreamReader reader = new System.IO.StreamReader(myResponse.GetResponseStream());
+
+                    rtnValue = reader.ReadToEnd();
+
+                    reader.Close();
+                    reader.Dispose();
+                    myResponse.Close();
+                    myRequest = null;
+                }
+                catch (Exception ex) {
+                    if (ex.InnerException != null) {
+                        throw new Exception("Exception in GetHTML" + ex.ToString() + " / " + ex.InnerException.ToString(), ex);
+                    }
+                    else {
+                        throw new Exception("Exception in GetHTML" + ex.ToString(), ex);
+                    }
+                }
+#endif
+                return rtnValue;
+            }
+
             public void ReadAsync(string pUrl, Action<string> pOnSuccess) {
                 ReadAsync(pUrl, pOnSuccess, null, System.Text.Encoding.UTF8);
             }

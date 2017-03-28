@@ -127,6 +127,14 @@ namespace Com.Mparang.AZLib {
         }
 
         /**
+         * <summary></summary>
+         * Created in 2017-03-28, leeyonghun
+         */
+        public Prepared GetPrepared() {
+            return new Prepared(this);
+        }
+
+        /**
          * <summary>
          * </summary>
          * <param name="p_query"> 실행할 쿼리문</param>
@@ -788,6 +796,409 @@ namespace Com.Mparang.AZLib {
             public string Catalog { get; set; }
             public string ID { get; set; }
             public string PW { get; set; }
+        }
+
+        /**
+         * <summary>Prepared Statement 사용한 DB 처리부분</summary>
+         * Created in 2017-03-27, leeyonghun
+         */
+        public class Prepared {
+            private AZSql azSql;
+            private string query = "";
+            private AZData parameters = null;
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared() {
+                azSql = new AZSql();
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared(AZSql azSql) {
+                this.azSql = azSql;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared(string json) {
+                azSql = new AZSql(json);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared Set(string json) {
+                azSql.Set(json);
+                return this;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public static Prepared Init(string json) {
+                return new Prepared(json);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared SetQuery(string query) {
+                this.query = query;
+                return this;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared AddParam(string key, object value) {
+                if (this.parameters == null) this.parameters = new AZData();
+                this.parameters.Add(key, value);
+                return this;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared AddParams(params object[] parameters) {
+                if (this.parameters == null) this.parameters = new AZData();
+                for (int cnti=0; cnti<parameters.Length; cnti+=2) {
+                    this.parameters.Add(parameters[cnti].To<string>(), parameters[cnti + 1]);
+                }
+                return this;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public Prepared SetParams(AZData parameters) {
+                this.parameters = parameters;
+                return this;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public AZData GetParams() {
+                return this.parameters;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int Execute() {
+                return Execute(this.query, this.parameters, false);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int Execute(bool identity) {
+                return Execute(query, parameters, identity);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int Execute(string query) {
+                return Execute(query, this.parameters, false);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int Execute(string query, bool identity) {
+                return Execute(query, this.parameters, identity);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int Execute(string query, AZData parameters, bool identity) {
+                int rtnValue = 0;
+
+                try {
+                    azSql.Open();
+                    if (azSql.connected) {
+                        switch (azSql.db_info.SqlType) {
+                            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+                                azSql.sqlCommand = azSql.sqlConnection.CreateCommand();
+                                azSql.sqlCommand.CommandText = query;
+                                // parameter 값이 지정된 경우에 한해서 처리
+                                if (parameters != null) {
+                                    for (int cnti=0; cnti<parameters.Size(); cnti++) {
+                                        azSql.sqlCommand.Parameters.AddWithValue(parameters.GetKey(cnti), parameters.Get(cnti));
+                                    }
+                                }
+                                if (identity) {
+                                    azSql.sqlCommand.ExecuteNonQuery();
+
+                                    azSql.sqlCommand = new SqlCommand("SELECT @@IDENTITY;", azSql.sqlConnection);
+                                    rtnValue = AZString.Init(azSql.sqlCommand.ExecuteScalar()).ToInt(-1);
+                                }
+                                else {
+                                    rtnValue = azSql.sqlCommand.ExecuteNonQuery();
+                                }
+                                break;
+                        }
+                    }   
+                }
+                catch (Exception ex) {
+                    if (ex.InnerException != null) {
+                        throw new Exception("Exception in Execute.Inner", ex.InnerException);
+                    }
+                    else {
+                        throw new Exception("Exception in Execute", ex);
+                    }
+                }
+                finally {
+                    azSql.Close ();
+                }
+                return rtnValue;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public object Get() {
+                return Get(this.query, this.parameters);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public object Get(string query) {
+                return Get(query, this.parameters);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public object Get(string query, AZData parameters) {
+                object rtnValue = null;
+
+                try {
+                    azSql.Open();
+                    if (azSql.connected) {
+                        switch (azSql.db_info.SqlType) {
+                            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+                                azSql.sqlCommand = azSql.sqlConnection.CreateCommand();
+                                azSql.sqlCommand.CommandText = query;
+                                if (parameters != null) {
+                                    for (int cnti=0; cnti<parameters.Size(); cnti++) {
+                                        azSql.sqlCommand.Parameters.AddWithValue(parameters.GetKey(cnti), parameters.Get(cnti));
+                                    }
+                                }
+                                rtnValue = azSql.sqlCommand.ExecuteScalar();
+                                break;
+                        }
+                    }   
+                }
+                catch (Exception ex) {
+                    if (ex.InnerException != null) {
+                        throw new Exception("Exception in Get.Inner", ex.InnerException);
+                    }
+                    else {
+                        throw new Exception("Exception in Get", ex);
+                    }
+                }
+                finally {
+                    azSql.Close ();
+                }
+                return rtnValue;
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public object GetObject() {
+                return GetObject(this.query, this.parameters);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public object GetObject(string query) {
+                return GetObject(query, this.parameters);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public object GetObject(string query, AZData parameters) {
+                return Get(query, parameters);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int GetInt() {
+                return GetInt(this.query, this.parameters, 0);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int GetInt(int default_value) {
+                return GetInt(this.query, this.parameters, default_value);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int GetInt(string query) {
+                return GetInt(query, this.parameters, 0);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int GetInt(string query, int default_value) {
+                return GetInt(query, this.parameters, default_value);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public int GetInt(string query, AZData parameters, int default_value) {
+                return Get(query, parameters).To<int>(default_value);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public float GetFloat() {
+                return GetFloat(this.query, this.parameters, 0);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public float GetFloat(float default_value) {
+                return GetFloat(this.query, this.parameters, default_value);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public float GetFloat(string query) {
+                return GetFloat(query, this.parameters, 0);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public float GetFloat(string query, float default_value) {
+                return GetFloat(query, this.parameters, default_value);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public float GetFloat(string query, AZData parameters, float default_value) {
+                return Get(query, parameters).To<float>(default_value);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public string GetString() {
+                return GetString(this.query, this.parameters, "");
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public string GetString(string query) {
+                return GetString(query, this.parameters, "");
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public string GetString(string query, string default_value) {
+                return GetString(query, this.parameters, default_value);
+            }
+            /// Created in 2017-03-28, leeyonghun
+            public string GetString(string query, AZData parameters, string default_value) {
+                return AZString.Init(Get(query, parameters)).String(default_value);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZData GetData() {
+                return GetData(this.query, this.parameters);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZData GetData(string query) {
+                return GetData(query, this.parameters);
+            }
+
+            /**
+             * <summary></summary>
+             * Created in 2017-03-28, leeyonghun
+             */
+            public AZData GetData(string query, AZData parameters) {
+                AZData rtnValue = new AZData ();
+
+                SqlDataReader reader_mssql = null;
+#if NETCOREAPP1_0
+#endif
+                try {
+                    azSql.Open ();
+
+                    if (azSql.connected) {
+                        switch (this.azSql.db_info.SqlType) {
+                        case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+                            azSql.sqlCommand = azSql.sqlConnection.CreateCommand();
+                            azSql.sqlCommand.CommandText = query;
+                            if (parameters != null) {
+                                for (int cnti=0; cnti<parameters.Size(); cnti++) {
+                                    azSql.sqlCommand.Parameters.AddWithValue(parameters.GetKey(cnti), parameters.Get(cnti));
+                                }
+                            }
+                            reader_mssql = azSql.sqlCommand.ExecuteReader();
+
+                            while (reader_mssql.Read()) {
+                                int colCnt = reader_mssql.FieldCount;
+
+                                for (int cnti = 0; cnti < colCnt; cnti++) {
+                                    rtnValue.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
+                                }
+                                break;
+                            }
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    if (ex.InnerException != null) {
+                        throw new Exception("Exception in GetData.Inner", ex.InnerException);
+                    }
+                    else {
+                        throw new Exception("Exception in GetData", ex);
+                    }
+                }
+                finally {
+                    /*if (reader_mysql != null) {
+                        reader_mysql.Dispose ();
+                    }*/
+                    if (reader_mssql != null) {
+                        reader_mssql.Dispose();
+                    }
+#if NETCOREAPP1_0
+#endif
+                    azSql.Close ();
+                }
+                return rtnValue;
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZList GetList() {
+                return GetList(this.query, this.parameters, 0, -1);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZList GetList(int offset) {
+                return GetList(this.query, this.parameters, offset, -1);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZList GetList(int offset, int length) {
+                return GetList(this.query, this.parameters, offset, length);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZList GetList(string query) {
+                return GetList(query, this.parameters, 0, -1);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZList GetList(string query, int offset) {
+                return GetList(query, this.parameters, offset, -1);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZList GetList(string query, AZData parameters) {
+                return GetList(query, parameters, 0, -1);
+            }
+
+            /// Created in 2017-03-28, leeyonghun
+            public AZList GetList(string query, AZData parameters, int offset) {
+                return GetList(query, parameters, offset, -1);
+            }
+
+            /**
+             * <summary></summary>
+             * Created in 2017-03-28, leeyonghun
+             */
+            public AZList GetList(string query, AZData parameters, int offset, int length) {
+                AZList rtnValue = new AZList ();
+
+                SqlDataReader reader_mssql = null;
+#if NETCOREAPP1_0
+#endif
+                try {
+                    azSql.Open ();
+
+                    int idx;
+                    if (azSql.connected) {
+                        switch (this.azSql.db_info.SqlType) {
+                        case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+                            azSql.sqlCommand = azSql.sqlConnection.CreateCommand();
+                            azSql.sqlCommand.CommandText = query;
+                            if (parameters != null) {
+                                for (int cnti=0; cnti<parameters.Size(); cnti++) {
+                                    azSql.sqlCommand.Parameters.AddWithValue(parameters.GetKey(cnti), parameters.Get(cnti));
+                                }
+                            }
+                            reader_mssql = azSql.sqlCommand.ExecuteReader();
+                            
+                            idx = 0;    // for check offset
+                            while (reader_mssql.Read()) {
+                                if (idx < offset) {   // 시작점보다 작으면 다음으로.
+                                    idx++;  // offset check value update
+                                    continue;
+                                }
+                                if (length > 0 && idx >= (offset + length)) {  // 시작점 + 길이 보다 크면 종료
+                                    break;
+                                }
+                                int colCnt = reader_mssql.FieldCount;
+                                AZData data = new AZData();
+
+                                for (int cnti = 0; cnti < colCnt; cnti++) {
+                                    data.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
+                                }
+                                rtnValue.Add(data);
+
+                                idx++;  // offset check value update
+                            }
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    if (ex.InnerException != null) {
+                        throw new Exception("Exception in GetData.Inner", ex.InnerException);
+                    }
+                    else {
+                        throw new Exception("Exception in GetData", ex);
+                    }
+                }
+                finally {
+                    /*if (reader_mysql != null) {
+                        reader_mysql.Dispose ();
+                    }*/
+                    if (reader_mssql != null) {
+                        reader_mssql.Dispose();
+                    }
+#if NETCOREAPP1_0
+#endif
+                    azSql.Close ();
+                }
+                return rtnValue;
+            }
         }
 
         /**
@@ -1482,6 +1893,17 @@ namespace Com.Mparang.AZLib {
                 public const string VALUE = "value";
                 public const string WHERE = "where";
             }
+            /// Prepared Statement 사용 여부, Created in 2017-03-28, leeyonghun
+            public bool IsPrepared {get;set;}
+
+            /**
+             * <summary></summary>
+             * Created in 2017-03-28, leeyonghun
+             */
+            public Basic SetIsPrepared(bool value) {
+                this.IsPrepared = value;
+                return this;
+            }
 
             /**
              * <summary></summary>
@@ -1652,6 +2074,28 @@ namespace Com.Mparang.AZLib {
             private AZData data_schema;
             //private string query;
             private bool has_schema_data;
+
+            public Basic (string table_name, string connection_json) {
+                if (table_name.Trim().Length < 1) {
+                    throw new Exception("Target table name not specified.");
+                }
+                this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
+                this.db_info = new DBConnectionInfo(connection_json);
+
+                sql_where = new AZList();
+                sql_set = new AZList();
+                data_schema = null;
+
+                has_schema_data = false;
+
+                //
+                IsPrepared = false;
+
+                //query = "";
+
+                // 지정된 테이블에 대한 스키마 설정
+                SetSchemaData();
+            }
             /**
              * <summary>
              * Basic constructor
@@ -1670,6 +2114,9 @@ namespace Com.Mparang.AZLib {
                 data_schema = null;
 
                 has_schema_data = false;
+
+                //
+                IsPrepared = false;
 
                 //query = "";
 
@@ -1907,6 +2354,7 @@ namespace Com.Mparang.AZLib {
                 for (int cnti = 0; cnti < p_values.Length; cnti++) {
                     data.Add(p_column, p_values[cnti]);
                 }
+                //data.Add(p_column, p_values);
 
                 this.sql_where.Add(data);
                 data = null;
@@ -1937,7 +2385,12 @@ namespace Com.Mparang.AZLib {
                                 rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetString(0) + "\r\n");
                             }
                             else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-                                rtn_value.Append("  " + (cnti > 0 ? ", " : "") + "'" + data.GetString(0) + "'" + "\r\n");
+                                if (!this.IsPrepared) {
+                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + "'" + data.GetString(0) + "'" + "\r\n");
+                                }
+                                else {
+                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + "@" + data.GetKey(0) + "_values_" + (cnti + 1) + "\r\n");
+                                }
                             }
                         }
                         rtn_value.Append(")");
@@ -1951,7 +2404,12 @@ namespace Com.Mparang.AZLib {
                                 rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + data.GetString(0) + "\r\n");
                             }
                             else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-                                rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "'" + data.GetString(0) + "'" + "\r\n");
+                                if (!this.IsPrepared) {
+                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "'" + data.GetString(0) + "'" + "\r\n");
+                                }
+                                else {
+                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "@" + data.GetKey(0) + "_set_" + (cnti + 1) + "\r\n");
+                                }
                             }
                         }
                         for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
@@ -1996,7 +2454,7 @@ namespace Com.Mparang.AZLib {
                                 else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.IN)) {
                                     rtn_value.Append(" IN ( ");
                                     for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                        rtn_value.Append(", " + data.GetString(cntk));
+                                        rtn_value.Append((cntk > 0 ? ", " : "") + data.GetString(cntk));
                                     }
                                     rtn_value.Append(" ) ");
                                 }
@@ -2005,43 +2463,57 @@ namespace Com.Mparang.AZLib {
                             else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
                                 rtn_value.Append("  " + (cnti > 0 ? " AND " : "") + data.GetKey(0));
 
-                                if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.EQUAL)) {
-                                    rtn_value.Append(" = ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
+                                switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+                                    case WHERETYPE.EQUAL: rtn_value.Append(" = "); break;
+                                    case WHERETYPE.GREATER_THAN: rtn_value.Append(" > "); break;
+                                    case WHERETYPE.GREATER_THAN_OR_EQUAL: rtn_value.Append(" >= "); break;
+                                    case WHERETYPE.LESS_THAN: rtn_value.Append(" < "); break;
+                                    case WHERETYPE.LESS_THAN_OR_EQUAL: rtn_value.Append(" <= "); break;
+                                    case WHERETYPE.NOT_EQUAL: rtn_value.Append(" <> "); break;
+                                    case WHERETYPE.BETWEEN:
+                                        rtn_value.Append(" BETWEEN ");
+                                        if (!this.IsPrepared) {
+                                            rtn_value.Append("'" + data.GetString(0) + "'");
+                                            if (data.Size() > 1) {
+                                                rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
+                                            }
+                                        }
+                                        else {
+                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_1");
+                                            if (data.Size() > 1) {
+                                                rtn_value.Append(" AND " + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_2");
+                                            }
+                                        }
+                                        break;
+                                    case WHERETYPE.IN:
+                                        rtn_value.Append(" IN ( ");
+                                        if (!this.IsPrepared) {
+                                            for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "'" + data.GetString(0) + "'");
+                                            }
+                                        }
+                                        else {
+                                            for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
+                                            }
+                                        }
+                                        rtn_value.Append(" ) ");
+                                        break;
                                 }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.GREATER_THAN)) {
-                                    rtn_value.Append(" > ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.GREATER_THAN_OR_EQUAL)) {
-                                    rtn_value.Append(" >= ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LESS_THAN)) {
-                                    rtn_value.Append(" < ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LESS_THAN_OR_EQUAL)) {
-                                    rtn_value.Append(" <= ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.NOT_EQUAL)) {
-                                    rtn_value.Append(" <> ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.BETWEEN)) {
-                                    rtn_value.Append(" BETWEEN ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                    if (data.Size() > 1) {
-                                        rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
-                                    }
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.IN)) {
-                                    rtn_value.Append(" IN ( ");
-                                    for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                        rtn_value.Append(", " + "'" + data.GetString(0) + "'");
-                                    }
-                                    rtn_value.Append(" ) ");
+                                switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+                                    case WHERETYPE.EQUAL:
+                                    case WHERETYPE.GREATER_THAN:
+                                    case WHERETYPE.GREATER_THAN_OR_EQUAL:
+                                    case WHERETYPE.LESS_THAN:
+                                    case WHERETYPE.LESS_THAN_OR_EQUAL:
+                                    case WHERETYPE.NOT_EQUAL:
+                                        if (!this.IsPrepared) {
+                                            rtn_value.Append("'" + data.GetString(0) + "'");
+                                        }
+                                        else {
+                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1));
+                                        }
+                                        break;
                                 }
                                 rtn_value.Append("\r\n");
                             }
@@ -2091,7 +2563,7 @@ namespace Com.Mparang.AZLib {
                                 else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.IN)) {
                                     rtn_value.Append(" IN ( ");
                                     for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                        rtn_value.Append(", " + data.GetString(cntk));
+                                        rtn_value.Append((cntk > 0 ? ", " : "") + data.GetString(cntk));
                                     }
                                     rtn_value.Append(" ) ");
                                 }
@@ -2100,43 +2572,57 @@ namespace Com.Mparang.AZLib {
                             else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
                                 rtn_value.Append("  " + (cnti > 0 ? " AND " : "") + data.GetKey(0));
 
-                                if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.EQUAL)) {
-                                    rtn_value.Append(" = ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
+                                switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+                                    case WHERETYPE.EQUAL: rtn_value.Append(" = "); break;
+                                    case WHERETYPE.GREATER_THAN: rtn_value.Append(" > "); break;
+                                    case WHERETYPE.GREATER_THAN_OR_EQUAL: rtn_value.Append(" >= "); break;
+                                    case WHERETYPE.LESS_THAN: rtn_value.Append(" < "); break;
+                                    case WHERETYPE.LESS_THAN_OR_EQUAL: rtn_value.Append(" <= "); break;
+                                    case WHERETYPE.NOT_EQUAL: rtn_value.Append(" <> "); break;
+                                    case WHERETYPE.BETWEEN:
+                                        rtn_value.Append(" BETWEEN ");
+                                        if (!this.IsPrepared) {
+                                            rtn_value.Append("'" + data.GetString(0) + "'");
+                                            if (data.Size() > 1) {
+                                                rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
+                                            }
+                                        }
+                                        else {
+                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_1");
+                                            if (data.Size() > 1) {
+                                                rtn_value.Append(" AND " + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_2");
+                                            }
+                                        }
+                                        break;
+                                    case WHERETYPE.IN:
+                                        rtn_value.Append(" IN ( ");
+                                        if (!this.IsPrepared) {
+                                            for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "'" + data.GetString(0) + "'");
+                                            }
+                                        }
+                                        else {
+                                            for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
+                                            }
+                                        }
+                                        rtn_value.Append(" ) ");
+                                        break;
                                 }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.GREATER_THAN)) {
-                                    rtn_value.Append(" > ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.GREATER_THAN_OR_EQUAL)) {
-                                    rtn_value.Append(" >= ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LESS_THAN)) {
-                                    rtn_value.Append(" < ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LESS_THAN_OR_EQUAL)) {
-                                    rtn_value.Append(" <= ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.NOT_EQUAL)) {
-                                    rtn_value.Append(" <> ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.BETWEEN)) {
-                                    rtn_value.Append(" BETWEEN ");
-                                    rtn_value.Append("'" + data.GetString(0) + "'");
-                                    if (data.Size() > 1) {
-                                        rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
-                                    }
-                                }
-                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.IN)) {
-                                    rtn_value.Append(" IN ( ");
-                                    for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                        rtn_value.Append(", " + "'" + data.GetString(0) + "'");
-                                    }
-                                    rtn_value.Append(" ) ");
+                                switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+                                    case WHERETYPE.EQUAL:
+                                    case WHERETYPE.GREATER_THAN:
+                                    case WHERETYPE.GREATER_THAN_OR_EQUAL:
+                                    case WHERETYPE.LESS_THAN:
+                                    case WHERETYPE.LESS_THAN_OR_EQUAL:
+                                    case WHERETYPE.NOT_EQUAL:
+                                        if (!this.IsPrepared) {
+                                            rtn_value.Append("'" + data.GetString(0) + "'");
+                                        }
+                                        else {
+                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1));
+                                        }
+                                        break;
                                 }
                                 rtn_value.Append("\r\n");
                             }
@@ -2167,7 +2653,26 @@ namespace Com.Mparang.AZLib {
                 if (p_need_where && this.sql_where.Size() < 1) {
                     throw new Exception("Where datas required.");
                 }
-                rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.DELETE));
+                if (!IsPrepared) {
+                    rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.DELETE));
+                }
+                else {
+                    AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
+                    prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.DELETE));
+                    for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
+                        AZData data = this.sql_set.Get(cnti);
+                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                            prepared.AddParam("@" + data.GetKey(cnti) + "_set_" + (cnti + 1), data.Get(cnti));
+                        }
+                    }
+                    for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
+                        AZData data = this.sql_where.Get(cnti);
+                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                            prepared.AddParam("@" + data.GetKey(cnti) + "_where_" + (cnti + 1), data.Get(cnti));
+                        }
+                    }
+                    rtn_value = prepared.Execute();
+                }
                 return rtn_value;
             }
 
@@ -2195,7 +2700,26 @@ namespace Com.Mparang.AZLib {
                 if (p_need_where && this.sql_where.Size() < 1) {
                     throw new Exception("Where datas required.");
                 }
-                rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.UPDATE));
+                if (!IsPrepared) {
+                    rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.UPDATE));
+                }
+                else {
+                    AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
+                    prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.UPDATE));
+                    for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
+                        AZData data = this.sql_set.Get(cnti);
+                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                            prepared.AddParam("@" + data.GetKey(cnti) + "_set_" + (cnti + 1), data.Get(cnti));
+                        }
+                    }
+                    for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
+                        AZData data = this.sql_where.Get(cnti);
+                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                            prepared.AddParam("@" + data.GetKey(cnti) + "_where_" + (cnti + 1), data.Get(cnti));
+                        }
+                    }
+                    rtn_value = prepared.Execute();
+                }
                 return rtn_value;
             }
 
@@ -2221,7 +2745,20 @@ namespace Com.Mparang.AZLib {
                 if (this.sql_set.Size() < 1) {
                     throw new Exception("Set datas required.");
                 }
-                rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
+                if (!IsPrepared) {
+                    rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
+                }
+                else {
+                    AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
+                    prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.INSERT));
+                    for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
+                        AZData data = this.sql_set.Get(cnti);
+                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                            prepared.AddParam("@" + data.GetKey(cnti) + "_set_" + (cnti + 1), data.Get(cnti));
+                        }
+                    }
+                    rtn_value = prepared.Execute(p_identity);
+                }
                 return rtn_value;
             }
 
@@ -2233,6 +2770,81 @@ namespace Com.Mparang.AZLib {
              */
             public string GetQuery(CREATE_QUERY_TYPE p_create_query_type) {
                 return CreateQuery(p_create_query_type);
+            }
+
+            /**
+             * <summary>Prepared Statement 용 전달 인수 객체를 반환한다</summary>
+             * Created : 2017-03-28 leeyonghun 
+             */
+            public AZData GetPreparedParameters() {
+                AZData rtn_value = null;
+                for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
+                    AZData data = this.sql_set.Get(cnti);
+                    if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                        if (rtn_value == null) rtn_value = new AZData();
+                        rtn_value.Add("@" + data.GetKey(0) + "_set_" + (cnti + 1), data.Get(0));
+                    }
+                }
+                for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
+                    AZData data = this.sql_where.Get(cnti);
+                    if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                        if (rtn_value == null) rtn_value = new AZData();
+                        switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+                            case WHERETYPE.IN:
+                                for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                    rtn_value.Add("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
+                                }
+                                break;
+                            case WHERETYPE.BETWEEN:
+                                for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                    if (cntk > 1) break;
+                                    rtn_value.Add("@" + data.GetKey(0) + "_between_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
+                                }
+                                break;
+                            default:
+                                rtn_value.Add("@" + data.GetKey(0) + "_where_" + (cnti + 1), data.Get(0));
+                                break;
+                        }
+                    }
+                }
+                return rtn_value;
+            }
+
+            /**
+             * <summary>Prepared 객체를 반환한다</summary>
+             * Created : 2017-03-28 leeyonghun 
+             */
+            public AZSql.Prepared GetPrepared(CREATE_QUERY_TYPE create_query_type) {
+                return GetPrepared(this.db_info, create_query_type);
+            }
+
+            /**
+             * <summary>Prepared 객체를 반환한다</summary>
+             * Created : 2017-03-28 leeyonghun 
+             */
+            public AZSql.Prepared GetPrepared(string connection_json, CREATE_QUERY_TYPE create_query_type) {
+                return GetPrepared(new DBConnectionInfo(connection_json), create_query_type);
+            }
+
+            /**
+             * <summary>Prepared 객체를 반환한다</summary>
+             * Created : 2017-03-28 leeyonghun 
+             */
+            public AZSql.Prepared GetPrepared(DBConnectionInfo db_info, CREATE_QUERY_TYPE create_query_type) {
+                AZSql.Prepared rtn_value = null;
+                if (!this.IsPrepared) {
+                    throw new Exception("Perperty named IsPrepared is not true.");
+                }
+                this.db_info = db_info;
+                if (this.db_info == null) {
+                    throw new Exception("Database connection info not exists.");
+                }
+
+                //
+                rtn_value = AZSql.Init(this.db_info).GetPrepared();
+                rtn_value.SetQuery(GetQuery(create_query_type));
+                rtn_value.SetParams(GetPreparedParameters());
+                return rtn_value;
             }
 
             /**

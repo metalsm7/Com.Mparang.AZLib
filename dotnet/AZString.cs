@@ -1114,7 +1114,7 @@ namespace Com.Mparang.AZLib {
                                     }
                                     else { break; }
                                 }
-                                if (valueString.StartsWith("{")) {
+                                if (valueString.StartsWith("{") || valueString.Trim().Length == 0) {
                                     value = ToAZList("[" + valueString + "]");
                                 }
                                 else {
@@ -1171,7 +1171,7 @@ namespace Com.Mparang.AZLib {
                                     }
                                     else { break; }
                                 }
-                                if (valueString.StartsWith("{")) {
+                                if (valueString.StartsWith("{") || valueString.Trim().Length == 0) {
                                     value = ToAZList("[" + valueString + "]");
                                 }
                                 else {

@@ -58,7 +58,6 @@ namespace Com.Mparang.AZLib {
          */
         public static AZData From<T>(T pSource) {
             AZData rtnValue = new AZData();
-
 #if NETCOREAPP1_0
             Type type = typeof(T);
             IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
