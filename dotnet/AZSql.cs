@@ -1890,7 +1890,7 @@ namespace Com.Mparang.AZLib {
                 VALUE, QUERY
             }
             public enum CREATE_QUERY_TYPE {
-                INSERT, UPDATE, DELETE
+                INSERT, UPDATE, DELETE, SELECT
             }
             private class ATTRIBUTE {
                 public const string VALUE = "value";
@@ -2077,6 +2077,7 @@ namespace Com.Mparang.AZLib {
             private AZData data_schema;
             //private string query;
             private bool has_schema_data;
+            private string sql_select;
 
             /// Created in 2017-03-29, leeyonghun
             public Basic (string table_name, string connection_json) {
@@ -2088,6 +2089,7 @@ namespace Com.Mparang.AZLib {
 
                 sql_where = new AZList();
                 sql_set = new AZList();
+                sql_select = "";
                 data_schema = null;
 
                 has_schema_data = false;
@@ -2111,6 +2113,7 @@ namespace Com.Mparang.AZLib {
 
                 sql_where = new AZList();
                 sql_set = new AZList();
+                sql_select = "";
                 data_schema = null;
 
                 has_schema_data = false;
@@ -2133,6 +2136,7 @@ namespace Com.Mparang.AZLib {
 
                 sql_where = new AZList();
                 sql_set = new AZList();
+                sql_select = "";
                 data_schema = null;
 
                 has_schema_data = false;
@@ -2160,6 +2164,7 @@ namespace Com.Mparang.AZLib {
 
                 sql_where = new AZList();
                 sql_set = new AZList();
+                sql_select = "";
                 data_schema = null;
 
                 has_schema_data = false;
@@ -2187,6 +2192,7 @@ namespace Com.Mparang.AZLib {
 
                 sql_where = new AZList();
                 sql_set = new AZList();
+                sql_select = "";
                 data_schema = null;
 
                 has_schema_data = false;
@@ -2254,6 +2260,13 @@ namespace Com.Mparang.AZLib {
             public void Clear() {
                 this.sql_set.Clear();
                 this.sql_where.Clear();
+                this.sql_select = "";
+            }
+
+            /// Created in 2017-03-29, leeyonghun
+            public AZSql.Basic Select(string value) {
+                this.sql_select = value;
+                return this;
             }
 
             /**
@@ -2420,6 +2433,124 @@ namespace Com.Mparang.AZLib {
             private string CreateQuery(CREATE_QUERY_TYPE p_type) {
                 StringBuilder rtn_value = new StringBuilder();
                 switch (p_type) {
+                    case CREATE_QUERY_TYPE.SELECT:
+                        rtn_value.AppendFormat("SELECT {0}", "\r\n");
+                        rtn_value.AppendFormat(" {0} {1}", this.sql_select, "\r\n");
+                        rtn_value.AppendFormat("FROM {0}", "\r\n");
+                        rtn_value.AppendFormat(" {0} {1}", this.table_name, "\r\n");
+                        for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
+                            if (cnti < 1) {
+                                rtn_value.Append("WHERE " + "\r\n");
+                            }
+                            AZData data = this.sql_where.Get(cnti);
+                            if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
+                                rtn_value.Append("  " + (cnti > 0 ? " AND " : "") + data.GetKey(0));
+
+                                if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.EQUAL)) {
+                                    rtn_value.Append(" = ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.GREATER_THAN)) {
+                                    rtn_value.Append(" > ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.GREATER_THAN_OR_EQUAL)) {
+                                    rtn_value.Append(" >= ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LESS_THAN)) {
+                                    rtn_value.Append(" < ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LESS_THAN_OR_EQUAL)) {
+                                    rtn_value.Append(" <= ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.NOT_EQUAL)) {
+                                    rtn_value.Append(" <> ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LIKE)) {
+                                    rtn_value.Append(" LIKE ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.BETWEEN)) {
+                                    rtn_value.Append(" BETWEEN ");
+                                    rtn_value.Append(data.GetString(0));
+                                    if (data.Size() > 1) {
+                                        rtn_value.Append(" AND " + data.GetString(1));
+                                    }
+                                }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.IN)) {
+                                    rtn_value.Append(" IN ( ");
+                                    for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                        rtn_value.Append((cntk > 0 ? ", " : "") + data.GetString(cntk));
+                                    }
+                                    rtn_value.Append(" ) ");
+                                }
+                                rtn_value.Append("\r\n");
+                            }
+                            else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+                                rtn_value.Append("  " + (cnti > 0 ? " AND " : "") + data.GetKey(0));
+
+                                switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+                                    case WHERETYPE.EQUAL: rtn_value.Append(" = "); break;
+                                    case WHERETYPE.GREATER_THAN: rtn_value.Append(" > "); break;
+                                    case WHERETYPE.GREATER_THAN_OR_EQUAL: rtn_value.Append(" >= "); break;
+                                    case WHERETYPE.LESS_THAN: rtn_value.Append(" < "); break;
+                                    case WHERETYPE.LESS_THAN_OR_EQUAL: rtn_value.Append(" <= "); break;
+                                    case WHERETYPE.NOT_EQUAL: rtn_value.Append(" <> "); break;
+                                    case WHERETYPE.LIKE: rtn_value.Append(" LIKE "); break;
+                                    case WHERETYPE.BETWEEN:
+                                        rtn_value.Append(" BETWEEN ");
+                                        if (!this.IsPrepared) {
+                                            rtn_value.Append("'" + data.GetString(0) + "'");
+                                            if (data.Size() > 1) {
+                                                rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
+                                            }
+                                        }
+                                        else {
+                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_1");
+                                            if (data.Size() > 1) {
+                                                rtn_value.Append(" AND " + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_2");
+                                            }
+                                        }
+                                        break;
+                                    case WHERETYPE.IN:
+                                        rtn_value.Append(" IN ( ");
+                                        if (!this.IsPrepared) {
+                                            for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "'" + data.GetString(0) + "'");
+                                            }
+                                        }
+                                        else {
+                                            for (int cntk = 0; cntk < data.Size(); cntk++) {
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
+                                            }
+                                        }
+                                        rtn_value.Append(" ) ");
+                                        break;
+                                }
+                                switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+                                    case WHERETYPE.EQUAL:
+                                    case WHERETYPE.GREATER_THAN:
+                                    case WHERETYPE.GREATER_THAN_OR_EQUAL:
+                                    case WHERETYPE.LESS_THAN:
+                                    case WHERETYPE.LESS_THAN_OR_EQUAL:
+                                    case WHERETYPE.NOT_EQUAL:
+                                    case WHERETYPE.LIKE:
+                                        if (!this.IsPrepared) {
+                                            rtn_value.Append("'" + data.GetString(0) + "'");
+                                        }
+                                        else {
+                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1));
+                                        }
+                                        break;
+                                }
+                                rtn_value.Append("\r\n");
+                            }
+                        }
+                        break;
                     case CREATE_QUERY_TYPE.INSERT:
                         rtn_value.Append("INSERT INTO " + table_name + " ( " + "\r\n");
                         for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {

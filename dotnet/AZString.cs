@@ -17,7 +17,7 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
-//using System.Reflection;
+using System.Reflection;
 
 namespace Com.Mparang.AZLib {
     public class AZString {
@@ -1580,6 +1580,30 @@ namespace Com.Mparang.AZLib {
                 }
             }
             return true;
+        }
+
+        /// Created in 2017-03-29, leeyognhun
+        public static string[] GetPropertyNames<T>(this object src) {
+            List<string> rtnValue = new List<string>();            
+#if NETCOREAPP1_0
+            Type type = typeof(T);
+            IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
+            foreach (PropertyInfo property in properties) {
+                if (!property.CanRead) continue;
+                rtnValue.Add(property.Name);
+            }
+#endif
+#if NET40 || NET452
+            Type type = typeof(T);
+            PropertyInfo[] properties = type.GetProperties();
+            for (int cnti = 0; cnti < properties.Length; cnti++) {
+                PropertyInfo property = properties[cnti];
+                if (!property.CanRead) continue;
+                rtnValue.Add(property.Name);
+            }
+#endif
+
+            return rtnValue.ToArray();
         }
     }
 }
