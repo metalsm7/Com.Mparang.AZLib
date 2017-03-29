@@ -1226,7 +1226,8 @@ namespace Com.Mparang.AZLib {
                 GREATER_THAN, GREATER_THAN_OR_EQUAL,
                 LESS_THAN, LESS_THAN_OR_EQUAL,
                 BETWEEN,
-                IN
+                IN,
+                LIKE
             }
 
             public enum VALUETYPE {
@@ -1621,6 +1622,7 @@ namespace Com.Mparang.AZLib {
                         case COMPARISON.LESS_THAN_OR_EQUAL: rtnValue = "<="; break;
                         case COMPARISON.BETWEEN: rtnValue = "BETWEEN"; break;
                         case COMPARISON.IN: rtnValue = "IN"; break;
+                        case COMPARISON.LIKE: rtnValue = "LIKE"; break;
                     }
                     return rtnValue;
                 }
@@ -1881,7 +1883,8 @@ namespace Com.Mparang.AZLib {
                 LESS_THAN, LESS_THAN_OR_EQUAL, 
                 EQUAL, NOT_EQUAL, 
                 BETWEEN, 
-                IN
+                IN,
+                LIKE
             }
             public enum VALUETYPE {
                 VALUE, QUERY
@@ -2075,6 +2078,7 @@ namespace Com.Mparang.AZLib {
             //private string query;
             private bool has_schema_data;
 
+            /// Created in 2017-03-29, leeyonghun
             public Basic (string table_name, string connection_json) {
                 if (table_name.Trim().Length < 1) {
                     throw new Exception("Target table name not specified.");
@@ -2096,12 +2100,30 @@ namespace Com.Mparang.AZLib {
                 // 지정된 테이블에 대한 스키마 설정
                 SetSchemaData();
             }
-            /**
-             * <summary>
-             * Basic constructor
-             * </summary>
-             * Created : 2015-06-02, leeyonghun
-             */
+
+            /// Created in 2017-03-29, leeyonghun
+            public Basic (string table_name, string connection_json, bool is_prepared) {
+                if (table_name.Trim().Length < 1) {
+                    throw new Exception("Target table name not specified.");
+                }
+                this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
+                this.db_info = new DBConnectionInfo(connection_json);
+
+                sql_where = new AZList();
+                sql_set = new AZList();
+                data_schema = null;
+
+                has_schema_data = false;
+
+                //
+                IsPrepared = is_prepared;
+
+                //query = "";
+
+                // 지정된 테이블에 대한 스키마 설정
+                SetSchemaData();
+            }
+            /// Created in 2017-03-29, leeyonghun
             public Basic(string p_table_name, DBConnectionInfo p_db_connection_info) {
                 if (p_table_name.Trim().Length < 1) {
                     throw new Exception("Target table name not specified.");
@@ -2117,6 +2139,33 @@ namespace Com.Mparang.AZLib {
 
                 //
                 IsPrepared = false;
+
+                //query = "";
+
+                // 지정된 테이블에 대한 스키마 설정
+                SetSchemaData();
+            }
+            /**
+             * <summary>
+             * Basic constructor
+             * </summary>
+             * Created : 2015-06-02, leeyonghun
+             */
+            public Basic(string p_table_name, DBConnectionInfo p_db_connection_info, bool is_prepared) {
+                if (p_table_name.Trim().Length < 1) {
+                    throw new Exception("Target table name not specified.");
+                }
+                this.table_name = AZString.Encode(AZString.ENCODE.JSON, p_table_name);
+                this.db_info = p_db_connection_info;
+
+                sql_where = new AZList();
+                sql_set = new AZList();
+                data_schema = null;
+
+                has_schema_data = false;
+
+                //
+                IsPrepared = is_prepared;
 
                 //query = "";
 
@@ -2444,6 +2493,10 @@ namespace Com.Mparang.AZLib {
                                     rtn_value.Append(" <> ");
                                     rtn_value.Append(data.GetString(0));
                                 }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LIKE)) {
+                                    rtn_value.Append(" LIKE ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
                                 else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.BETWEEN)) {
                                     rtn_value.Append(" BETWEEN ");
                                     rtn_value.Append(data.GetString(0));
@@ -2470,6 +2523,7 @@ namespace Com.Mparang.AZLib {
                                     case WHERETYPE.LESS_THAN: rtn_value.Append(" < "); break;
                                     case WHERETYPE.LESS_THAN_OR_EQUAL: rtn_value.Append(" <= "); break;
                                     case WHERETYPE.NOT_EQUAL: rtn_value.Append(" <> "); break;
+                                    case WHERETYPE.LIKE: rtn_value.Append(" LIKE "); break;
                                     case WHERETYPE.BETWEEN:
                                         rtn_value.Append(" BETWEEN ");
                                         if (!this.IsPrepared) {
@@ -2507,6 +2561,7 @@ namespace Com.Mparang.AZLib {
                                     case WHERETYPE.LESS_THAN:
                                     case WHERETYPE.LESS_THAN_OR_EQUAL:
                                     case WHERETYPE.NOT_EQUAL:
+                                    case WHERETYPE.LIKE:
                                         if (!this.IsPrepared) {
                                             rtn_value.Append("'" + data.GetString(0) + "'");
                                         }
@@ -2553,6 +2608,10 @@ namespace Com.Mparang.AZLib {
                                     rtn_value.Append(" <> ");
                                     rtn_value.Append(data.GetString(0));
                                 }
+                                else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.LIKE)) {
+                                    rtn_value.Append(" LIKE ");
+                                    rtn_value.Append(data.GetString(0));
+                                }
                                 else if (data.Attribute.Get(ATTRIBUTE.WHERE).Equals(WHERETYPE.BETWEEN)) {
                                     rtn_value.Append(" BETWEEN ");
                                     rtn_value.Append(data.GetString(0));
@@ -2579,6 +2638,7 @@ namespace Com.Mparang.AZLib {
                                     case WHERETYPE.LESS_THAN: rtn_value.Append(" < "); break;
                                     case WHERETYPE.LESS_THAN_OR_EQUAL: rtn_value.Append(" <= "); break;
                                     case WHERETYPE.NOT_EQUAL: rtn_value.Append(" <> "); break;
+                                    case WHERETYPE.LIKE: rtn_value.Append(" LIKE "); break;
                                     case WHERETYPE.BETWEEN:
                                         rtn_value.Append(" BETWEEN ");
                                         if (!this.IsPrepared) {
@@ -2616,6 +2676,7 @@ namespace Com.Mparang.AZLib {
                                     case WHERETYPE.LESS_THAN:
                                     case WHERETYPE.LESS_THAN_OR_EQUAL:
                                     case WHERETYPE.NOT_EQUAL:
+                                    case WHERETYPE.LIKE:
                                         if (!this.IsPrepared) {
                                             rtn_value.Append("'" + data.GetString(0) + "'");
                                         }
@@ -2657,20 +2718,12 @@ namespace Com.Mparang.AZLib {
                     rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.DELETE));
                 }
                 else {
+                    if (this.db_info == null) {
+                        throw new Exception("DBConnectionInfo required.");
+                    }
                     AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
                     prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.DELETE));
-                    for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
-                        AZData data = this.sql_set.Get(cnti);
-                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-                            prepared.AddParam("@" + data.GetKey(cnti) + "_set_" + (cnti + 1), data.Get(cnti));
-                        }
-                    }
-                    for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
-                        AZData data = this.sql_where.Get(cnti);
-                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-                            prepared.AddParam("@" + data.GetKey(cnti) + "_where_" + (cnti + 1), data.Get(cnti));
-                        }
-                    }
+                    prepared.SetParams(GetPreparedParameters());
                     rtn_value = prepared.Execute();
                 }
                 return rtn_value;
@@ -2704,20 +2757,13 @@ namespace Com.Mparang.AZLib {
                     rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.UPDATE));
                 }
                 else {
+                    if (this.db_info == null) {
+                        throw new Exception("DBConnectionInfo required.");
+                    }
+                    
                     AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
                     prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.UPDATE));
-                    for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
-                        AZData data = this.sql_set.Get(cnti);
-                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-                            prepared.AddParam("@" + data.GetKey(cnti) + "_set_" + (cnti + 1), data.Get(cnti));
-                        }
-                    }
-                    for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
-                        AZData data = this.sql_where.Get(cnti);
-                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-                            prepared.AddParam("@" + data.GetKey(cnti) + "_where_" + (cnti + 1), data.Get(cnti));
-                        }
-                    }
+                    prepared.SetParams(GetPreparedParameters());
                     rtn_value = prepared.Execute();
                 }
                 return rtn_value;
@@ -2749,14 +2795,12 @@ namespace Com.Mparang.AZLib {
                     rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
                 }
                 else {
+                    if (this.db_info == null) {
+                        throw new Exception("DBConnectionInfo required.");
+                    }
                     AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
                     prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.INSERT));
-                    for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
-                        AZData data = this.sql_set.Get(cnti);
-                        if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-                            prepared.AddParam("@" + data.GetKey(cnti) + "_set_" + (cnti + 1), data.Get(cnti));
-                        }
-                    }
+                    prepared.SetParams(GetPreparedParameters());
                     rtn_value = prepared.Execute(p_identity);
                 }
                 return rtn_value;
