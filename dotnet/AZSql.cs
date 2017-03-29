@@ -832,6 +832,10 @@ namespace Com.Mparang.AZLib {
                 this.query = query;
                 return this;
             }
+            /// Created in 2017-03-29, leeyonghun
+            public string GetQuery() {
+                return this.query;
+            }
             /// Created in 2017-03-28, leeyonghun
             public Prepared AddParam(string key, object value) {
                 if (this.parameters == null) this.parameters = new AZData();
