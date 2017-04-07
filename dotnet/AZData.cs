@@ -598,6 +598,14 @@ namespace Com.Mparang.AZLib {
                         string valueString = GetString(cnti);
                         builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "\"" + AZString.Encode(AZString.ENCODE.JSON, valueString) + "\"");
                     }
+                    else if (Get(cnti).GetType().Equals(typeof(string[]))) {
+                        string valueString = ((string[])Get(cnti)).Each(x => x.Encode(AZString.ENCODE.JSON)).Join(",");
+                        builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + AZString.Encode(AZString.ENCODE.JSON, valueString) + "]");
+                    }
+                    else if (Get(cnti).GetType().Equals(typeof(int[])) || Get(cnti).GetType().Equals(typeof(double[]))) {
+                        string valueString = ((int[])Get(cnti)).Join(",");
+                        builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + AZString.Encode(AZString.ENCODE.JSON, valueString) + "]");
+                    }
                     else {
                         string valueString = "";
                         if (!Get(cnti).GetType().IsNested || Get(cnti).GetType() == typeof(DBNull)) {

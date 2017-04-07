@@ -2204,6 +2204,24 @@ namespace Com.Mparang.AZLib {
                 //query = "";
             }
 
+            /// Created in 2017-03-31, leeyonghun
+            public Basic (string table_name, bool is_prepared) {
+                if (table_name.Trim().Length < 1) {
+                    throw new Exception("Target table name not specified.");
+                }
+                this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
+
+                sql_where = new AZList();
+                sql_set = new AZList();
+                sql_select = "";
+                data_schema = null;
+                
+                //
+                IsPrepared = is_prepared;
+
+                has_schema_data = false;
+            }
+
             /**
              * <summary>
              * Creating new class and return
@@ -3015,12 +3033,14 @@ namespace Com.Mparang.AZLib {
                     throw new Exception("Perperty named IsPrepared is not true.");
                 }
                 this.db_info = db_info;
-                if (this.db_info == null) {
-                    throw new Exception("Database connection info not exists.");
-                }
 
                 //
-                rtn_value = AZSql.Init(this.db_info).GetPrepared();
+                if (this.db_info != null) {
+                    rtn_value = AZSql.Init(this.db_info).GetPrepared();
+                }
+                else {
+                    rtn_value = new AZSql.Prepared();
+                }
                 rtn_value.SetQuery(GetQuery(create_query_type));
                 rtn_value.SetParams(GetPreparedParameters());
                 return rtn_value;
