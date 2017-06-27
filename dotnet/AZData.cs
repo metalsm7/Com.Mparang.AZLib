@@ -326,7 +326,7 @@ namespace Com.Mparang.AZLib {
         public T Convert<T>() {
             Type type = typeof(T);
             object rtnValue = Activator.CreateInstance(type);
-#if NET40 || NET462
+#if NET40 || NET462 || NET452
             System.Reflection.PropertyInfo[] properties = type.GetProperties();
 
             for (int cnti = 0; cnti < properties.Length; cnti++) {
