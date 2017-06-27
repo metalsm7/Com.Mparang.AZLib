@@ -29,6 +29,8 @@ AZData dataFromModel = model.To<Model>();   // or AZData dataFromModel = AZData.
 Database 연결 및 데이터 처리를 도와주기 위한 객체.
 1. AZData, AZList 객체로 결과값 바인딩
 2. PreparedStatement 처리 지원
+3. StoredProcedure 처리 지원
+4. Transaction 처리 지원
 
 기본적인 사용법은 아래와 같습니다.
 
@@ -56,18 +58,26 @@ AZSql sql = new AZSql(db_con_string);
 sql.Execute("INSERT INTO T_User (id, name) VALUES ('userid', '이름')");
 
 // INSERT 사용법 #2, Prepared Statement 사용
+AZSql ps_sql = new AZSql(db_con_string);
+ps_sql.SetQuery("INSERT INTO T_User (id, name) VALUES (@id, @name)");
+// AddParameter를 통해서 파라메터 값이 등록되면 자동르고 PreparedStatement 처리를 하게 됩니다
+ps_sql.AddParameter("@id", "userid");
+ps_sql.AddParameter("@name", "이름");
+ps_sql.Execute();
+
+// INSERT 사용법 #3, Prepared Statement 사용
 AZSql.Prepared p_sql = new AZSql.Prepared(db_con_string);
 p_sql.SetQuery("INSERT INTO T_User (id, name) VALUES (@id, @name)");
-p_sql.AddParam("@id", "userid");
-p_sql.AddParam("@name", "이름");
+p_sql.AddParameter("@id", "userid");
+p_sql.AddParameter("@name", "이름");
 p_sql.Execute();
 
-// INSERT 사용법 #3
+// INSERT 사용법 #4
 AZSql.Basic b_sql = new AZSql.Basic("T_User", db_con_string);
 // Prepared Statement 적용을 원하는 경우 SetIsPrepared 메소드를 사용 합니다.
 // bSql.SetIsPrepared(true); // or bSql.IsPrepared = true;
-b_sql.Set("@id", "userid");
-b_sql.Set("@name", "이름");
+b_sql.Set("id", "userid");
+b_sql.Set("name", "이름");
 b_sql.DoInsert();
 ```
 
@@ -133,4 +143,19 @@ b_sql.DoDelete();
 b_sql = new AZSql.Basic("T_User", db_con_string);
 b_sql.Where("no", new object[] {1, 4}, AZSql.Basic.WHERETYPE.BETWEEN);
 b_sql.DoDelete();
+```
+
+- Transaction 사용
+```c#
+// DELETE 사용법 #1
+AZSql sql = new AZSql(db_con_string);
+sql.BeginTran(
+    (ex_on_commit) => Console.WriteLine("Commit 또는 쿼리 처리시 발생된 예외 : " + ex_on_commit.ToString()), 
+    (ex_on_rollback) => Console.WriteLine("Rollback 처리시 발생된 예외 : " + ex_on_rollback.ToString())
+);
+// 순차적으로 쿼리를 처리해 가다가 예외 발생시 자동으로 Rollback 처리 하게 됩니다.
+sql.Execute("UPDATE T_User SET name='user1' WHERE no=1");
+sql.Execute("DELETE T_User WHERE no=1");
+// 처리 중 발생된 반환값들을 AZData 형식으로 반환 처리 합니다.
+AZData result = sql.Commit();
 ```
