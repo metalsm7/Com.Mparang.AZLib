@@ -725,7 +725,6 @@ namespace Com.Mparang.AZLib {
                         sqlCommand.CommandText = GetQuery();
                         if (sqlTransaction != null) sqlCommand.Transaction = sqlTransaction;
                         if (IsStoredProcedure()) sqlCommand.CommandType = CommandType.StoredProcedure;
-                        reader_mssql = sqlCommand.ExecuteReader();
                         // parameter 값이 지정된 경우에 한해서 처리
                         if (GetParameters() != null) {
                             for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
@@ -737,6 +736,7 @@ namespace Com.Mparang.AZLib {
                                 sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
                             }
                         }
+                        reader_mssql = sqlCommand.ExecuteReader();
                         while (reader_mssql.Read()) {
                             int colCnt = reader_mssql.FieldCount;
 

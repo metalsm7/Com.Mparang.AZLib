@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
 
   <PropertyGroup>
-    <VersionPrefix>0.2.1</VersionPrefix>
+    <VersionPrefix>0.2.2</VersionPrefix>
     <TargetFrameworks>netstandard1.4;netcoreapp1.0;net452;net40</TargetFrameworks>
     <AssemblyName>Com.Mparang.AZLib</AssemblyName>
     <PackageId>Com.Mparang.AZLib</PackageId>
