@@ -74,6 +74,30 @@ namespace Com.Mparang.AZLib {
 
         public string Name { get; set; }
 
+        /// Created in 2017-06-29, leeyonghun
+        public int IndexOf(string key) {
+            int rtn_value = -1;
+            for (int cnti=0; cnti<Size(); cnti++) {
+                if (Get(cnti).HasKey(key)) {
+                    rtn_value = cnti;
+                    break;
+                }
+            }
+            return rtn_value;
+        }
+
+        /// Created in 2017-06-29, leeyonghun
+        public int IndexOf(string key, object value) {
+            int rtn_value = -1;
+            for (int cnti=0; cnti<Size(); cnti++) {
+                if (Get(cnti).HasKey(key) && Get(cnti).Get(key).Equals(value)) {
+                    rtn_value = cnti;
+                    break;
+                }
+            }
+            return rtn_value;
+        }
+
         /**
          * <summary></summary>
          * Created in 2015-08-13, leeyonghun
