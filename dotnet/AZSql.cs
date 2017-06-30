@@ -2959,9 +2959,9 @@ namespace Com.Mparang.AZLib {
                                             }
                                         }
                                         else {
-                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_1");
+                                            rtn_value.Append("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_between_1");
                                             if (data.Size() > 1) {
-                                                rtn_value.Append(" AND " + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_2");
+                                                rtn_value.Append(" AND " + "@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_between_2");
                                             }
                                         }
                                         break;
@@ -2974,7 +2974,7 @@ namespace Com.Mparang.AZLib {
                                         }
                                         else {
                                             for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
                                             }
                                         }
                                         rtn_value.Append(" ) ");
@@ -2992,7 +2992,7 @@ namespace Com.Mparang.AZLib {
                                             rtn_value.Append("'" + data.GetString(0) + "'");
                                         }
                                         else {
-                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1));
+                                            rtn_value.Append("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1));
                                         }
                                         break;
                                 }
@@ -3018,7 +3018,7 @@ namespace Com.Mparang.AZLib {
                                     rtn_value.Append("  " + (cnti > 0 ? ", " : "") + "'" + data.GetString(0) + "'" + "\r\n");
                                 }
                                 else {
-                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + "@" + data.GetKey(0) + "_set_" + (cnti + 1) + "\r\n");
+                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + "\r\n");
                                 }
                             }
                         }
@@ -3037,7 +3037,7 @@ namespace Com.Mparang.AZLib {
                                     rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "'" + data.GetString(0) + "'" + "\r\n");
                                 }
                                 else {
-                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "@" + data.GetKey(0) + "_set_" + (cnti + 1) + "\r\n");
+                                    rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + "\r\n");
                                 }
                             }
                         }
@@ -3113,9 +3113,9 @@ namespace Com.Mparang.AZLib {
                                             }
                                         }
                                         else {
-                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_1");
+                                            rtn_value.Append("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_between_1");
                                             if (data.Size() > 1) {
-                                                rtn_value.Append(" AND " + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_2");
+                                                rtn_value.Append(" AND " + "@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_between_2");
                                             }
                                         }
                                         break;
@@ -3128,7 +3128,7 @@ namespace Com.Mparang.AZLib {
                                         }
                                         else {
                                             for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
                                             }
                                         }
                                         rtn_value.Append(" ) ");
@@ -3146,7 +3146,7 @@ namespace Com.Mparang.AZLib {
                                             rtn_value.Append("'" + data.GetString(0) + "'");
                                         }
                                         else {
-                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1));
+                                            rtn_value.Append("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1));
                                         }
                                         break;
                                 }
@@ -3228,9 +3228,9 @@ namespace Com.Mparang.AZLib {
                                             }
                                         }
                                         else {
-                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_1");
+                                            rtn_value.Append("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_between_1");
                                             if (data.Size() > 1) {
-                                                rtn_value.Append(" AND " + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_between_2");
+                                                rtn_value.Append(" AND " + "@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_between_2");
                                             }
                                         }
                                         break;
@@ -3243,7 +3243,7 @@ namespace Com.Mparang.AZLib {
                                         }
                                         else {
                                             for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
+                                                rtn_value.Append((cntk > 0 ? ", " : "") + "@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_in_" + (cntk + 1));
                                             }
                                         }
                                         rtn_value.Append(" ) ");
@@ -3261,7 +3261,7 @@ namespace Com.Mparang.AZLib {
                                             rtn_value.Append("'" + data.GetString(0) + "'");
                                         }
                                         else {
-                                            rtn_value.Append("@" + data.GetKey(0) + "_where_" + (cnti + 1));
+                                            rtn_value.Append("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1));
                                         }
                                         break;
                                 }
@@ -3381,7 +3381,7 @@ namespace Com.Mparang.AZLib {
                     AZData data = this.sql_set.Get(cnti);
                     if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
                         if (rtn_value == null) rtn_value = new AZData();
-                        rtn_value.Add("@" + data.GetKey(0) + "_set_" + (cnti + 1), data.Get(0));
+                        rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1), data.Get(0));
                     }
                 }
                 for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
@@ -3391,17 +3391,17 @@ namespace Com.Mparang.AZLib {
                         switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
                             case WHERETYPE.IN:
                                 for (int cntk = 0; cntk < data.Size(); cntk++) {
-                                    rtn_value.Add("@" + data.GetKey(0) + "_where_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
+                                    rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
                                 }
                                 break;
                             case WHERETYPE.BETWEEN:
                                 for (int cntk = 0; cntk < data.Size(); cntk++) {
                                     if (cntk > 1) break;
-                                    rtn_value.Add("@" + data.GetKey(0) + "_between_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
+                                    rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_between_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
                                 }
                                 break;
                             default:
-                                rtn_value.Add("@" + data.GetKey(0) + "_where_" + (cnti + 1), data.Get(0));
+                                rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1), data.Get(0));
                                 break;
                         }
                     }
