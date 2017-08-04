@@ -16,6 +16,7 @@
  */
 #if NETCORE1_0 || NET40 || NET452
 using System;
+using System.Text;
 using System.Threading;
 using System.Net;
 
@@ -30,11 +31,28 @@ namespace Com.Mparang.AZLib {
             }
 
             public string ReadSync(string url) {
+                return ReadSync(url, "GET", null);
+            }
+
+            public string ReadSync(string url, string method, AZData data) {
+                return ReadSync(url, method, null, data);
+            }
+
+            public string ReadSync(string url, string method, string content_type, AZData data) {
                 string rtnValue = "";
 #if NET40
                 try {
                     System.Net.HttpWebRequest myRequest = (System.Net.HttpWebRequest)WebRequest.Create(url);
-                    myRequest.Method = "GET";
+                    myRequest.Method = method;
+                    if (content_type != null) myRequest.ContentType = content_type;
+                    if (data != null) {
+                        StringBuilder param = new StringBuilder();
+                        for (int cnti=0; cnti<data.Size(); cnti++) {
+                            param.AppendFormat("{0}{1}={2}", cnti > 0 ? "&" : "", data.GetKey(cnti), data.GetString(cnti));
+                        }
+                        byte[] param_byte = Encoding.UTF8.GetBytes(param.ToString());
+                        myRequest.GetRequestStream().Write(param_byte, 0, param_byte.Length);
+                    }
                     System.Net.HttpWebResponse myResponse = (System.Net.HttpWebResponse)myRequest.GetResponse();
                     System.IO.StreamReader reader = new System.IO.StreamReader(myResponse.GetResponseStream());
 

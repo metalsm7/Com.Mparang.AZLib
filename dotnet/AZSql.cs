@@ -196,10 +196,6 @@ namespace Com.Mparang.AZLib {
             transaction_result = null;
 
             //
-            this.action_tran_on_commit = null;
-            this.action_tran_on_rollback = null;
-
-            //
             this.in_transaction = false;
 
             //
@@ -208,45 +204,49 @@ namespace Com.Mparang.AZLib {
             //
             Close();
         }
+        
+        /// Created in 2017-08-03, leeyonghun
+        public void ClearTransCallback() {
+            //
+            this.action_tran_on_commit = null;
+            this.action_tran_on_rollback = null;
+        }
 
         /// <summary>트랜잭션 commit 처리</summary>
         /// <return>AZData, 트랜잭션 처리 중 발생한 반환값들의 집합인 AZData를 반환한다.</return>
         /// Created in 2017-06-27, leeyonghun
         public AZData Commit() {
             AZData rtn_value = null;
+            Exception exception_commit = null;
+            Exception exception_rollback = null;
             try {
                 if (connected) {
-                    //Console.WriteLine("Trying Commit...");
                     sqlTransaction.Commit();
-                    //Console.WriteLine("Commit Completed");
                     //
                     rtn_value = transaction_result;
                 }
             }
             catch (Exception ex) {
-                if (this.action_tran_on_commit != null) {
-                    this.action_tran_on_commit(ex);
-                }
-                //on_commit(ex);
-
+                exception_commit = ex;
                 //
                 try {
-                    //Console.WriteLine("Trying Rollback...");
                     sqlTransaction.Rollback();
-                    //Console.WriteLine("Rollback Conpleted");
                 }
                 catch (Exception ex_rollback) {
-                    if (this.action_tran_on_rollback != null) {
-                        this.action_tran_on_rollback(ex_rollback);
-                    }
-                    //on_rollback(ex_rollback);
+                    exception_rollback = ex_rollback;
                 }
             }
             finally {
-                Close();
-
-                //
                 RemoveTran();
+                //
+                if (exception_commit != null && this.action_tran_on_commit != null) {
+                    this.action_tran_on_commit(exception_commit);
+                }
+                if (exception_rollback != null && this.action_tran_on_rollback != null) {
+                    this.action_tran_on_rollback(exception_rollback);
+                }
+                //
+                ClearTransCallback();
             }
             return rtn_value;
         }
@@ -479,22 +479,25 @@ namespace Com.Mparang.AZLib {
                     }
                 }
                 else {
-                    if (this.action_tran_on_commit != null) {
-                        this.action_tran_on_commit(ex);
-                    }
                     //
+                    Exception exception_rollback = null;
                     try {
-                        //Console.WriteLine("Trying Rollback... on " + GetQuery());
                         sqlTransaction.Rollback();
-                        //Console.WriteLine("Rollback Conpleted");
                     }
                     catch (Exception ex_rollback) {
-                        if (this.action_tran_on_rollback != null) {
-                            this.action_tran_on_rollback(ex_rollback);
-                        }
+                        exception_rollback = ex_rollback;
                     }
                     finally {
                         RemoveTran();
+                        //
+                        if (this.action_tran_on_commit != null) {
+                            this.action_tran_on_commit(ex);
+                        }
+                        if (exception_rollback != null && this.action_tran_on_rollback != null) {
+                            this.action_tran_on_rollback(exception_rollback);
+                        }
+                        //
+                        ClearTransCallback();
                     }
                 }
 			}
@@ -588,22 +591,25 @@ namespace Com.Mparang.AZLib {
                     }
                 }
                 else {
-                    if (this.action_tran_on_commit != null) {
-                        this.action_tran_on_commit(ex);
-                    }
                     //
+                    Exception exception_rollback = null;
                     try {
-                        //Console.WriteLine("Trying Rollback... on " + GetQuery());
                         sqlTransaction.Rollback();
-                        //Console.WriteLine("Rollback Conpleted");
                     }
                     catch (Exception ex_rollback) {
-                        if (this.action_tran_on_rollback != null) {
-                            this.action_tran_on_rollback(ex_rollback);
-                        }
+                        exception_rollback = ex_rollback;
                     }
                     finally {
                         RemoveTran();
+                        //
+                        if (this.action_tran_on_commit != null) {
+                            this.action_tran_on_commit(ex);
+                        }
+                        if (exception_rollback != null && this.action_tran_on_rollback != null) {
+                            this.action_tran_on_rollback(exception_rollback);
+                        }
+                        //
+                        ClearTransCallback();
                     }
                 }
 			}
@@ -795,22 +801,25 @@ namespace Com.Mparang.AZLib {
                     }
                 }
                 else {
-                    if (this.action_tran_on_commit != null) {
-                        this.action_tran_on_commit(ex);
-                    }
                     //
+                    Exception exception_rollback = null;
                     try {
-                        //Console.WriteLine("Trying Rollback... on " + GetQuery());
                         sqlTransaction.Rollback();
-                        //Console.WriteLine("Rollback Conpleted");
                     }
                     catch (Exception ex_rollback) {
-                        if (this.action_tran_on_rollback != null) {
-                            this.action_tran_on_rollback(ex_rollback);
-                        }
+                        exception_rollback = ex_rollback;
                     }
                     finally {
                         RemoveTran();
+                        //
+                        if (this.action_tran_on_commit != null) {
+                            this.action_tran_on_commit(ex);
+                        }
+                        if (exception_rollback != null && this.action_tran_on_rollback != null) {
+                            this.action_tran_on_rollback(exception_rollback);
+                        }
+                        //
+                        ClearTransCallback();
                     }
                 }
 			}
@@ -1044,22 +1053,25 @@ namespace Com.Mparang.AZLib {
                     }
                 }
                 else {
-                    if (this.action_tran_on_commit != null) {
-                        this.action_tran_on_commit(ex);
-                    }
                     //
+                    Exception exception_rollback = null;
                     try {
-                        //Console.WriteLine("Trying Rollback... on " + GetQuery());
                         sqlTransaction.Rollback();
-                        //Console.WriteLine("Rollback Conpleted");
                     }
                     catch (Exception ex_rollback) {
-                        if (this.action_tran_on_rollback != null) {
-                            this.action_tran_on_rollback(ex_rollback);
-                        }
+                        exception_rollback = ex_rollback;
                     }
                     finally {
                         RemoveTran();
+                        //
+                        if (this.action_tran_on_commit != null) {
+                            this.action_tran_on_commit(ex);
+                        }
+                        if (exception_rollback != null && this.action_tran_on_rollback != null) {
+                            this.action_tran_on_rollback(exception_rollback);
+                        }
+                        //
+                        ClearTransCallback();
                     }
                 }
 			}
@@ -1655,8 +1667,6 @@ namespace Com.Mparang.AZLib {
             }
         }
 
-        
-        /*
         /// Created in 2015-06-11, leeyonghun
         public class Query {
             //private Array _select = null;
@@ -1665,7 +1675,6 @@ namespace Com.Mparang.AZLib {
             
             ///접속사 정보
             /// Created in 2015-06-11, leeyonghun
-             *
             public enum CONJUNCTION {
                 EMPTY, AND, OR
             }
@@ -1673,7 +1682,6 @@ namespace Com.Mparang.AZLib {
             
             ///비교문 정보
             /// Created in 2015-06-11, leeyonghun
-             *
             public enum COMPARISON {
                 EQUAL, NOT_EQUAL,
                 GREATER_THAN, GREATER_THAN_OR_EQUAL,
@@ -1690,20 +1698,17 @@ namespace Com.Mparang.AZLib {
             
             ///조인문 정보
             /// Created in 2015-08-10, leeyonghun
-             *
             public enum JOIN {
                 EMPTY, INNER, CROSS, LEFT_OUTER, RIGHT_OUTER, FULL_OUTER
             }
 
             
             /// Created in 2016-05-17, leeyonghun
-             *
             public Query() {
             }
 
             
             /// Created in 2015-08-10, leeyonghun
-             *
             public static string MakeSelect(string p_select, int? p_count, Table p_table, Condition p_condition, Ordering p_order) {
                 StringBuilder rtnValue = new StringBuilder();
                 if (p_count.HasValue) {
@@ -1736,7 +1741,6 @@ namespace Com.Mparang.AZLib {
 
             
             /// Created in 2015-08-10, leeyonghun
-             *
             public class TableData {
                 public JOIN Join { get; set; }
                 public string Target { get; set; }
@@ -1789,7 +1793,6 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
-                 *
                 public TableData Clear() {
                     Join = JOIN.EMPTY;
                     Target = "";
@@ -1801,14 +1804,12 @@ namespace Com.Mparang.AZLib {
 
             
             /// Created in 2015-08-10, leeyonghun
-             *
             public class Table {
                 List<TableData> tableList;
 
                 
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public Table() {
                     tableList = new List<TableData>();
                 }
@@ -1816,14 +1817,12 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public static Table Init() {
                     return new Table();
                 }
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public Table Add(TableData p_value) {
                     this.tableList.Add(p_value);
                     return this;
@@ -1831,14 +1830,12 @@ namespace Com.Mparang.AZLib {
 
                 
                 /// Created in 2015-12-17, leeyonghun
-                 *
                 public TableData Get(int p_value) {
                     return this.tableList[p_value];
                 }
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public string ToJsonString() {
                     StringBuilder rtnValue = new StringBuilder();
                     rtnValue.Append("[");
@@ -1859,14 +1856,12 @@ namespace Com.Mparang.AZLib {
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public int Size() {
                     return this.tableList.Count;
                 }
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public string GetQuery() {
                     return AZSql.Query.Table.GetQuery(ToJsonString());
                 }
@@ -1895,7 +1890,6 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
-                 *
                 public Table Clear() {
                     this.tableList.Clear();
                     return this;
@@ -1905,7 +1899,6 @@ namespace Com.Mparang.AZLib {
             
             /// <summary></summary>
             /// Created in 2015-08-04, leeyonghun
-             *
             public class OrderingData {
                 public int Order { get; set; }
                 public string Value { get; set; }
@@ -1944,7 +1937,6 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public Ordering() {
                     orderingList = new List<OrderingData>();
                 }
@@ -1952,14 +1944,12 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public static Ordering Init() {
                     return new Ordering();
                 }
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public Ordering Add(OrderingData p_value) {
                     this.orderingList.Add(p_value);
                     return this;
@@ -1967,7 +1957,6 @@ namespace Com.Mparang.AZLib {
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public Ordering Add(int p_order, string p_value) {
                     this.Add(new OrderingData(p_order, p_value));
                     return this;
@@ -1975,7 +1964,6 @@ namespace Com.Mparang.AZLib {
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public string ToJsonString() {
                     StringBuilder rtnValue = new StringBuilder();
                     rtnValue.Append("[");
@@ -1988,14 +1976,12 @@ namespace Com.Mparang.AZLib {
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public string GetQuery() {
                     return AZSql.Query.Ordering.GetQuery(ToJsonString());
                 }
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public int Size() {
                     return this.orderingList.Count;
                 }
@@ -2036,7 +2022,6 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
-                 *
                 public Ordering Clear() {
                     this.orderingList.Clear();
                     return this;
@@ -2045,7 +2030,6 @@ namespace Com.Mparang.AZLib {
 
             
             /// Created in 2015-08-04, leeyonghun
-             *
             public class ConditionData {
                 public string Group { get; set; }
                 public CONJUNCTION Conjunction { get; set; }
@@ -2118,7 +2102,6 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
-                 *
                 public ConditionData Clear() {
                     Group = "";
                     Conjunction = CONJUNCTION.EMPTY;
@@ -2138,7 +2121,6 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public Condition() {
                     conditionalList = new List<ConditionData>();
                 }
@@ -2146,14 +2128,12 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public static Condition Init() {
                     return new Condition();
                 }
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public Condition Add(ConditionData p_value) {
                     this.conditionalList.Add(p_value);
                     return this;
@@ -2161,7 +2141,6 @@ namespace Com.Mparang.AZLib {
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public string ToJsonString() {
                     StringBuilder rtnValue = new StringBuilder();
                     rtnValue.Append("[");
@@ -2182,14 +2161,12 @@ namespace Com.Mparang.AZLib {
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public int Size() {
                     return this.conditionalList.Count;
                 }
 
                 
                 /// Created in 2015-08-04, leeyonghun
-                 *
                 public string GetQuery() {
                     return AZSql.Query.Condition.GetQuery(ToJsonString());
                 }
@@ -2322,14 +2299,12 @@ namespace Com.Mparang.AZLib {
                 
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
-                 *
                 public Condition Clear() {
                     this.conditionalList.Clear();
                     return this;
                 }
             }
         }
-        */
 
         public class Basic {
             public enum WHERETYPE {
