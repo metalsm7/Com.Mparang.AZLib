@@ -1,19 +1,3 @@
-/**
- * Copyright (C) <2014~>  <Lee Yonghun, metalsm7@gmail.com, visit http://azlib.mparang.com/>
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 using System;
 //using System.Collections;
 using System.Collections.Generic;
@@ -251,20 +235,57 @@ namespace Com.Mparang.AZLib {
             return rtn_value;
         }
 
+        /// <summary>트랜잭션 tollback 처리</summary>
+        /// <return>AZData, 트랜잭션 처리 중 발생한 반환값들의 집합인 AZData를 반환한다.</return>
+        /// Created in 2017-06-27, leeyonghun
+        public AZData Rollback() {
+            AZData rtn_value = null;
+            
+            if (!this.in_transaction) {
+                throw new Exception("Not in transaction process.1");
+            }
+            if (sqlTransaction == null) {
+                throw new Exception("Not in transaction process.2");
+            }
+            Exception exception_rollback = null;
+            try {
+                if (connected) {
+                    sqlTransaction.Rollback();
+                }
+            }
+            catch (Exception ex) {
+                exception_rollback = ex;
+            }
+            finally {
+                RemoveTran();
+                //
+                if (exception_rollback != null && this.action_tran_on_rollback != null) {
+                    this.action_tran_on_rollback(exception_rollback);
+                }
+                //
+                ClearTransCallback();
+            }
+            return rtn_value;
+        }
+
+        /// Created in 2017-03-28, leeyonghun
         public AZSql SetQuery(string query) {
             this.query = query;
             return this;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public string GetQuery() {
             return this.query;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public AZSql SetParameters(AZData parameters) {
             this.parameters = parameters;
             return this;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public AZData GetParameters() {
             return this.parameters;
         }
@@ -282,18 +303,22 @@ namespace Com.Mparang.AZLib {
             }
             return this;
         }
+        /// Created in 2017-03-28, leeyonghun
         public void ClearParameters() {
             this.parameters.Clear();
         }
+        /// Created in 2017-03-28, leeyonghun
         public void RemoveParameters() {
             this.parameters = null;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public AZSql SetReturnParameters(AZData parameters) {
             this.return_parameters = parameters;
             return this;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public AZData GetReturnParameters() {
             return this.return_parameters;
         }
@@ -311,73 +336,78 @@ namespace Com.Mparang.AZLib {
             }
             return this;
         }
+        /// Created in 2017-03-28, leeyonghun
         public void ClearReturnParameters() {
             this.return_parameters.Clear();
         }
+        /// Created in 2017-03-28, leeyonghun
         public void RemoveReturnParameters() {
             this.return_parameters = null;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public AZSql SetIdentity(bool identity) {
             this.identity = identity;
             return this;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public bool GetIdentity() {
             return this.identity;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public AZSql SetIsStoredProcedure(bool is_stored_procedure) {
             this.is_stored_procedure = is_stored_procedure;
             return this;
         }
 
+        /// Created in 2017-03-28, leeyonghun
         public bool IsStoredProcedure() {
             return this.is_stored_procedure;
         }
 
         
-        /// <summary>
-        ///</summary>
-        ///<param name="p_query"> 실행할 쿼리문</param>
+        /// <summary></summary>
+        /// <param name="p_query"> 실행할 쿼리문</param>
         /// Created in 2015-06-23, leeyonghun
-       
         public int Execute(string query) {
             SetQuery(query);
             return Execute();
         }
         
+        /// Created in 2015-06-23, leeyonghun
         public int Execute(bool identity) {
             SetIdentity(identity);
             return Execute();
         }
         
+        /// Created in 2015-06-23, leeyonghun
         public int Execute(string query, bool identity) {
             SetQuery(query);
             SetIdentity(identity);
             return Execute();
         }
         
+        /// Created in 2015-06-23, leeyonghun
         public int Execute(string query, AZData parameters) {
             SetQuery(query);
             SetParameters(parameters);
             return Execute();
         }
         
+        /// Created in 2015-06-23, leeyonghun
         public int Execute(string query, AZData parameters, bool identity) {
             SetQuery(query);
             SetParameters(parameters);
             SetIdentity(identity);
             return Execute();
         }
-
         
-        /// <summary>
-        ///</summary>
-        ///<param name="p_query"> 실행할 쿼리문</param>
-        ///<param name="p_identity">identity 값을 반환받을 필요가 있을 경우 true, 아니면 false</param>
+        /// <summary></summary>
+        /// <param name="p_query"> 실행할 쿼리문</param>
+        /// <param name="p_identity">identity 값을 반환받을 필요가 있을 경우 true, 아니면 false</param>
         /// Created in 2015-06-23, leeyonghun
-       
 		public int Execute() {
 			int rtnValue = 0;
 
@@ -511,17 +541,20 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
+        /// Created in 2015-06-23, leeyonghun
 		public object Get(string query) {
             SetQuery(query);
             return Get();
         }
         
+        /// Created in 2015-06-23, leeyonghun
 		public object Get(string query, AZData parameters) {
             SetQuery(query);
             SetParameters(parameters);
             return Get();
         }
 
+        /// Created in 2015-06-23, leeyonghun
 		public object Get() {
 			object rtnValue = null;
 
@@ -623,76 +656,86 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
+        /// Created in 2015-06-23, leeyonghun
         public object GetObject() {
             return Get();
         }
+        /// Created in 2015-06-23, leeyonghun
         public object GetObject(string query) {
             return Get(query);
         }
+        /// Created in 2015-06-23, leeyonghun
         public object GetObject(string query, AZData parameters) {
             return Get(query, parameters);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public int GetInt() {
             return AZString.Init(Get()).ToInt(0);
         }
+        /// Created in 2015-06-23, leeyonghun
         public int GetInt(int default_value) {
             return AZString.Init(Get()).ToInt(default_value);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public int GetInt(string query, int default_value) {
             return AZString.Init(Get(query)).ToInt(default_value);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public int GetInt(string query, AZData parameters, int default_value) {
             return AZString.Init(Get(query, parameters)).ToInt(default_value);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public int GetInt(string query) {
             return GetInt(query, 0);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public float GetFloat() {
             return AZString.Init(Get()).ToFloat(0f);
         }
+        /// Created in 2015-06-23, leeyonghun
         public float GetFloat(float p_default_value) {
             return AZString.Init(Get()).ToFloat(p_default_value);
         }
+        /// Created in 2015-06-23, leeyonghun
         public float GetFloat(string query, float p_default_value) {
             return AZString.Init(Get(query)).ToFloat(p_default_value);
         }
+        /// Created in 2015-06-23, leeyonghun
         public float GetFloat(string query, AZData parameters, float p_default_value) {
             return AZString.Init(Get(query, parameters)).ToFloat(p_default_value);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public float GetFloat(string query) {
             return GetFloat(query, 0f);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public string GetString() {
             return AZString.Init(Get()).String("");
         }
+        /// Created in 2015-06-23, leeyonghun
         public string GetString(string query, string p_default_value) {
             return AZString.Init(Get(query)).String(p_default_value);
         }
+        /// Created in 2015-06-23, leeyonghun
         public string GetString(string query, AZData parameters, string p_default_value) {
             return AZString.Init(Get(query, parameters)).String(p_default_value);
         }
-
+        /// Created in 2015-06-23, leeyonghun
         public string GetString(string query) {
             return GetString();
         }
-
+        /// Created in 2015-06-23, leeyonghun
 		public AZData GetData(string query) {
             SetQuery(query);
             return GetData();
         }
-
+        /// Created in 2015-06-23, leeyonghun
 		public AZData GetData(string query, AZData parameters) {
             SetQuery(query);
             SetParameters(parameters);
             return GetData();
         }
+        /// Created in 2015-06-23, leeyonghun
 		public AZData GetData() {
 			AZData rtnValue = new AZData ();
 
@@ -849,53 +892,52 @@ namespace Com.Mparang.AZLib {
 		}
 
         
-        /// <summary>
-        ///</summary>
+        /// <summary></summary>
         /// Created in 2015-06-24, leeyonghun
-       
         public AZList GetList() {
             return GetList(0, -1);
         }
+        /// Created in 2015-06-24, leeyonghun
         public AZList GetList(string query) {
             SetQuery(query);
             return GetList(0);
         }
+        /// Created in 2015-06-24, leeyonghun
 		public AZList GetList(string query, int offset) {
             SetQuery(query);
             return GetList(offset);
         }
-        
+        /// Created in 2015-06-24, leeyonghun
 		public AZList GetList(string query, int offset, int length) {
             SetQuery(query);
             return GetList(offset, length);
         }
+        /// Created in 2015-06-24, leeyonghun
 		public AZList GetList(string query, AZData parameters) {
             SetQuery(query);
             SetParameters(parameters);
             return GetList();
         }
+        /// Created in 2015-06-24, leeyonghun
 		public AZList GetList(string query, AZData parameters, int offset) {
             SetQuery(query);
             SetParameters(parameters);
             return GetList(offset);
         }
-        
+        /// Created in 2015-06-24, leeyonghun
 		public AZList GetList(string query, AZData parameters, int offset, int length) {
             SetQuery(query);
             SetParameters(parameters);
             return GetList(offset, length);
         }
-        
+        /// Created in 2015-06-24, leeyonghun
 		public AZList GetList(int offset) {
             return GetList(offset, -1);
         }
 
         
-        /// <summary>
-        ///주어진 쿼리에 대해 offset, length 만큼의 데이터 반환
-        ///</summary>
+        /// <summary>주어진 쿼리에 대해 offset, length 만큼의 데이터 반환</summary>
         /// Created in 2015, leeyonghun
-       
 		public AZList GetList(int offset, int length) {
 			AZList rtnValue = new AZList ();
 
@@ -1100,6 +1142,7 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
+        /// Created in 2015, leeyonghun
 		private bool Open() {
 			bool rtnValue = false;
 
@@ -1133,6 +1176,7 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
+        /// Created in 2015, leeyonghun
 		private bool Close() {
 			bool rtnValue = false;
 
@@ -1185,7 +1229,6 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
-        
         /// <summary>DB 연결 정보 저장용 객체</summary>
         /// 작성일 : 2015-06-03 이용훈
         public class DBConnectionInfo {
@@ -1310,7 +1353,6 @@ namespace Com.Mparang.AZLib {
             
             /// <summary></summary>
             /// Created in 2015-08-19, leeyonghun
-           
             private string GetSqlTypeString(SQL_TYPE p_sql_type) {
                 string rtn_value = "";
                 switch (p_sql_type) {
@@ -1328,7 +1370,6 @@ namespace Com.Mparang.AZLib {
             
             /// <summary></summary>
             /// Created in 2015-08-19, leeyonghun
-           
             private SQL_TYPE GetSqlType(string p_sql_type) {
                 SQL_TYPE rtn_value = SQL_TYPE.MSSQL;
                 switch (p_sql_type.ToLower()) {
@@ -1343,35 +1384,41 @@ namespace Com.Mparang.AZLib {
                 return rtn_value;
             }
 
+            /// Created in 2015-08-19, leeyonghun
             public DBConnectionInfo SetSqlType(SQL_TYPE sql_type) {
                 SqlType = sql_type;
                 return this;
             }
+            /// Created in 2015-08-19, leeyonghun
             public DBConnectionInfo SetConnectionString(string connection_string) {
                 ConnectionString = connection_string;
                 return this;
             }
+            /// Created in 2015-08-19, leeyonghun
             public DBConnectionInfo SetServer(string server) {
                 Server = server;
                 return this;
             }
+            /// Created in 2015-08-19, leeyonghun
             public DBConnectionInfo SetPort(int port) {
                 Port = port;
                 return this;
             }
+            /// Created in 2015-08-19, leeyonghun
             public DBConnectionInfo SetCatalog(string catalog) {
                 Catalog = catalog;
                 return this;
             }
+            /// Created in 2015-08-19, leeyonghun
             public DBConnectionInfo SetID(string id) {
                 ID = id;
                 return this;
             }
+            /// Created in 2015-08-19, leeyonghun
             public DBConnectionInfo SetPW(string pw) {
                 PW = pw;
                 return this;
             }
-
             // Properties below
             public SQL_TYPE SqlType { get; set; }
             public string ConnectionString { get; set; }
@@ -1385,7 +1432,6 @@ namespace Com.Mparang.AZLib {
         
         /// <summary>Prepared Statement 사용한 DB 처리부분</summary>
         /// Created in 2017-03-27, leeyonghun
-       
         public class Prepared {
             private AZSql azSql;
             /// Created in 2017-03-28, leeyonghun
@@ -1541,64 +1587,50 @@ namespace Com.Mparang.AZLib {
             public string GetString(string query, AZData parameters, string default_value) {
                 return this.azSql.GetString(query, parameters, default_value);
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZData GetData() {
                 return this.azSql.GetData();
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZData GetData(string query) {
                 return this.azSql.GetData(query);
             }
-
-            
             /// <summary></summary>
             /// Created in 2017-03-28, leeyonghun
-           
             public AZData GetData(string query, AZData parameters) {
                 return this.azSql.GetData(query, parameters);
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZList GetList() {
                 return this.azSql.GetList();
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZList GetList(int offset) {
                 return this.azSql.GetList(offset);
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZList GetList(int offset, int length) {
                 return this.azSql.GetList(offset, length);
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZList GetList(string query) {
                 return this.azSql.GetList(query);
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZList GetList(string query, int offset) {
                 return this.azSql.GetList(query, offset);
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZList GetList(string query, AZData parameters) {
                 return this.azSql.GetList(query, parameters);
             }
-
             /// Created in 2017-03-28, leeyonghun
             public AZList GetList(string query, AZData parameters, int offset) {
                 return this.azSql.GetList(query, parameters, offset);
             }
 
-            
             /// <summary></summary>
             /// Created in 2017-03-28, leeyonghun
-           
             public AZList GetList(string query, AZData parameters, int offset, int length) {
                 AZList rtnValue = new AZList ();
 
@@ -1802,39 +1834,33 @@ namespace Com.Mparang.AZLib {
                 }
             }
 
-            
             /// Created in 2015-08-10, leeyonghun
             public class Table {
                 List<TableData> tableList;
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
                 public Table() {
                     tableList = new List<TableData>();
                 }
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
                 public static Table Init() {
                     return new Table();
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public Table Add(TableData p_value) {
                     this.tableList.Add(p_value);
                     return this;
                 }
 
-                
                 /// Created in 2015-12-17, leeyonghun
                 public TableData Get(int p_value) {
                     return this.tableList[p_value];
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public string ToJsonString() {
                     StringBuilder rtnValue = new StringBuilder();
@@ -1846,6 +1872,7 @@ namespace Com.Mparang.AZLib {
                     return rtnValue.ToString();
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public JOIN GetFirstJoin() {
                     JOIN rtnValue = JOIN.EMPTY;
                     if (Size() > 0) {
@@ -1854,18 +1881,17 @@ namespace Com.Mparang.AZLib {
                     return rtnValue;
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public int Size() {
                     return this.tableList.Count;
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public string GetQuery() {
                     return AZSql.Query.Table.GetQuery(ToJsonString());
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public static string GetQuery(string p_json) {
                     StringBuilder rtn_value = new StringBuilder();
 
@@ -1887,7 +1913,6 @@ namespace Com.Mparang.AZLib {
                     return rtn_value.ToString();
                 }
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
                 public Table Clear() {
@@ -1896,24 +1921,27 @@ namespace Com.Mparang.AZLib {
                 }
             }
 
-            
             /// <summary></summary>
             /// Created in 2015-08-04, leeyonghun
             public class OrderingData {
                 public int Order { get; set; }
                 public string Value { get; set; }
 
+                /// Created in 2015-08-04, leeyonghun
                 public OrderingData() {
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public OrderingData(int pOrder, string pValue) {
                     Set(pOrder, pValue);
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public static OrderingData Init(int pOrder, string pValue) {
                     return new OrderingData(pOrder, pValue);
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public OrderingData Set(int pOrder, string pValue) {
                     Order = pOrder;
                     Value = pValue;
@@ -1921,6 +1949,7 @@ namespace Com.Mparang.AZLib {
                     return this;
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public string ToJsonString() {
                     StringBuilder rtnValue = new StringBuilder();
                     rtnValue.Append("{");
@@ -1934,35 +1963,30 @@ namespace Com.Mparang.AZLib {
             public class Ordering {
                 List<OrderingData> orderingList;
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
                 public Ordering() {
                     orderingList = new List<OrderingData>();
                 }
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
                 public static Ordering Init() {
                     return new Ordering();
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public Ordering Add(OrderingData p_value) {
                     this.orderingList.Add(p_value);
                     return this;
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public Ordering Add(int p_order, string p_value) {
                     this.Add(new OrderingData(p_order, p_value));
                     return this;
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public string ToJsonString() {
                     StringBuilder rtnValue = new StringBuilder();
@@ -1974,19 +1998,18 @@ namespace Com.Mparang.AZLib {
                     return rtnValue.ToString();
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public string GetQuery() {
                     return AZSql.Query.Ordering.GetQuery(ToJsonString());
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public int Size() {
                     return this.orderingList.Count;
                 }
 
                 // [{"order":"1~", "value":""},,,]
+                /// Created in 2015-08-04, leeyonghun
                 public static string GetQuery(string p_json) {
                     StringBuilder rtn_value = new StringBuilder();
 
@@ -2019,7 +2042,6 @@ namespace Com.Mparang.AZLib {
                     return rtn_value.ToString();
                 }
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
                 public Ordering Clear() {
@@ -2028,7 +2050,6 @@ namespace Com.Mparang.AZLib {
                 }
             }
 
-            
             /// Created in 2015-08-04, leeyonghun
             public class ConditionData {
                 public string Group { get; set; }
@@ -2037,6 +2058,7 @@ namespace Com.Mparang.AZLib {
                 public COMPARISON Comparison { get; set; }
                 public List<string> Values { get; set; }
 
+                /// Created in 2015-08-04, leeyonghun
                 public ConditionData() {
                     Group = "";
                     Conjunction = CONJUNCTION.EMPTY;
@@ -2044,10 +2066,12 @@ namespace Com.Mparang.AZLib {
                     Values = new List<string>();
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public static ConditionData Init() {
                     return new ConditionData();
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 private string GetComparisonString(COMPARISON p_value) {
                     string rtnValue = "";
                     switch (p_value) {
@@ -2064,6 +2088,7 @@ namespace Com.Mparang.AZLib {
                     return rtnValue;
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public ConditionData SetGroup(string pValue) { Group = pValue; return this; }
                 public ConditionData SetConjunction(CONJUNCTION pValue) { Conjunction = pValue; return this; }
                 public ConditionData SetTarget(string pValue) { Target = pValue; return this; }
@@ -2118,28 +2143,24 @@ namespace Com.Mparang.AZLib {
 
                 List<ConditionData> conditionalList;
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
                 public Condition() {
                     conditionalList = new List<ConditionData>();
                 }
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-04, leeyonghun
                 public static Condition Init() {
                     return new Condition();
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public Condition Add(ConditionData p_value) {
                     this.conditionalList.Add(p_value);
                     return this;
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public string ToJsonString() {
                     StringBuilder rtnValue = new StringBuilder();
@@ -2151,6 +2172,7 @@ namespace Com.Mparang.AZLib {
                     return rtnValue.ToString();
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public CONJUNCTION GetFirstConjunction() {
                     CONJUNCTION rtnValue = CONJUNCTION.EMPTY;
                     if (Size() > 0) {
@@ -2159,18 +2181,17 @@ namespace Com.Mparang.AZLib {
                     return rtnValue;
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public int Size() {
                     return this.conditionalList.Count;
                 }
 
-                
                 /// Created in 2015-08-04, leeyonghun
                 public string GetQuery() {
                     return AZSql.Query.Condition.GetQuery(ToJsonString());
                 }
 
+                /// Created in 2015-08-04, leeyonghun
                 public static string GetQuery(string p_json) {
                     StringBuilder rtn_value = new StringBuilder();
 
@@ -2296,7 +2317,6 @@ namespace Com.Mparang.AZLib {
                     return rtn_value.ToString();
                 }
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-07, leeyonghun
                 public Condition Clear() {
@@ -2306,6 +2326,7 @@ namespace Com.Mparang.AZLib {
             }
         }
 
+        /// Created in 2015-08-13, leeyonghun
         public class Basic {
             public enum WHERETYPE {
                 GREATER_THAN, GREATER_THAN_OR_EQUAL, 
@@ -2392,7 +2413,6 @@ namespace Com.Mparang.AZLib {
                 }
             }
 
-            
             /// <summary></summary>
             /// Created in 2015-08-12, leeyonghun
             public class SetData {
@@ -2432,7 +2452,6 @@ namespace Com.Mparang.AZLib {
                     this.ValueType = p_value_type;
                 }
 
-                
                 /// <summary></summary>
                 /// Created in 2015-08-13, leeyonghun
                 public string GetQuery() {
@@ -2480,8 +2499,6 @@ namespace Com.Mparang.AZLib {
                 //
                 IsPrepared = false;
 
-                //query = "";
-
                 // 지정된 테이블에 대한 스키마 설정
                 SetSchemaData();
             }
@@ -2504,8 +2521,6 @@ namespace Com.Mparang.AZLib {
 
                 //
                 IsPrepared = is_prepared;
-
-                //query = "";
 
                 // 지정된 테이블에 대한 스키마 설정
                 SetSchemaData();
@@ -2531,8 +2546,6 @@ namespace Com.Mparang.AZLib {
                 //
                 IsPrepared = false;
 
-                //query = "";
-
                 // 지정된 테이블에 대한 스키마 설정
                 SetSchemaData();
             }
@@ -2543,7 +2556,6 @@ namespace Com.Mparang.AZLib {
                     throw new Exception("Target table name not specified.");
                 }
                 this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
-                //this.db_info = new DBConnectionInfo(connection_json);
                 this.azSql = azSql;
 
                 sql_where = new AZList();
@@ -2561,60 +2573,7 @@ namespace Com.Mparang.AZLib {
                 // 지정된 테이블에 대한 스키마 설정
                 SetSchemaData();
             }
-            /*
-            /// Created in 2017-03-29, leeyonghun
-            public Basic(string p_table_name, DBConnectionInfo p_db_connection_info) {
-                if (p_table_name.Trim().Length < 1) {
-                    throw new Exception("Target table name not specified.");
-                }
-                this.table_name = AZString.Encode(AZString.ENCODE.JSON, p_table_name);
-                this.db_info = p_db_connection_info;
 
-                sql_where = new AZList();
-                sql_set = new AZList();
-                sql_select = "";
-                data_schema = null;
-
-                has_schema_data = false;
-
-                //
-                IsPrepared = false;
-
-                //query = "";
-
-                // 지정된 테이블에 대한 스키마 설정
-                SetSchemaData();
-            }
-            
-            /// <summary>
-            ///Basic constructor
-            ///</summary>
-            /// Created : 2015-06-02, leeyonghun
-           
-            public Basic(string p_table_name, DBConnectionInfo p_db_connection_info, bool is_prepared) {
-                if (p_table_name.Trim().Length < 1) {
-                    throw new Exception("Target table name not specified.");
-                }
-                this.table_name = AZString.Encode(AZString.ENCODE.JSON, p_table_name);
-                this.db_info = p_db_connection_info;
-
-                sql_where = new AZList();
-                sql_set = new AZList();
-                sql_select = "";
-                data_schema = null;
-
-                has_schema_data = false;
-
-                //
-                IsPrepared = is_prepared;
-
-                //query = "";
-
-                // 지정된 테이블에 대한 스키마 설정
-                SetSchemaData();
-            }
-            */
-            
             /// <summary>basic constructor</summary>
             /// Created in 2015-06-23, leeyonghun
             public Basic(string p_table_name) {
@@ -2648,17 +2607,7 @@ namespace Com.Mparang.AZLib {
 
                 has_schema_data = false;
             }
-
-            /*
-            /// <summary>Creating new class and return</summary>
-            /// Created : 2015-06-02, leeyonghun
-            public static AZSql.Basic Init(string p_table_name, DBConnectionInfo p_db_connection_info) {
-                if (p_table_name.Trim().Length < 1) {
-                    throw new Exception("Target table name not specified.");
-                }
-                return new AZSql.Basic(p_table_name, p_db_connection_info);
-            }
-            */
+            
             /// <summary>Creating new class and return</summary>
             /// Created : 2015-06-02, leeyonghun
             public static AZSql.Basic Init(string p_table_name, string connection_json) {
@@ -3326,7 +3275,6 @@ namespace Com.Mparang.AZLib {
                     throw new Exception("Set datas required.");
                 }
                 if (!IsPrepared) {
-                    //rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
                     rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
                 }
                 else {
@@ -3334,10 +3282,6 @@ namespace Com.Mparang.AZLib {
                         throw new Exception("AZSql required.");
                     }
                     rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), GetPreparedParameters());
-                    //AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
-                    //prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.INSERT));
-                    //prepared.SetParameters(GetPreparedParameters());
-                    //rtn_value = prepared.Execute(p_identity);
                 }
                 return rtn_value;
             }
@@ -3387,19 +3331,20 @@ namespace Com.Mparang.AZLib {
             /// <summary>Prepared 객체를 반환한다</summary>
             /// Created : 2017-03-28 leeyonghun
             public AZSql.Prepared GetPrepared(CREATE_QUERY_TYPE create_query_type) {
-                AZSql.Prepared rtn_value = azSql.GetPrepared();
+                AZSql.Prepared rtn_value = null;
+                if (!this.IsPrepared) {
+                    throw new Exception("Property named IsPrepared is not true.");
+                }
+                if (azSql == null) {
+                    rtn_value = new AZSql.Prepared();
+                }
+                else {
+                    rtn_value = azSql.GetPrepared();
+                }
                 rtn_value.SetQuery(GetQuery(create_query_type));
                 rtn_value.SetParameters(GetPreparedParameters());
                 return rtn_value;
             }
-
-            /*
-            /// <summary>Prepared 객체를 반환한다</summary>
-            /// Created : 2017-03-28 leeyonghun 
-            public AZSql.Prepared GetPrepared(string connection_json, CREATE_QUERY_TYPE create_query_type) {
-                return GetPrepared(new DBConnectionInfo(connection_json), create_query_type);
-            }
-            */
 
             /// <summary>Prepared 객체를 반환한다</summary>
             /// Created : 2017-03-28 leeyonghun 
@@ -3408,9 +3353,6 @@ namespace Com.Mparang.AZLib {
                 if (!this.IsPrepared) {
                     throw new Exception("Perperty named IsPrepared is not true.");
                 }
-                //this.db_info = db_info;
-                //this.azSql = new AZSql(connection_json);
-
                 //
                 rtn_value = new AZSql(connection_json).GetPrepared();
                 rtn_value.SetQuery(GetQuery(create_query_type));

@@ -1,19 +1,3 @@
-/**
- * Copyright (C) <2014~>  <Lee Yonghun, metalsm7@gmail.com, visit http://azlib.mparang.com/>
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,24 +13,29 @@ namespace Com.Mparang.AZLib {
         // IEnumerable 용
         private int index = -1;
 
+        /// <summary>기본 생성자</summary>
+        /// Created in 2017-08-17, leeyonghun
 		public AZList() {
             list = new List<AZData>();
             //map_attribute = new Dictionary<string, object>();
             attribute_data = new AttributeData();
 		}
 
+        /// Created in 2015-08-13, leeyonghun
         public AttributeData Attribute {
             get {
                 return attribute_data;
             }
         }
 
+        /// <summary>AZData 자료를 추가</summary>
+        /// <param name="pData">AZData, 추가할 AZData 자료</param>
+        /// Created in 2015-08-13, leeyonghun
 		public AZList Add(AZData pData) { list.Add(pData); return this; }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary>AZList 자료의 모든 AZData 자료를 추가</summary>
+        /// <param name="pList">AZList, 추가할 AZList 자료</param>
+        /// Created in 2015-08-13, leeyonghun
         public AZList Add(AZList pList) {
             for (int cnti = 0; cnti < pList.Size(); cnti++) {
                 this.Add(pList.Get(cnti));
@@ -54,8 +43,14 @@ namespace Com.Mparang.AZLib {
             return this;
         }
 
+        /// <summary>일치하는 AZData 자료를 현재 자료에서 삭제</summary>
+        /// <param name="pData">AZData, 삭제할 AZData 자료</param>
+        /// Created in 2015-08-13, leeyonghun
         public AZList Remove(AZData pData) { list.Remove(pData); return this; }
 
+        /// <summary>현재 자료에서 선택된 index 값에 해당하는 자료 삭제</summary>
+        /// <param name="pIndex">int, 삭제할 AZData 자료가 위치하는 index 값, zero base</param>
+        /// Created in 2015-08-13, leeyonghun
 		public AZList Remove(int pIndex) {
 			//AZData rtnValue = null;
 			if (list.Count > pIndex) {
@@ -68,12 +63,18 @@ namespace Com.Mparang.AZLib {
             return this;
 		}
 
+        /// <summart>모든 자료를 삭제</summary>
+        /// Created in 2015-08-13, leeyonghun
 		public void Clear() { list.Clear(); }
 
+        /// <summary>현재 자료의 갯수 반환</summary>
+        /// Created in 2015-08-13, leeyonghun
 		public int Size() { return list.Count; }
 
         public string Name { get; set; }
 
+        /// <summary>현재 자료 중 key값과 일치하는 자료가 있는지 확인</summary>
+        /// <param name="key">string, 일치하는 key값이 있는지 확인을 원하는 key 값</param>
         /// Created in 2017-06-29, leeyonghun
         public int IndexOf(string key) {
             int rtn_value = -1;
@@ -86,6 +87,9 @@ namespace Com.Mparang.AZLib {
             return rtn_value;
         }
 
+        /// <summary>현재 자료 중 key값과 value값이 일치하는 자료가 있는지 확인</summary>
+        /// <param name="key">string, 비교할 key값</param>
+        /// <param name="value">object, 비교할 value값</param>
         /// Created in 2017-06-29, leeyonghun
         public int IndexOf(string key, object value) {
             int rtn_value = -1;
@@ -98,37 +102,25 @@ namespace Com.Mparang.AZLib {
             return rtn_value;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// Created in 2015-08-13, leeyonghun
         public bool MoveNext() {
             this.index++;
             return (this.index < Size());
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// Created in 2015-08-13, leeyonghun
         public void Reset() {
             this.index = -1;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// Created in 2015-08-13, leeyonghun
         object IEnumerator.Current {
             get {
                 return Current;
             }
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// Created in 2015-08-13, leeyonghun
         public AZData Current {
             get {
                 try {
@@ -140,29 +132,21 @@ namespace Com.Mparang.AZLib {
             }
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// Created in 2015-08-13, leeyonghun
         void IDisposable.Dispose() { }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// Created in 2015-08-13, leeyonghun
         IEnumerator IEnumerable.GetEnumerator() {
             //return (IEnumerator)GetEnumerator();
             return this.list.GetEnumerator();
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// Created in 2015-08-13, leeyonghun
         public IEnumerator<AZData> GetEnumerator() {
             return this.list.GetEnumerator();
         }
 
+        /// Created in 2015-08-13, leeyonghun
 		public override string ToString() {
 			StringBuilder builder = new StringBuilder();
 			for (int cnti = 0; cnti < list.Count; cnti++) {
@@ -172,6 +156,7 @@ namespace Com.Mparang.AZLib {
 			return builder.ToString ();
 		}
 
+        /// Created in 2015-08-13, leeyonghun
 		public string ToJsonString() {
 			StringBuilder builder = new StringBuilder();
 			for (int cnti = 0; cnti < list.Count; cnti++) {
@@ -181,6 +166,7 @@ namespace Com.Mparang.AZLib {
 			return "[" + builder.ToString() + "]";
 		}
 
+        /// Created in 2015-08-13, leeyonghun
         public string ToXmlString() {
             StringBuilder builder = new StringBuilder();
             for (int cnti = 0; cnti < Size(); cnti++) {
@@ -190,12 +176,12 @@ namespace Com.Mparang.AZLib {
             return builder.ToString();
         }
 
+        /// Created in 2015-08-13, leeyonghun
         public AZData Get(int pIndex) { return list[pIndex]; }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary>모든 AZData 중 Name값이 설정되고, Name값이 지정된 Name값과 일치하는 자료의 목록을 반환</summary>
+        /// <param name="pName">string, </param>
+        /// Created in 2015-08-13, leeyonghun
         public AZList Get(string pName) {
             AZList rtnValue = new AZList();
             for (int cnti = 0; cnti < this.list.Count; cnti++) {
@@ -208,26 +194,26 @@ namespace Com.Mparang.AZLib {
 
 		//public AZData GetData(int pIndex) { return list[pIndex]; }
 
+        /// <summary>index에 해당하는 AZData 자료 반환</summary>
+        /// <param name="pIndex">int, 반환할 자료의 index 값, zero base</param>
+        /// Created in 2015-08-13, leeyonghun
 		public AZData this[int pIndex] {
 			get {
 				return Get(pIndex);
 			}
 		}
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary>모든 AZData 중 Name값이 설정되고, Name값이 지정된 Name값과 일치하는 자료의 목록을 반환</summary>
+        /// <param name="pName">string, </param>
+        /// Created in 2015-08-13, leeyonghun
         public AZList this[string pName] {
             get {
                 return Get(pName);
             }
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-07-25, leeyonghun
-         */
+        /// <summary>모든 AZData자료에 대해 개별로 T형식으로 Convert()를 수행 후 T형식의 배열로 반환</summary>
+        /// Created in 2015-07-25, leeyonghun
         public T[] Convert<T>() {
             T[] rtnValue = new T[Size()];
             for (int cnti = 0; cnti < Size(); cnti++) {
@@ -236,10 +222,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * AttributeData 에서 사용할 key:value 에 대응하는 자료형 클래스
-         * 작성일 : 2015-05-22 이용훈
-         */
+        /// AttributeData 에서 사용할 key:value 에 대응하는 자료형 클래스
+        /// Created in 2015-05-22, leeyonghun
         private class KeyValue {
             private string key;
             private object value;
@@ -262,22 +246,23 @@ namespace Com.Mparang.AZLib {
             override public string ToString() { return GetKey() + ":" + GetValue(); }
         }
 
-        /**
-         * 속성값(attribute)에 대한 자료 저장용 클래스
-         * 작성일 : 2015-05-22 이용훈
-         */
+        /// 속성값(attribute)에 대한 자료 저장용 클래스
+        /// Created in 2015-05-22, leeyonghun
         public class AttributeData {
             private List<KeyValue> attribute_list;
 
+            /// Created in 2015-05-22, leeyonghun
             public AttributeData() {
                 this.attribute_list = new List<KeyValue>();
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object Add(string p_key, object p_value) {
                 this.attribute_list.Add(new KeyValue(p_key, p_value));
                 return p_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object InsertAt(int p_index, string p_key, object p_value) {
                 object rtn_value = null;
                 if (p_index > -1 && p_index < Size()) {
@@ -287,6 +272,7 @@ namespace Com.Mparang.AZLib {
                 return p_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object InsertBefore(string p_target_key, string p_key, object p_value) {
                 object rtn_value = null;
                 int index = IndexOf(p_target_key);
@@ -297,6 +283,7 @@ namespace Com.Mparang.AZLib {
                 return p_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object InsertAfter(string p_target_key, string p_key, object p_value) {
                 object rtn_value = null;
                 int index = IndexOf(p_target_key);
@@ -311,6 +298,7 @@ namespace Com.Mparang.AZLib {
                 return p_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object Remove(string p_key) {
                 object rtn_value = null;
                 for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -323,6 +311,7 @@ namespace Com.Mparang.AZLib {
                 return rtn_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object Remove(int p_index) {
                 object rtn_value = null;
                 if (p_index > -1 || p_index < Size()) {
@@ -332,14 +321,17 @@ namespace Com.Mparang.AZLib {
                 return rtn_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object RemoveAt(int p_index) {
                 return Remove(p_index);
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public void Clear() {
                 this.attribute_list.Clear();
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public int IndexOf(string p_key) {
                 int rtn_value = -1;
                 for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -351,6 +343,7 @@ namespace Com.Mparang.AZLib {
                 return rtn_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object Get(string p_key) {
                 object rtn_value = null;
                 for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -362,6 +355,7 @@ namespace Com.Mparang.AZLib {
                 return rtn_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object Get(int p_index) {
                 object rtn_value = null;
                 if (p_index > -1 || p_index < Size()) {
@@ -370,6 +364,7 @@ namespace Com.Mparang.AZLib {
                 return rtn_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public object Set(string p_key, object p_value) {
                 object rtn_value = null;
                 for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -382,14 +377,17 @@ namespace Com.Mparang.AZLib {
                 return rtn_value;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public int Size() {
                 return this.attribute_list.Count;
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public string GetKey(int p_index) {
                 return this.attribute_list[p_index].GetKey();
             }
 
+            /// Created in 2015-05-22, leeyonghun
             public string[] GetKeys() {
                 string[] rtn_value = new string[this.attribute_list.Count];
                 for (int cnti = 0; cnti < attribute_list.Count; cnti++) {

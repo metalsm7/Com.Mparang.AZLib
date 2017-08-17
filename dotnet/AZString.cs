@@ -1,19 +1,3 @@
-/**
- * Copyright (C) <2014~>  <Lee Yonghun, metalsm7@gmail.com, visit http://azlib.mparang.com/>
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 using System;
 using System.Text;
 using System.Collections.Generic;
@@ -45,12 +29,16 @@ namespace Com.Mparang.AZLib {
         public const int RANDOM_ALPHABET_NUMBER = -103;
         */
 
+        /// Created in 2015-07-02, leeyonghun
         public AZString(object pString) { this.value_object = pString; }
 
+        /// Created in 2015-07-02, leeyonghun
         public static AZString Init(object pString) { return new AZString(pString); }
 
+        /// Created in 2015-07-02, leeyonghun
         public string String() { return String(""); }
 
+        /// Created in 2015-07-02, leeyonghun
         public string String(string pDefault) {
             string rtnValue = "";
             if (this.value_object == null) {
@@ -79,10 +67,13 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// Created in 2015-07-02, leeyonghun
         override public string ToString() { return String(); }
 
+        /// Created in 2015-07-02, leeyonghun
         public int ToInt() { return ToInt(0); }
 
+        /// Created in 2015-07-02, leeyonghun
         public int ToInt(int pDefaultValue) {
             int rtnValue = 0;
             if (this.value_object == null) {
@@ -100,6 +91,7 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// Created in 2015-07-02, leeyonghun
         public static int ToInt(string pValue, int pDefaultValue) {
             int rtnValue = 0;
             try {
@@ -112,10 +104,13 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// Created in 2015-07-02, leeyonghun
         public static int ToInt(string pValue) { return AZString.ToInt(pValue, 0); }
 
+        /// Created in 2015-07-02, leeyonghun
         public long ToLong() { return ToLong(0); }
 
+        /// Created in 2015-07-02, leeyonghun
         public long ToLong(long pDefaultValue) {
             long rtnValue = 0;
             if (this.value_object == null) {
@@ -133,6 +128,7 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// Created in 2015-07-02, leeyonghun
         public static long ToLong(string pValue, long pDefaultValue) {
             long rtnValue = 0;
             try {
@@ -145,10 +141,13 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// Created in 2015-07-02, leeyonghun
         public static long ToLong(string pValue) { return AZString.ToLong(pValue, 0); }
 
+        /// Created in 2015-07-02, leeyonghun
         public float ToFloat() { return ToFloat(0.0f); }
 
+        /// Created in 2015-07-02, leeyonghun
         public float ToFloat(float pDefaultValue) {
             float rtnValue = 0.0f;
             if (this.value_object == null) {
@@ -166,6 +165,7 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// Created in 2015-07-02, leeyonghun
         public static float ToFloat(string pValue, float pDefaultValue) {
             float rtnValue = 0.0f;
             try {
@@ -178,36 +178,29 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// Created in 2015-07-02, leeyonghun
         public static float ToFloat(string pValue) { return AZString.ToFloat(pValue, 0.0f); }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public DateTime ToDateTime() {
             return AZString.ToDateTime(this.Value);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public DateTime ToDateTime(DateTime? pDefaultValue) {
             return AZString.ToDateTime(this.Value, pDefaultValue);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static DateTime ToDateTime(string pValue) {
             return ToDateTime(pValue, null);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static DateTime ToDateTime(string pValue, DateTime? pDefaultValue) {
             DateTime rtnValue = new DateTime();
             if (pDefaultValue.HasValue) {
@@ -221,6 +214,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static string Random() {
             int randomLength = 6;
             Random random = new Random(Guid.NewGuid().GetHashCode());
@@ -232,15 +227,15 @@ namespace Com.Mparang.AZLib {
             return AZString.Random(rndValue, RANDOM_TYPE.ALPHABET_AND_NUMBER, true);
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static string Random(int pLength) {
             return AZString.Random(pLength, RANDOM_TYPE.ALPHABET_AND_NUMBER, true);
         }
 
 
-        /**
-         * Created in 2015-07-02, leeyonghun
-         */
         /*
+        /// Created in 2015-07-02, leeyonghun
         public static string Random(int pLength, int pRandomType, Boolean pCaseSensitive) {
             RANDOM_TYPE type = RANDOM_TYPE.ALPHABET_ONLY;
             switch (pRandomType) {
@@ -258,6 +253,8 @@ namespace Com.Mparang.AZLib {
         }
         */
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static string Random(int pLength, string pSourceString) {
             /*StringBuilder rtnValue = new StringBuilder();
             Random random = new Random();
@@ -273,10 +270,8 @@ namespace Com.Mparang.AZLib {
             return AZString.Init(pSourceString).MakeRandom(pLength).String();
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-07-02, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-07-02, leeyonghun
         public static string Random(int pLength, RANDOM_TYPE pRandomType, Boolean pCaseSensitive) {
             string sourceString = "";
             switch (pRandomType) {
@@ -296,10 +291,8 @@ namespace Com.Mparang.AZLib {
             return AZString.Init(sourceString).MakeRandom(pLength).String(); //AZString.Random(pLength, sourceString);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         public AZString MakeRandom(int pLength) {
             //this.value_object = AZString.Random(pLength, Value);
             lock (lock_object) {
@@ -321,6 +314,8 @@ namespace Com.Mparang.AZLib {
             return this;
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static string Repeat(string pString, int pLength) {
             StringBuilder rtnValue = new StringBuilder();
             for (int cnti = 0; cnti < pLength; cnti++) {
@@ -329,10 +324,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue.ToString();
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         public AZString Repeat(int pLength) {
             /*
             StringBuilder rtnValue = new StringBuilder();
@@ -345,46 +338,36 @@ namespace Com.Mparang.AZLib {
             return this;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public static string Wrap(string pString, string pWrapString, bool pForce) {
             StringBuilder rtnValue = new StringBuilder();
             rtnValue.AppendFormat("{0}{1}{2}", !pForce && pString.StartsWith(pWrapString) ? "" : pWrapString, pString, !pForce && pString.EndsWith(pWrapString) ? "" : pWrapString);
             return rtnValue.ToString();
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public static string Wrap(string pString, string pWrapString) {
             return Wrap(pString, pWrapString, false);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public AZString Wrap(string pWrapString, bool pForce) {
             this.value_object = AZString.Wrap(Value, pWrapString, pForce);
             return this;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public AZString Wrap(string pWrapString) {
             this.value_object = AZString.Wrap(Value, pWrapString, false);
             return this;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         public static string Format(string pSrc, string pFormat, string pTargetFormat) {
             string rtnValue = pTargetFormat;
 
@@ -423,11 +406,15 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public AZString Format(string pFormat, string pTarget) {
             this.value_object = AZString.Format(String(), pFormat, pTarget);
             return this;
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public string[] ToStringArray(int pLength) {
             string[] rtnValue = new String[(int)Math.Ceiling(this.String().Length / (double)pLength)];
 
@@ -456,14 +443,14 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static String[] ToStringArray(string pSrc, int pLength) {
             return new AZString(pSrc).ToStringArray(pLength);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         public AZString Encode(ENCODE pEncode) {
             switch (pEncode) {
                 case ENCODE.SQL:
@@ -485,18 +472,14 @@ namespace Com.Mparang.AZLib {
             return this;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         public static string Encode(ENCODE pEncode, string pSrc) {
             return AZString.Init(pSrc).Encode(pEncode).Value;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         public AZString Decode(DECODE pDecode) {
             switch (pDecode) {
                 case DECODE.SQL:
@@ -512,19 +495,16 @@ namespace Com.Mparang.AZLib {
             return this;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         public static string Decode(DECODE pDecode, string pSrc) {
             return AZString.Init(pSrc).Decode(pDecode).Value;
         }
 
         #region private encode/decode
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         private string ToXSSSafeEncoding() {
             string rtnValue;
 
@@ -537,10 +517,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         private string ToXMLSafeEncoding() {
             string rtnValue;
 
@@ -556,10 +534,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         private string ToHTMLSafeEncoding() {
             string rtnValue;
 
@@ -572,10 +548,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-05, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-05, leeyonghun
         private string ToHTMLSafeDecoding() {
             string rtnValue;
 
@@ -588,6 +562,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         private string ToSQLSafeEncoding() {
             string rtnValue;
 
@@ -603,12 +579,6 @@ namespace Com.Mparang.AZLib {
 
             return rtnValue;
         }
-
-        /*
-        private static string ToSQLSafeEncoding(string pSrc) {
-            return new AZString(pSrc).ToSQLSafeEncoding();
-        }
-         */
 
         private string ToSQLSafeDecoding() {
             string rtnValue;
@@ -626,12 +596,6 @@ namespace Com.Mparang.AZLib {
 
             return rtnValue;
         }
-        
-        /*
-        private static string ToSQLSafeDecoding(string pSrc) {
-            return new AZString(pSrc).ToSQLSafeDecoding();
-        }
-         */
 
         private string ToJSONSafeEncoding() {
             string rtnValue;
@@ -647,11 +611,6 @@ namespace Com.Mparang.AZLib {
 
             return rtnValue;
         }
-        /*
-        private static string ToJSONSafeEncoding(string pSrc) {
-            return new AZString(pSrc).ToJSONSafeEncoding();
-        }
-         */
 
         private string ToJSONSafeDecoding() {
             string rtnValue;
@@ -667,33 +626,22 @@ namespace Com.Mparang.AZLib {
 
             return rtnValue;
         }
-        /*
-        private static string ToJSONSafeDecoding(string pSrc) {
-            return new AZString(pSrc).ToJSONSafeDecoding();
-        }
-         */
         #endregion
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public T To<T>() {
             return AZString.To<T>(this.Value);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public T To<T>(T pDefaultValue) {
             return AZString.To<T>(this.Value, pDefaultValue);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-13, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public static T To<T>(object pValue) {
             object obj;
             if (typeof(T) == typeof(string)) {
@@ -705,10 +653,8 @@ namespace Com.Mparang.AZLib {
             return To<T>(pValue, obj);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2015-08-04, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2015-08-04, leeyonghun
         public static T To<T>(object pValue, object pDefaultValue) {
             object obj;
             if (typeof(T) == typeof(string)) {
@@ -741,13 +687,21 @@ namespace Com.Mparang.AZLib {
             return (T)obj;
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public class XML {
             private string xml;
 
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             public XML(string p_xml) { this.xml = p_xml; }
 
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             public static AZString.XML Init(string p_xml) { return new AZString.XML(p_xml); }
 
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             private static string ReplaceInnerDQ(string pString, char p_replace_chr) { return ReplaceInner(pString, "\"", "\"", p_replace_chr); }
             private static string ReplaceInner(string pString, string pStartString, string pEndString, char pReplaceChr) {
                 StringBuilder builder = new StringBuilder();
@@ -795,9 +749,9 @@ namespace Com.Mparang.AZLib {
                 return builder.ToString();
             }
 
-            //public AZData GetData() { return ToAZData(); }
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             public AZData ToAZData() { return AZString.XML.ToAZData(this.xml); }
-            //public static AZData GetData(string p_xml_string) { return ToAZData(p_xml_string); }
             public static AZData ToAZData(string p_xml_string) {
                 AZData rtnValue = new AZData();
                 p_xml_string = p_xml_string.Trim();
@@ -982,42 +936,31 @@ namespace Com.Mparang.AZLib {
             }
         }
 
+        /// <summary></summary>
+        /// Created in 2015-08-13, leeyonghun
         public class JSON {
             private string json;
 
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             public JSON(string pJson) { this.json = pJson; }
 
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             public static AZString.JSON Init(string pJson) { return new AZString.JSON(pJson); }
 
-            /**
-             * <summary>객체의 접근자가 public 인 property들에 대해 json 형식으로 변경 반환 처리</summary>
-             * Created in 2015-07-27, leeyonghun
-             */
+            /// <summary>객체의 접근자가 public 인 property들에 대해 json 형식으로 변경 반환 처리</summary>
+            /// Created in 2015-07-27, leeyonghun
             public static string Convert<T>(T pTarget) {
                 return AZData.From<T>(pTarget).ToJsonString();
-                /*AZData rtnValue = new AZData();
-
-                Type type = typeof(T);
-                //System.Reflection.PropertyInfo[] properties = type.GetProperties();
-                IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
-                foreach (PropertyInfo property in properties) {
-                    if (!property.CanRead) { continue; }
-                    rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pTarget, null).ToString() : property.GetValue(pTarget, null));
-                }*/
-                /*for (int cnti = 0; cnti < properties.Length; cnti++) {
-                    System.Reflection.PropertyInfo property = properties[cnti];
-                    if (!property.CanRead) {
-                        continue;
-                    }
-                    // ICollection 구현체에 대한 재귀 오류 수정처리, 2016-05-19, 이용훈
-                    rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pTarget, null).ToString() : property.GetValue(pTarget, null));
-                }*/
-
-                //return rtnValue.ToJsonString();
             }
 
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             private static string RemoveInnerDQ(string pString) { return RemoveInner(pString, '"', '"'); }
 
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             private static string RemoveInner(string pString, char pStartChr, char pEndChr) {
                 StringBuilder builder = new StringBuilder();
 
@@ -1064,9 +1007,9 @@ namespace Com.Mparang.AZLib {
                 return builder.ToString();
             }
 
-            //public AZData GetData() { return ToAZData(); }
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             public AZData ToAZData() { return AZString.JSON.ToAZData(this.json); }
-            //public static AZData GetData(string pJsonString) { return ToAZData(pJsonString); }
             public static AZData ToAZData(string pJsonString) {
                 AZData rtnValue = new AZData();
                 pJsonString = pJsonString.Trim();
@@ -1200,9 +1143,9 @@ namespace Com.Mparang.AZLib {
                 return rtnValue;
             }
 
-            //public AZList GetList() { return ToAZList(); }
+            /// <summary></summary>
+            /// Created in 2015-08-13, leeyonghun
             public AZList ToAZList() { return AZString.JSON.ToAZList(this.json); }
-            //public static AZList GetList(string pJsonString) { return ToAZList(pJsonString); }
             public static AZList ToAZList(string pJsonString) {
                 AZList rtnValue = new AZList();
                 pJsonString = pJsonString.Trim();
@@ -1254,20 +1197,17 @@ namespace Com.Mparang.AZLib {
     }
 
 
-    // 확장메소드
+    /// 확장메소드
+    /// Created in 2016-02-15, leeyonghun
     public static class AZStringEx {
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string AZFormat(this string pSrc, string pFormat, string pTargetFormat) {
             return AZString.Format(pSrc, pFormat, pTargetFormat);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string Format(this DateTime pDate, string pFormat) {
             string rtnValue = "";
             //DateTime date = DateTime.Parse(pSrc);
@@ -1283,98 +1223,74 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string Format(this DateTime pDate) {
             return pDate.Format("YYYY-MM-DD hh:mm:ss");
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static int ToInt(this string pSrc, int pDefault) {
             return AZString.ToInt(pSrc, pDefault);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static int ToInt(this string pSrc) {
             return AZString.ToInt(pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static long ToLong(this string pSrc, long pDefault) {
             return AZString.ToLong(pSrc, pDefault);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static long ToLong(this string pSrc) {
             return AZString.ToLong(pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static float ToFloat(this string pSrc, float pDefault) {
             return AZString.ToFloat(pSrc, pDefault);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static float ToFloat(this string pSrc) {
             return AZString.ToFloat(pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string Random(this string pSrc, int pLength) {
             return AZString.Random(pLength, pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string Repeat(this string pSrc, int pLength) {
             return AZString.Repeat(pSrc, pLength);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public static string Wrap(this string pSrc, string pWrapString, bool pForce) {
             return AZString.Wrap(pSrc, pWrapString, pForce);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public static string Wrap(this string pSrc, string pWrapString) {
             return AZString.Wrap(pSrc, pWrapString, false);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public static string Join<T>(this T[] pSrc, string pSeperator) {
             if (pSrc.GetType() != typeof(int[]) && pSrc.GetType() != typeof(float[]) &&
                 pSrc.GetType() != typeof(double[]) && pSrc.GetType() != typeof(string[])) {
@@ -1390,26 +1306,20 @@ namespace Com.Mparang.AZLib {
             return rtnValue.ToString();
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
         public static string Join<T>(this T[] pSrc) {
             return Join(pSrc, "");
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-24, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-24, leeyonghun
         public static bool Has<T>(this T[] pSrc, T pValue) {
             return IndexOf<T>(pSrc, pValue) > -1 ? true : false;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-24, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-24, leeyonghun
         public static int IndexOf<T>(this T[] pSrc, T pValue) {
             int rtnValue = -1;
             for (int cnti=0; cnti<pSrc.Length; cnti++) {
@@ -1421,11 +1331,9 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-23, leeyonghun
-         * ex: arrs.Each(x => x.Wrap("'"));
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-23, leeyonghun
+        /// ex: arrs.Each(x => x.Wrap("'"));
         public static T[] Each<T>(this T[] pSrc, Func<T, T> pFunc) {
             T[] rtnValue = pSrc;
             for (int cnti=0; cnti<rtnValue.Length; cnti++) {
@@ -1434,10 +1342,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-24, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-24, leeyonghun
         public static T Push<T>(this T[] pSrc, T pValue) {
             T rtnValue = default(T);
             if (pSrc != null) {
@@ -1449,10 +1355,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-24, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-24, leeyonghun
         public static T Pop<T>(this T[] pSrc) {
             T rtnValue = default(T);
             if (pSrc != null) {
@@ -1465,10 +1369,8 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2017-02-24, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2017-02-24, leeyonghun
         public static List<T> ToList<T>(this T[] pSrc) {
             List<T> rtnValue = new List<T>();
             for (int cnti = 0; cnti<pSrc.Length; cnti++) {
@@ -1477,34 +1379,26 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string Encode(this string pSrc, AZString.ENCODE pEncode) {
             return AZString.Encode(pEncode, pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string Decode(this string pSrc, AZString.DECODE pDecode) {
             return AZString.Decode(pDecode, pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-08-19, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-08-19, leeyonghun
         public static string Encrypt(this string pSrc, AZEncrypt.ENCRYPT pEncrypt, string pKey) {
             return pSrc.Encrypt(pEncrypt, pKey, null);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-08-19, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-08-19, leeyonghun
         public static string Encrypt(this string pSrc, AZEncrypt.ENCRYPT pEncrypt, string pKey, string pDefault) {
             string rtnValue = pDefault;
             switch (pEncrypt) {
@@ -1515,18 +1409,14 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-08-19, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-08-19, leeyonghun
         public static string Decrypt(this string pSrc, AZEncrypt.ENCRYPT pEncrypt, string pKey) {
             return pSrc.Decrypt(pEncrypt, pKey, null);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-08-19, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-08-19, leeyonghun
         public static string Decrypt(this string pSrc, AZEncrypt.ENCRYPT pEncrypt, string pKey, string pDefault) {
             string rtnValue = pDefault;
             switch (pEncrypt) {
@@ -1537,42 +1427,38 @@ namespace Com.Mparang.AZLib {
             return rtnValue;
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static T To<T>(this object pSrc, float pDefault) {
             return AZString.To<T>(pSrc, pDefault);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-23, leeyonghun
         public static AZData ToAZData(this string pSrc) {
             return AZString.JSON.ToAZData(pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-23, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-23, leeyonghun
         public static AZList ToAZList(this string pSrc) {
             return AZString.JSON.ToAZList(pSrc);
         }
 
-        /**
-         * <summary></summary>
-         * Created in 2016-02-15, leeyonghun
-         */
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static T To<T>(this object pSrc) {
             return AZString.To<T>(pSrc);
         }
     
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static string ToJson<T>(this T pSrc) {
             return AZString.JSON.Convert(pSrc);
         }
 
+        /// <summary></summary>
+        /// Created in 2016-02-15, leeyonghun
         public static bool IsNumeric(this string s) {
             foreach (char c in s) {
                 if (!char.IsDigit(c) && c != '.') {
@@ -1602,7 +1488,6 @@ namespace Com.Mparang.AZLib {
                 rtnValue.Add(property.Name);
             }
 #endif
-
             return rtnValue.ToArray();
         }
     }
