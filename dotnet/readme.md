@@ -3,7 +3,6 @@
 - C#은 .Net 4.0, 4.5.2, Standard1.4, CoreApp1.0 를 지원합니다
 
 ## Install
-----
 1) Package Manager
 ```
 PM> Install-Package Com.Mparang.AZLib
@@ -14,7 +13,6 @@ PM> Install-Package Com.Mparang.AZLib
 ```
 
 ## AZData
-----
 ### Key:Value 형식의 자료형식 객체
 - Add, Set, Remove 메소드를 통해 값 추가/수정/삭제
 - JSON 문자열로 출력하거나, JSON 문자열로 부터 AZData 객체 생성
@@ -55,7 +53,6 @@ Console.WriteLine("json - " + data_from_json_str.ToJsonString()); // json - {"na
 ```
 
 ## AZSql
-----
 ### Database 연결 및 데이터 처리 헬퍼 (현재 mssql만 지원)
 - AZData, AZList 객체로 결과값 바인딩
 - PreparedStatement 처리 지원
@@ -184,7 +181,6 @@ AZData result = sql.Commit();
 ```
 
 ## License
-----
     Copyright 2015 Leeyonghun
 
     Licensed under the Apache License, Version 2.0 (the "License");
