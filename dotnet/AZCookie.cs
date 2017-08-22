@@ -98,7 +98,7 @@ namespace Com.Mparang.AZLib {
             if (p_remain_days.HasValue) {
                 remain_days = p_remain_days.Value;
             }
-            if (remain_days != 0) cookies.Expires = DateTime.Now.AddDays(remain_days);
+            if (remain_days != 0) cookies.Expires = DateTime.Today.AddDays(remain_days);
             context.Response.Cookies.Set(cookies);
         }
 
@@ -182,7 +182,7 @@ namespace Com.Mparang.AZLib {
             if (p_remain_days.HasValue) {
                 remain_days = p_remain_days.Value;
             }
-            if (remain_days != 0) cookies.Expires = DateTime.Now.AddDays(remain_days);
+            if (remain_days != 0) cookies.Expires = DateTime.Today.AddDays(remain_days);
             context.Response.Cookies.Set(cookies);
         }
 
@@ -325,7 +325,7 @@ namespace Com.Mparang.AZLib {
             HttpContext context = System.Web.HttpContext.Current;
             if (context.Response.Cookies[p_key] != null) {
                 context.Response.Cookies[p_key].Value = HttpUtility.UrlEncode("");
-                context.Response.Cookies[p_key].Expires = DateTime.Now.AddDays(-1);
+                context.Response.Cookies[p_key].Expires = DateTime.Today.AddDays(-1);
             }
         }
 
@@ -337,7 +337,7 @@ namespace Com.Mparang.AZLib {
             HttpContext context = System.Web.HttpContext.Current;
             for (int cnti = 0; cnti < context.Response.Cookies.Count; cnti++) {
                 context.Response.Cookies.Get(cnti).Value = HttpUtility.UrlEncode("");
-                context.Response.Cookies.Get(cnti).Expires = DateTime.Now.AddDays(-1);
+                context.Response.Cookies.Get(cnti).Expires = DateTime.Today.AddDays(-1);
             }
             context.Response.Cookies.Clear();
         }
@@ -490,12 +490,12 @@ namespace Com.Mparang.AZLib {
             if (p_remain_days.HasValue) {
                 remain_days = p_remain_days.Value;
             }
-            //cookies.Expires = DateTime.Now.AddDays(remain_days);
+            //cookies.Expires = DateTime.Today.AddDays(remain_days);
             //context.Response.Cookies.Set(cookies);
 
             //
             Microsoft.AspNetCore.Http.CookieOptions options = new Microsoft.AspNetCore.Http.CookieOptions();
-            options.Expires = DateTime.Now.AddDays(remain_days);
+            options.Expires = DateTime.Today.AddDays(remain_days);
             if (p_domain != null) {
                 options.Domain = p_domain;
             }
@@ -584,7 +584,7 @@ namespace Com.Mparang.AZLib {
             }
 
             Microsoft.AspNetCore.Http.CookieOptions options = new Microsoft.AspNetCore.Http.CookieOptions();
-            options.Expires = DateTime.Now.AddDays(remain_days);
+            options.Expires = DateTime.Today.AddDays(remain_days);
             if (p_domain != null) {
                 options.Domain = p_domain;
             }
