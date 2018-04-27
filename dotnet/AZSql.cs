@@ -76,6 +76,9 @@ namespace Com.Mparang.AZLib {
 
     // 트랜잭션 처리시 사용 변수
     private SqlTransaction sqlTransaction = null;
+#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+    private MySqlTransaction mySqlTransaction = null;
+#endif
 
 		public static AZSql getInstance() {
 			if (this_object == null) {
@@ -152,7 +155,14 @@ namespace Com.Mparang.AZLib {
       if (sqlConnection == null) {
         Open();
       }
-      sqlTransaction = sqlConnection.BeginTransaction();
+      switch (this.GetSqlType()) {
+        case AZSql.SQL_TYPE.MSSQL:
+          sqlTransaction = sqlConnection.BeginTransaction();
+          break;
+        case AZSql.SQL_TYPE.MYSQL:
+          mySqlTransaction = mySqlConnection.BeginTransaction();
+          break;
+      }
       transaction_result = new AZData();
 
       //
@@ -167,6 +177,9 @@ namespace Com.Mparang.AZLib {
     /// Created in 2017-06-27, leeyonghun
     public void RemoveTran() {
       sqlTransaction = null;
+      mySqlTransaction = null;
+
+      //
       transaction_result = null;
 
       //
@@ -195,7 +208,14 @@ namespace Com.Mparang.AZLib {
       Exception exception_rollback = null;
       try {
         if (connected) {
-          sqlTransaction.Commit();
+          switch (this.GetSqlType()) {
+            case AZSql.SQL_TYPE.MSSQL:
+              sqlTransaction.Commit();
+              break;
+            case AZSql.SQL_TYPE.MYSQL:
+              mySqlTransaction.Commit();
+              break;
+          }
           //
           rtn_value = transaction_result;
         }
@@ -204,7 +224,14 @@ namespace Com.Mparang.AZLib {
         exception_commit = ex;
         //
         try {
-          sqlTransaction.Rollback();
+          switch (this.GetSqlType()) {
+            case AZSql.SQL_TYPE.MSSQL:
+              sqlTransaction.Rollback();
+              break;
+            case AZSql.SQL_TYPE.MYSQL:
+              mySqlTransaction.Rollback();
+              break;
+          }
         }
         catch (Exception ex_rollback) {
           exception_rollback = ex_rollback;
@@ -234,13 +261,21 @@ namespace Com.Mparang.AZLib {
       if (!this.in_transaction) {
         throw new Exception("Not in transaction process.1");
       }
-      if (sqlTransaction == null) {
+      if (this.GetSqlType() == AZSql.SQL_TYPE.MSSQL && sqlTransaction == null ||
+        this.GetSqlType() == AZSql.SQL_TYPE.MYSQL && mySqlTransaction == null) {
         throw new Exception("Not in transaction process.2");
       }
       Exception exception_rollback = null;
       try {
         if (connected) {
-          sqlTransaction.Rollback();
+          switch (this.GetSqlType()) {
+            case AZSql.SQL_TYPE.MSSQL:
+              sqlTransaction.Rollback();
+              break;
+            case AZSql.SQL_TYPE.MYSQL:
+              mySqlTransaction.Rollback();
+              break;
+          }
         }
       }
       catch (Exception ex) {
@@ -473,6 +508,19 @@ namespace Com.Mparang.AZLib {
               break;
             case SQL_TYPE.MYSQL:
               mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
+              if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+              if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  mySqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  mySqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }
               if (GetIdentity()) {
                 mySqlCommand.ExecuteNonQuery();
 

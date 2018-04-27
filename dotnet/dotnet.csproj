@@ -6,7 +6,7 @@
     <AssemblyName>Com.Mparang.AZLib</AssemblyName>
     <PackageId>Com.Mparang.AZLib</PackageId>
   </PropertyGroup>
-
+  
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0' ">
     <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
     <PackageReference Include="Mysql.Data" Version="8.0.11" />
