@@ -15,11 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 namespace Com.Mparang.AZLib {
-    public interface AZCallback<T> {
-        void callback(T pValue);
-    }
+  public interface AZCallback<T> {
+    void callback(T pValue);
+  }
 
-    public interface AZCallback {
-        void callback();
-    }
+  public interface AZCallback {
+    void callback();
+  }
 }
