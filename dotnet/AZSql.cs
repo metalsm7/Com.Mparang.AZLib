@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -11,6 +12,55 @@ using MySql.Data.MySqlClient;
 
 namespace Com.Mparang.AZLib {
 	public class AZSql {
+    public class ParameterData {
+      public object DbType {get;set;}
+      public int? Size {get;set;}
+      public object Value {get;set;}
+      public ParameterData() {}
+      public ParameterData(object value) {
+        this.Value = Value;
+      }
+      public ParameterData(object value, SqlDbType dbType) {
+        this.Value = Value;
+        this.DbType = dbType;
+      }
+      public ParameterData(object value, SqlDbType dbType, int size) {
+        this.Value = Value;
+        this.DbType = dbType;
+        this.Size = size;
+      }
+#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+      public ParameterData(object value, NpgsqlTypes.NpgsqlDbType dbType) {
+        this.Value = Value;
+        this.DbType = dbType;
+      }
+      public ParameterData(object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
+        this.Value = Value;
+        this.DbType = dbType;
+        this.Size = size;
+      }
+      public ParameterData(object value, MySqlDbType dbType) {
+        this.Value = Value;
+        this.DbType = dbType;
+      }
+      public ParameterData(object value, MySqlDbType dbType, int size) {
+        this.Value = Value;
+        this.DbType = dbType;
+        this.Size = size;
+      }
+#endif
+      public SqlDbType GetSqlDbType() {
+        return (SqlDbType)this.DbType;
+      }
+#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+      public NpgsqlTypes.NpgsqlDbType GetNpgsqlDbType() {
+        return (NpgsqlTypes.NpgsqlDbType)this.DbType;
+      }
+      public MySqlDbType GetMySqlDbType() {
+        return (MySqlDbType)this.DbType;
+      }
+#endif
+    }
     public enum SQL_TYPE {
       MYSQL, SQLITE, SQLITE_ANDROID, MSSQL, MARIADB, ORACLE, POSTGRESQL
     }
@@ -78,6 +128,7 @@ namespace Com.Mparang.AZLib {
     private SqlTransaction sqlTransaction = null;
 #if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
     private MySqlTransaction mySqlTransaction = null;
+    private NpgsqlTransaction npgsqlTransaction = null;
 #endif
 
 		public static AZSql getInstance() {
@@ -162,6 +213,9 @@ namespace Com.Mparang.AZLib {
         case AZSql.SQL_TYPE.MYSQL:
           mySqlTransaction = mySqlConnection.BeginTransaction();
           break;
+        case AZSql.SQL_TYPE.POSTGRESQL:
+          npgsqlTransaction = npgsqlConnection.BeginTransaction();
+          break;
       }
       transaction_result = new AZData();
 
@@ -215,6 +269,9 @@ namespace Com.Mparang.AZLib {
             case AZSql.SQL_TYPE.MYSQL:
               mySqlTransaction.Commit();
               break;
+            case AZSql.SQL_TYPE.POSTGRESQL:
+              npgsqlTransaction.Commit();
+              break;
           }
           //
           rtn_value = transaction_result;
@@ -230,6 +287,9 @@ namespace Com.Mparang.AZLib {
               break;
             case AZSql.SQL_TYPE.MYSQL:
               mySqlTransaction.Rollback();
+              break;
+            case AZSql.SQL_TYPE.POSTGRESQL:
+              npgsqlTransaction.Rollback();
               break;
           }
         }
@@ -262,7 +322,8 @@ namespace Com.Mparang.AZLib {
         throw new Exception("Not in transaction process.1");
       }
       if (this.GetSqlType() == AZSql.SQL_TYPE.MSSQL && sqlTransaction == null ||
-        this.GetSqlType() == AZSql.SQL_TYPE.MYSQL && mySqlTransaction == null) {
+        this.GetSqlType() == AZSql.SQL_TYPE.MYSQL && mySqlTransaction == null ||
+        this.GetSqlType() == AZSql.SQL_TYPE.POSTGRESQL && npgsqlTransaction == null) {
         throw new Exception("Not in transaction process.2");
       }
       Exception exception_rollback = null;
@@ -274,6 +335,9 @@ namespace Com.Mparang.AZLib {
               break;
             case AZSql.SQL_TYPE.MYSQL:
               mySqlTransaction.Rollback();
+              break;
+            case AZSql.SQL_TYPE.POSTGRESQL:
+              npgsqlTransaction.Rollback();
               break;
           }
         }
@@ -306,7 +370,11 @@ namespace Com.Mparang.AZLib {
 
     /// Created in 2017-03-28, leeyonghun
     public AZSql SetParameters(AZData parameters) {
-        this.parameters = parameters;
+      this.parameters.Clear();
+      for (int cnti=0; cnti<parameters.Size(); cnti++) {
+        this.parameters.Add(parameters.GetKey(cnti), new ParameterData(parameters.Get(cnti)));
+      }
+      //this.parameters = parameters;
       return this;
     }
 
@@ -314,17 +382,58 @@ namespace Com.Mparang.AZLib {
     public AZData GetParameters() {
       return this.parameters;
     }
+    public ParameterData GetParameter(string key) {
+      return (ParameterData)this.parameters.Get(key);
+    }
+    public object GetParameterValue(string key) {
+      return GetParameter(key).Value;
+    }
+    public T GetParameterValue<T>(string key) {
+      return (T)GetParameter(key).Value;
+    }
     /// Created in 2017-03-28, leeyonghun
     public AZSql AddParameter(string key, object value) {
       if (this.parameters == null) this.parameters = new AZData();
-      this.parameters.Add(key, value);
+      this.parameters.Add(key, new ParameterData(value));
       return this;
     }
+    public AZSql AddParameter(string key, object value, SqlDbType dbType) {
+      if (this.parameters == null) this.parameters = new AZData();
+      this.parameters.Add(key, new ParameterData(value, dbType));
+      return this;
+    }
+    public AZSql AddParameter(string key, object value, SqlDbType dbType, int size) {
+      if (this.parameters == null) this.parameters = new AZData();
+      this.parameters.Add(key, new ParameterData(value, dbType, size));
+      return this;
+    }
+#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+    public AZSql AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
+      if (this.parameters == null) this.parameters = new AZData();
+      this.parameters.Add(key, new ParameterData(value, dbType));
+      return this;
+    }
+    public AZSql AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
+      if (this.parameters == null) this.parameters = new AZData();
+      this.parameters.Add(key, new ParameterData(value, dbType, size));
+      return this;
+    }
+    public AZSql AddParameter(string key, object value, MySqlDbType dbType) {
+      if (this.parameters == null) this.parameters = new AZData();
+      this.parameters.Add(key, new ParameterData(value, dbType));
+      return this;
+    }
+    public AZSql AddParameter(string key, object value, MySqlDbType dbType, int size) {
+      if (this.parameters == null) this.parameters = new AZData();
+      this.parameters.Add(key, new ParameterData(value, dbType, size));
+      return this;
+    }
+#endif
     /// Created in 2017-03-28, leeyonghun
     public AZSql AddParameters(params object[] parameters) {
       if (this.parameters == null) this.parameters = new AZData();
       for (int cnti=0; cnti<parameters.Length; cnti+=2) {
-        this.parameters.Add(parameters[cnti].To<string>(), parameters[cnti + 1]);
+        this.parameters.Add(parameters[cnti].To<string>(), new ParameterData(parameters[cnti + 1]));
       }
       return this;
     }
@@ -339,7 +448,11 @@ namespace Com.Mparang.AZLib {
 
     /// Created in 2017-03-28, leeyonghun
     public AZSql SetReturnParameters(AZData parameters) {
-      this.return_parameters = parameters;
+      this.return_parameters.Clear();
+      for (int cnti=0; cnti<parameters.Size(); cnti++) {
+        this.return_parameters.Add(parameters.GetKey(cnti), new ParameterData(parameters.Get(cnti)));
+      }
+      //this.return_parameters = parameters;
       return this;
     }
 
@@ -347,17 +460,36 @@ namespace Com.Mparang.AZLib {
     public AZData GetReturnParameters() {
       return this.return_parameters;
     }
+    public ParameterData GetReturnParameter(string key) {
+      return (ParameterData)this.return_parameters.Get(key);
+    }
+    public object GetReturnParameterValue(string key) {
+      return GetReturnParameter(key).Value;
+    }
+    public T GetReturnParameterValue<T>(string key) {
+      return (T)GetReturnParameter(key).Value;
+    }
     /// Created in 2017-03-28, leeyonghun
     public AZSql AddReturnParameter(string key, object value) {
       if (this.return_parameters == null) this.return_parameters = new AZData();
-      this.return_parameters.Add(key, value);
+      this.return_parameters.Add(key, new ParameterData(value));
+      return this;
+    }
+    public AZSql AddReturnParameter(string key, object value, SqlDbType dbType) {
+      if (this.return_parameters == null) this.return_parameters = new AZData();
+      this.return_parameters.Add(key, new ParameterData(value, dbType));
+      return this;
+    }
+    public AZSql AddReturnParameter(string key, object value, SqlDbType dbType, int size) {
+      if (this.return_parameters == null) this.return_parameters = new AZData();
+      this.return_parameters.Add(key, new ParameterData(value, dbType, size));
       return this;
     }
     /// Created in 2017-03-28, leeyonghun
     public AZSql AddReturnParameters(params object[] parameters) {
       if (this.return_parameters == null) this.return_parameters = new AZData();
       for (int cnti=0; cnti<parameters.Length; cnti+=2) {
-        this.return_parameters.Add(parameters[cnti].To<string>(), parameters[cnti + 1]);
+        this.return_parameters.Add(parameters[cnti].To<string>(), new ParameterData(parameters[cnti + 1]));
       }
       return this;
     }
@@ -392,7 +524,6 @@ namespace Com.Mparang.AZLib {
       return this.is_stored_procedure;
     }
 
-    
     /// <summary></summary>
     /// <param name="query"> 실행할 쿼리문</param>
     /// Created in 2015-06-23, leeyonghun
@@ -453,12 +584,23 @@ namespace Com.Mparang.AZLib {
               // parameter 값이 지정된 경우에 한해서 처리
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
-                  sqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
                 }
               }
               if (GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
-                  sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
                 }
               }
               if (GetIdentity()) {
@@ -496,6 +638,40 @@ namespace Com.Mparang.AZLib {
               break;
             case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
               npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+              if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+              if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              /*if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  npgsqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  npgsqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
               if (GetIdentity()) {
                 npgsqlCommand.ExecuteNonQuery();
 
@@ -505,13 +681,20 @@ namespace Com.Mparang.AZLib {
               else {
                 rtnValue = npgsqlCommand.ExecuteNonQuery();
               }
+
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                }
+              }
               break;
             case SQL_TYPE.MYSQL:
               mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
               if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
               if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
               // parameter 값이 지정된 경우에 한해서 처리
-              if (GetParameters() != null) {
+              /*if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   mySqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
                 }
@@ -519,6 +702,27 @@ namespace Com.Mparang.AZLib {
               if (GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   mySqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
                 }
               }
               if (GetIdentity()) {
@@ -529,6 +733,13 @@ namespace Com.Mparang.AZLib {
               }
               else {
                 rtnValue = mySqlCommand.ExecuteNonQuery();
+              }
+
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                }
               }
               break;
 #endif
@@ -548,7 +759,17 @@ namespace Com.Mparang.AZLib {
           //
           Exception exception_rollback = null;
           try {
-            sqlTransaction.Rollback();
+            switch (this.GetSqlType()) {
+              case AZSql.SQL_TYPE.MSSQL:
+                sqlTransaction.Rollback();
+                break;
+              case AZSql.SQL_TYPE.MYSQL:
+                mySqlTransaction.Rollback();
+                break;
+              case AZSql.SQL_TYPE.POSTGRESQL:
+                npgsqlTransaction.Rollback();
+                break;
+            }
           }
           catch (Exception ex_rollback) {
             exception_rollback = ex_rollback;
@@ -568,10 +789,22 @@ namespace Com.Mparang.AZLib {
         }
 			}
 			finally {
-        if (sqlTransaction == null) Close ();
+        //if (sqlTransaction == null) Close ();
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL:
+            if (sqlTransaction == null) Close ();
+            break;
+          case AZSql.SQL_TYPE.MYSQL:
+            if (mySqlTransaction == null) Close ();
+            break;
+          case AZSql.SQL_TYPE.POSTGRESQL:
+            if (npgsqlTransaction == null) Close ();
+            break;
+        }
 			}
 
-      if (sqlTransaction != null && transaction_result != null) {
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
+        transaction_result != null) {
         transaction_result.Add("Execute." + (transaction_result.Size() + 1), rtnValue);
       }
 			return rtnValue;
@@ -636,12 +869,56 @@ namespace Com.Mparang.AZLib {
 						  rtnValue = sqliteCommand.ExecuteScalar();
               break;
             case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
-              npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+              //npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+              npgsqlCommand = npgsqlConnection.CreateCommand();
+              npgsqlCommand.CommandText = GetQuery();
+              if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+              if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  npgsqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  npgsqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }
               rtnValue = npgsqlCommand.ExecuteScalar();
+
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                }
+              }
               break;
             case SQL_TYPE.MYSQL:
-              mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
-              rtnValue = mySqlCommand.ExecuteScalar ();
+              //mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
+              mySqlCommand = mySqlConnection.CreateCommand();
+              mySqlCommand.CommandText = GetQuery();
+              if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+              if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  mySqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  mySqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }
+              rtnValue = mySqlCommand.ExecuteScalar();
+
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                }
+              }
               break;
 #endif
 					}
@@ -663,7 +940,17 @@ namespace Com.Mparang.AZLib {
           //
           Exception exception_rollback = null;
           try {
-            sqlTransaction.Rollback();
+            switch (this.GetSqlType()) {
+              case AZSql.SQL_TYPE.MSSQL:
+                sqlTransaction.Rollback();
+                break;
+              case AZSql.SQL_TYPE.MYSQL:
+                mySqlTransaction.Rollback();
+                break;
+              case AZSql.SQL_TYPE.POSTGRESQL:
+                npgsqlTransaction.Rollback();
+                break;
+            }
           }
           catch (Exception ex_rollback) {
             exception_rollback = ex_rollback;
@@ -671,7 +958,7 @@ namespace Com.Mparang.AZLib {
           finally {
             RemoveTran();
             //
-            if (this.action_tran_on_commit != null) {
+            if (ex != null && this.action_tran_on_commit != null) {
               this.action_tran_on_commit(ex);
             }
             if (exception_rollback != null && this.action_tran_on_rollback != null) {
@@ -683,10 +970,21 @@ namespace Com.Mparang.AZLib {
         }
 			}
 			finally {
-        if (sqlTransaction == null) Close ();
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL:
+            if (sqlTransaction == null) Close ();
+            break;
+          case AZSql.SQL_TYPE.MYSQL:
+            if (mySqlTransaction == null) Close ();
+            break;
+          case AZSql.SQL_TYPE.POSTGRESQL:
+            if (npgsqlTransaction == null) Close ();
+            break;
+        }
 			}
 
-      if (sqlTransaction != null && transaction_result != null) {
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
+        transaction_result != null) {
         transaction_result.Add("Get." + (transaction_result.Size() + 1), rtnValue);
       }
 			return rtnValue;
@@ -797,7 +1095,7 @@ namespace Com.Mparang.AZLib {
               if (sqlTransaction != null) sqlCommand.Transaction = sqlTransaction;
               if (IsStoredProcedure()) sqlCommand.CommandType = CommandType.StoredProcedure;
               // parameter 값이 지정된 경우에 한해서 처리
-              if (GetParameters() != null) {
+              /*if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   sqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
                 }
@@ -805,6 +1103,27 @@ namespace Com.Mparang.AZLib {
               if (GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
                 }
               }
               reader_mssql = sqlCommand.ExecuteReader();
@@ -827,8 +1146,41 @@ namespace Com.Mparang.AZLib {
 #if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
             case SQL_TYPE.MYSQL:
               mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
-              reader_mysql = mySqlCommand.ExecuteReader ();
-
+              if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+              if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              /*if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  mySqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  mySqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              reader_mysql = mySqlCommand.ExecuteReader();
               while (reader_mysql.Read()) {
                 int colCnt = reader_mysql.FieldCount;
 
@@ -836,6 +1188,13 @@ namespace Com.Mparang.AZLib {
                   rtnValue.Add (reader_mysql.GetName (cnti), reader_mysql [cnti]);
                 }
                 break;
+              }
+
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                }
               }
               break;
             case SQL_TYPE.SQLITE:
@@ -854,8 +1213,41 @@ namespace Com.Mparang.AZLib {
 					  	break;
             case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
               npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+              if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+              if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              /*if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  npgsqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  npgsqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
               reader_npgsql = npgsqlCommand.ExecuteReader();
-
               while (reader_npgsql.Read()) {
                 int colCnt = reader_npgsql.FieldCount;
 
@@ -864,13 +1256,22 @@ namespace Com.Mparang.AZLib {
                 }
                 break;
               }
+
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                }
+              }
               break;
 #endif
 					}
 				}
 			}
 			catch (Exception ex) {
-        if (sqlTransaction == null) {
+        if (this.GetSqlType() == AZSql.SQL_TYPE.MSSQL && sqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.MYSQL && mySqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.POSTGRESQL && npgsqlTransaction == null) {
           if (ex.InnerException != null) {
             throw new Exception("Exception in GetData.Inner", ex.InnerException);
           }
@@ -882,7 +1283,19 @@ namespace Com.Mparang.AZLib {
           //
           Exception exception_rollback = null;
           try {
-            sqlTransaction.Rollback();
+            if (connected) {
+              switch (this.GetSqlType()) {
+                case AZSql.SQL_TYPE.MSSQL:
+                  sqlTransaction.Rollback();
+                  break;
+                case AZSql.SQL_TYPE.MYSQL:
+                  mySqlTransaction.Rollback();
+                  break;
+                case AZSql.SQL_TYPE.POSTGRESQL:
+                  npgsqlTransaction.Rollback();
+                  break;
+              }
+            }
           }
           catch (Exception ex_rollback) {
             exception_rollback = ex_rollback;
@@ -902,25 +1315,28 @@ namespace Com.Mparang.AZLib {
         }
 			}
 			finally {
-        if (reader_mssql != null) {
-          reader_mssql.Dispose();
-        }
+        if (reader_mssql != null) reader_mssql.Dispose();
 #if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
-				if (reader_mysql != null) {
-					reader_mysql.Dispose ();
-				}
-				if (reader_sqlite != null) {
-					reader_sqlite.Dispose ();
-            }
-            if (reader_npgsql != null) {
-              reader_npgsql.Dispose();
-            }
+				if (reader_mysql != null) reader_mysql.Dispose ();
+				if (reader_sqlite != null) reader_sqlite.Dispose ();
+        if (reader_npgsql != null) reader_npgsql.Dispose();
 #endif
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL:
             if (sqlTransaction == null) Close ();
-			  }
-        if (sqlTransaction != null && transaction_result != null) {
-          transaction_result.Add("GetData." + (transaction_result.Size() + 1), rtnValue);
+            break;
+          case AZSql.SQL_TYPE.MYSQL:
+            if (mySqlTransaction == null) Close ();
+            break;
+          case AZSql.SQL_TYPE.POSTGRESQL:
+            if (npgsqlTransaction == null) Close ();
+            break;
         }
+      }
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
+        transaction_result != null) {
+        transaction_result.Add("GetData." + (transaction_result.Size() + 1), rtnValue);
+      }
 			return rtnValue;
 		}
 
@@ -996,7 +1412,7 @@ namespace Com.Mparang.AZLib {
               if (sqlTransaction != null) sqlCommand.Transaction = sqlTransaction;
               if (IsStoredProcedure()) sqlCommand.CommandType = CommandType.StoredProcedure;
               // parameter 값이 지정된 경우에 한해서 처리
-              if (GetParameters() != null) {
+              /*if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   sqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
                 }
@@ -1004,6 +1420,27 @@ namespace Com.Mparang.AZLib {
               if (GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
                 }
               }
               reader_mssql = sqlCommand.ExecuteReader();
@@ -1063,6 +1500,40 @@ namespace Com.Mparang.AZLib {
 						    break;
               case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
                 npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+                if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+                if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+                // parameter 값이 지정된 경우에 한해서 처리
+                /*if (GetParameters() != null) {
+                  for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                    npgsqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                  }
+                }
+                if (GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    npgsqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                  }
+                }*/
+                if (GetParameters() != null) {
+                  for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                    string key = GetParameters().GetKey(cnti);
+                    ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                    NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
+                if (GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                    //param.Direction = ParameterDirection.Output;
+                    string key = GetReturnParameters().GetKey(cnti);
+                    ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                    NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    sqlParam.Direction = ParameterDirection.Output;
+                    if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
                 reader_npgsql = npgsqlCommand.ExecuteReader();
                 
                 idx = 0;    // for check offset
@@ -1084,9 +1555,50 @@ namespace Com.Mparang.AZLib {
 
                   idx++;  // offset check value update
                 }
+
+                if (IsStoredProcedure() && GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    string key = GetReturnParameters().GetKey(cnti);
+                    GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                  }
+                }
                 break;
 					    case SQL_TYPE.MYSQL:
 						    mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
+                if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+                if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+                // parameter 값이 지정된 경우에 한해서 처리
+                /*if (GetParameters() != null) {
+                  for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                    mySqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                  }
+                }
+                if (GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    mySqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                  }
+                }*/
+                if (GetParameters() != null) {
+                  for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                    string key = GetParameters().GetKey(cnti);
+                    ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                    MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
+                if (GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                    //param.Direction = ParameterDirection.Output;
+                    string key = GetReturnParameters().GetKey(cnti);
+                    ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                    MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    sqlParam.Direction = ParameterDirection.Output;
+                    if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
 						    reader_mysql = mySqlCommand.ExecuteReader();
 
                 idx = 0;    // for check offset
@@ -1108,6 +1620,13 @@ namespace Com.Mparang.AZLib {
 
                   idx++;  // offset check value update
 						    }
+
+                if (IsStoredProcedure() && GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    string key = GetReturnParameters().GetKey(cnti);
+                    GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                  }
+                }
 						    break;
 #endif
 					}
@@ -1117,7 +1636,9 @@ namespace Com.Mparang.AZLib {
         }
 			}
 			catch (Exception ex) {
-        if (sqlTransaction == null) {
+        if (this.GetSqlType() == AZSql.SQL_TYPE.MSSQL && sqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.MYSQL && mySqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.POSTGRESQL && npgsqlTransaction == null) {
           if (ex.InnerException != null) {
             throw new Exception("Exception in GetList.Inner", ex.InnerException);
           }
@@ -1129,7 +1650,19 @@ namespace Com.Mparang.AZLib {
           //
           Exception exception_rollback = null;
           try {
-            sqlTransaction.Rollback();
+            if (connected) {
+              switch (this.GetSqlType()) {
+                case AZSql.SQL_TYPE.MSSQL:
+                  sqlTransaction.Rollback();
+                  break;
+                case AZSql.SQL_TYPE.MYSQL:
+                  mySqlTransaction.Rollback();
+                  break;
+                case AZSql.SQL_TYPE.POSTGRESQL:
+                  npgsqlTransaction.Rollback();
+                  break;
+              }
+            }
           }
           catch (Exception ex_rollback) {
             exception_rollback = ex_rollback;
@@ -1149,31 +1682,32 @@ namespace Com.Mparang.AZLib {
         }
 			}
 			finally {
-        if (reader_mssql != null) {
-          reader_mssql.Dispose();
-        }
+        if (reader_mssql != null) reader_mssql.Dispose();
 #if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
-				if (reader_mysql != null) {
-					reader_mysql.Dispose ();
-				}
-				if (reader_sqlite != null) {
-					reader_sqlite.Dispose ();
-        }
-        if (reader_npgsql != null) {
-          reader_npgsql.Dispose();
-        }
+				if (reader_mysql != null) reader_mysql.Dispose();
+				if (reader_sqlite != null) reader_sqlite.Dispose();
+        if (reader_npgsql != null) reader_npgsql.Dispose();
 #endif
-        if (sqlTransaction == null) Close ();
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL:
+            if (sqlTransaction == null) Close ();
+            break;
+          case AZSql.SQL_TYPE.MYSQL:
+            if (mySqlTransaction == null) Close ();
+            break;
+          case AZSql.SQL_TYPE.POSTGRESQL:
+            if (npgsqlTransaction == null) Close ();
+            break;
+        }
 			}
 
-      if (sqlTransaction != null && transaction_result != null) {
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
+        transaction_result != null) {
         transaction_result.Add("GetList." + (transaction_result.Size() + 1), rtnValue);
       }
-
 			return rtnValue;
 		}
-
-        /// Created in 2015, leeyonghun
+    /// Created in 2015, leeyonghun
 		private bool Open() {
 			bool rtnValue = false;
 
@@ -1201,9 +1735,7 @@ namespace Com.Mparang.AZLib {
 				break;
 #endif
 			}
-
 			connected = rtnValue;
-
 			return rtnValue;
 		}
 
@@ -1223,7 +1755,7 @@ namespace Com.Mparang.AZLib {
 				break;
 #if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
 			case SQL_TYPE.MYSQL:
-				if (mySqlConnection.State.Equals (System.Data.ConnectionState.Open)) {
+				if (mySqlConnection != null && mySqlConnection.State.Equals (System.Data.ConnectionState.Open)) {
 					mySqlConnection.Close ();
 				}
 				mySqlConnection.Dispose ();
@@ -1254,9 +1786,7 @@ namespace Com.Mparang.AZLib {
 				break;
 #endif
 			}
-
 			connected = !rtnValue;
-
 			return rtnValue;
 		}
 
@@ -1314,25 +1844,25 @@ namespace Com.Mparang.AZLib {
           Catalog = data_catalog;
 
           switch (SqlType) {
-          case SQL_TYPE.MYSQL:
-            ConnectionString = "server=" + Server + ";" + "port=" + Port + ";" +
-              "user=" + ID + ";" + "password=" + PW + ";" + "database=" + Catalog + ";";
-            break;
-          case SQL_TYPE.SQLITE:
-            ConnectionString = "Data Source=" + Server;
-            break;
-          case SQL_TYPE.SQLITE_ANDROID:
-            break;
           case SQL_TYPE.MSSQL:
             ConnectionString = "server=" + Server + ";" + (Port > 0 ? ":" + Port : "") + ";" +
               "uid=" + ID + ";" + "pwd=" + PW + ";" + "database=" + Catalog + ";";
             break;
-          case SQL_TYPE.MARIADB:
+          case SQL_TYPE.SQLITE:
+            ConnectionString = "Data Source=" + Server;
             break;
-          case SQL_TYPE.ORACLE:
+          case SQL_TYPE.MYSQL:
+            ConnectionString = "server=" + Server + ";" + "port=" + Port + ";" +
+              "user=" + ID + ";" + "password=" + PW + ";" + "database=" + Catalog + ";";
             break;
           case SQL_TYPE.POSTGRESQL:
             ConnectionString = "Host=" + Server + ";Username=" + ID + ";Password=" + PW + ";Database=" + Catalog + ";";
+            break;
+          case SQL_TYPE.SQLITE_ANDROID:
+            break;
+          case SQL_TYPE.MARIADB:
+            break;
+          case SQL_TYPE.ORACLE:
             break;
           }
         }
@@ -1356,25 +1886,25 @@ namespace Com.Mparang.AZLib {
         }
 
         switch (SqlType) {
-        case SQL_TYPE.MYSQL:
-          ConnectionString = "server=" + Server + ";" + "port=" + Port + ";" +
-            "user=" + ID + ";" + "password=" + PW + ";" + "database=" + Catalog + ";";
-          break;
-        case SQL_TYPE.SQLITE:
-          ConnectionString = "Data Source=" + Server;
-          break;
-        case SQL_TYPE.SQLITE_ANDROID:
-          break;
         case SQL_TYPE.MSSQL:
           ConnectionString = "server=" + Server + ";" + (Port > 0 ? ":" + Port : "") + ";" +
             "uid=" + ID + ";" + "pwd=" + PW + ";" + "database=" + Catalog + ";";
           break;
-        case SQL_TYPE.MARIADB:
+        case SQL_TYPE.SQLITE:
+          ConnectionString = "Data Source=" + Server;
           break;
-        case SQL_TYPE.ORACLE:
+        case SQL_TYPE.MYSQL:
+          ConnectionString = "server=" + Server + ";" + "port=" + Port + ";" +
+            "user=" + ID + ";" + "password=" + PW + ";" + "database=" + Catalog + ";";
           break;
         case SQL_TYPE.POSTGRESQL:
           ConnectionString = "Host=" + Server + ";Username=" + ID + ";Password=" + PW + ";Database=" + Catalog + ";";
+          break;
+        case SQL_TYPE.SQLITE_ANDROID:
+          break;
+        case SQL_TYPE.MARIADB:
+          break;
+        case SQL_TYPE.ORACLE:
           break;
         }
       }
@@ -1387,13 +1917,13 @@ namespace Com.Mparang.AZLib {
     private string GetSqlTypeString(SQL_TYPE p_sql_type) {
       string rtn_value = "";
       switch (p_sql_type) {
-        case SQL_TYPE.MARIADB: rtn_value = "mariadb"; break;
         case SQL_TYPE.MSSQL: rtn_value = "mssql"; break;
-        case SQL_TYPE.MYSQL: rtn_value = "mysql"; break;
-        case SQL_TYPE.ORACLE: rtn_value = "oracle"; break;
         case SQL_TYPE.SQLITE: rtn_value = "sqlite"; break;
-        case SQL_TYPE.SQLITE_ANDROID: rtn_value = "sqlite_android"; break;
+        case SQL_TYPE.MYSQL: rtn_value = "mysql"; break;
         case SQL_TYPE.POSTGRESQL: rtn_value = "postgresql"; break;
+        case SQL_TYPE.MARIADB: rtn_value = "mariadb"; break;
+        case SQL_TYPE.ORACLE: rtn_value = "oracle"; break;
+        case SQL_TYPE.SQLITE_ANDROID: rtn_value = "sqlite_android"; break;
       }
       return rtn_value;
     }
@@ -1403,13 +1933,13 @@ namespace Com.Mparang.AZLib {
     private SQL_TYPE GetSqlType(string p_sql_type) {
       SQL_TYPE rtn_value = SQL_TYPE.MSSQL;
       switch (p_sql_type.ToLower()) {
-        case "mariadb": rtn_value = SQL_TYPE.MARIADB; break;
         case "mssql": rtn_value = SQL_TYPE.MSSQL; break;
-        case "mysql": rtn_value = SQL_TYPE.MYSQL; break;
-        case "oracle": rtn_value = SQL_TYPE.ORACLE; break;
         case "sqlite": rtn_value = SQL_TYPE.SQLITE; break;
-        case "sqlite_android": rtn_value = SQL_TYPE.SQLITE_ANDROID; break;
+        case "mysql": rtn_value = SQL_TYPE.MYSQL; break;
         case "postgresql": rtn_value = SQL_TYPE.POSTGRESQL; break;
+        case "mariadb": rtn_value = SQL_TYPE.MARIADB; break;
+        case "oracle": rtn_value = SQL_TYPE.ORACLE; break;
+        case "sqlite_android": rtn_value = SQL_TYPE.SQLITE_ANDROID; break;
       }
       return rtn_value;
     }
@@ -1495,10 +2025,37 @@ namespace Com.Mparang.AZLib {
     }
     /// Created in 2017-03-28, leeyonghun
     public Prepared AddParameter(string key, object value) {
-      if (this.azSql.parameters == null) this.azSql.parameters = new AZData();
-      this.azSql.parameters.Add(key, value);
+      this.azSql.AddParameter(key, value);
+      //if (this.azSql.parameters == null) this.azSql.parameters = new AZData();
+      //this.azSql.parameters.Add(key, value);
       return this;
     }
+    public Prepared AddParameter(string key, object value, SqlDbType dbType) {
+      this.azSql.AddParameter(key, value, dbType);
+      return this;
+    }
+    public Prepared AddParameter(string key, object value, SqlDbType dbType, int size) {
+      this.azSql.AddParameter(key, value, dbType, size);
+      return this;
+    }
+#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+    public Prepared AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
+      this.azSql.AddParameter(key, value, dbType);
+      return this;
+    }
+    public Prepared AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
+      this.azSql.AddParameter(key, value, dbType, size);
+      return this;
+    }
+    public Prepared AddParameter(string key, object value, MySqlDbType dbType) {
+      this.azSql.AddParameter(key, value, dbType);
+      return this;
+    }
+    public Prepared AddParameter(string key, object value, MySqlDbType dbType, int size) {
+      this.azSql.AddParameter(key, value, dbType, size);
+      return this;
+    }
+#endif
     /// Created in 2017-03-28, leeyonghun
     public Prepared AddParameter(params object[] parameters) {
       if (this.azSql.parameters == null) this.azSql.parameters = new AZData();
@@ -1515,6 +2072,69 @@ namespace Com.Mparang.AZLib {
     /// Created in 2017-03-28, leeyonghun
     public AZData GetParameters() {
       return this.azSql.GetParameters();
+    }
+    /// Created in 2017-03-28, leeyonghun
+    public void ClearParameters() {
+      this.azSql.ClearParameters();
+    }
+    /// Created in 2017-03-28, leeyonghun
+    public void RemoveParameters() {
+      this.azSql.RemoveParameters();
+    }
+
+    /// Created in 2017-03-28, leeyonghun
+    public Prepared SetReturnParameters(AZData parameters) {
+      this.azSql.SetReturnParameters(parameters);
+      return this;
+    }
+
+    /// Created in 2017-03-28, leeyonghun
+    public AZData GetReturnParameters() {
+      return this.azSql.GetReturnParameters();
+    }
+    public ParameterData GetReturnParameter(string key) {
+      return this.azSql.GetReturnParameter(key);
+    }
+    public object GetReturnParameterValue(string key) {
+      return GetReturnParameter(key).Value;
+    }
+    public T GetReturnParameterValue<T>(string key) {
+      return (T)GetReturnParameter(key).Value;
+    }
+    /// Created in 2017-03-28, leeyonghun
+    public Prepared AddReturnParameter(string key, object value) {
+      this.azSql.AddReturnParameter(key, value);
+      return this;
+    }
+    public Prepared AddReturnParameter(string key, object value, SqlDbType dbType) {
+      this.azSql.AddReturnParameter(key, value, dbType);
+      return this;
+    }
+    public Prepared AddReturnParameter(string key, object value, SqlDbType dbType, int size) {
+      this.azSql.AddReturnParameter(key, value, dbType, size);
+      return this;
+    }
+    /// Created in 2017-03-28, leeyonghun
+    public Prepared AddReturnParameters(params object[] parameters) {
+      this.azSql.AddReturnParameters(parameters);
+      return this;
+    }
+    /// Created in 2017-03-28, leeyonghun
+    public void ClearReturnParameters() {
+      this.azSql.ClearReturnParameters();
+    }
+    /// Created in 2017-03-28, leeyonghun
+    public void RemoveReturnParameters() {
+      this.azSql.RemoveReturnParameters();
+    }
+    public Prepared SetIsStoredProcedure(bool is_stored_procedure) {
+      this.azSql.SetIsStoredProcedure(is_stored_procedure);
+      return this;
+    }
+
+    /// Created in 2017-03-28, leeyonghun
+    public bool IsStoredProcedure() {
+      return this.azSql.IsStoredProcedure();
     }
     /// Created in 2017-03-28, leeyonghun
     public int Execute() {
@@ -1661,47 +2281,46 @@ namespace Com.Mparang.AZLib {
     /// <summary></summary>
     /// Created in 2017-03-28, leeyonghun
     public AZList GetList(string query, AZData parameters, int offset, int length) {
-      AZList rtnValue = new AZList ();
+      return this.azSql.GetList(query, parameters, offset, length);
+      /*AZList rtnValue = new AZList ();
 
       SqlDataReader reader_mssql = null;
-#if NETCOREAPP1_0
-#endif
       try {
-        azSql.Open ();
+        azSql.Open();
 
         int idx;
         if (azSql.connected) {
           switch (this.azSql.db_info.SqlType) {
-          case SQL_TYPE.MSSQL:    // mssql 접속 처리시
-            azSql.sqlCommand = azSql.sqlConnection.CreateCommand();
-            azSql.sqlCommand.CommandText = query;
-            if (parameters != null) {
-              for (int cnti=0; cnti<parameters.Size(); cnti++) {
-                azSql.sqlCommand.Parameters.AddWithValue(parameters.GetKey(cnti), parameters.Get(cnti));
+            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+              azSql.sqlCommand = azSql.sqlConnection.CreateCommand();
+              azSql.sqlCommand.CommandText = query;
+              if (parameters != null) {
+                for (int cnti=0; cnti<parameters.Size(); cnti++) {
+                  azSql.sqlCommand.Parameters.AddWithValue(parameters.GetKey(cnti), parameters.Get(cnti));
+                }
               }
-            }
-            reader_mssql = azSql.sqlCommand.ExecuteReader();
-            
-            idx = 0;    // for check offset
-            while (reader_mssql.Read()) {
-              if (idx < offset) {   // 시작점보다 작으면 다음으로.
+              reader_mssql = azSql.sqlCommand.ExecuteReader();
+              
+              idx = 0;    // for check offset
+              while (reader_mssql.Read()) {
+                if (idx < offset) {   // 시작점보다 작으면 다음으로.
+                  idx++;  // offset check value update
+                  continue;
+                }
+                if (length > 0 && idx >= (offset + length)) {  // 시작점 + 길이 보다 크면 종료
+                  break;
+                }
+                int colCnt = reader_mssql.FieldCount;
+                AZData data = new AZData();
+
+                for (int cnti = 0; cnti < colCnt; cnti++) {
+                  data.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
+                }
+                rtnValue.Add(data);
+
                 idx++;  // offset check value update
-                continue;
               }
-              if (length > 0 && idx >= (offset + length)) {  // 시작점 + 길이 보다 크면 종료
-                break;
-              }
-              int colCnt = reader_mssql.FieldCount;
-              AZData data = new AZData();
-
-              for (int cnti = 0; cnti < colCnt; cnti++) {
-                data.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
-              }
-              rtnValue.Add(data);
-
-              idx++;  // offset check value update
-            }
-            break;
+              break;
           }
         }
       }
@@ -1720,11 +2339,12 @@ namespace Com.Mparang.AZLib {
 #if NETCOREAPP1_0
         /*if (reader_mysql != null) {
           reader_mysql.Dispose ();
-        }*/
+        }*//*
 #endif
         azSql.Close ();
       }
       return rtnValue;
+      */
     }
   }
 

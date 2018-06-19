@@ -1,6 +1,6 @@
 # Com.Mparang.AZLib
 - C#, Java에서 동일한 방식으로 데이터 핸들링을 위한 라이브러리 작성이 목표
-- C#은 .Net 4.0, 4.5.2, Standard1.4, CoreApp1.0 를 지원합니다
+- C#은 .Net 4.5.2, Standard2.0, CoreApp2.0 를 지원합니다
 
 ## Install
 1) Package Manager
@@ -53,7 +53,7 @@ Console.WriteLine("json - " + data_from_json_str.ToJsonString()); // json - {"na
 ```
 
 ## AZSql
-### Database 연결 및 데이터 처리 헬퍼 (현재 mssql만 지원)
+### Database 연결 및 데이터 처리 헬퍼 (mssql, mysql, postgresql, sqlite 지원)
 - AZData, AZList 객체로 결과값 바인딩
 - PreparedStatement 처리 지원
 - StoredProcedure 처리 지원
