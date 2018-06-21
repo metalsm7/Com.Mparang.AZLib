@@ -493,6 +493,18 @@ namespace Com.Mparang.AZLib {
       }
       return this;
     }
+    public AZSql UpdateReturnParameter(int idx, object value) {
+      ParameterData data = (ParameterData)this.return_parameters.Get(idx);
+      data.Value = value;
+      this.return_parameters.Set(idx, data);
+      return this;
+    }
+    public AZSql UpdateReturnParameter(string key, object value) {
+      ParameterData data = (ParameterData)this.return_parameters.Get(key);
+      data.Value = value;
+      this.return_parameters.Set(key, data);
+      return this;
+    }
     /// Created in 2017-03-28, leeyonghun
     public void ClearReturnParameters() {
       this.return_parameters.Clear();
@@ -585,7 +597,7 @@ namespace Com.Mparang.AZLib {
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   string key = GetParameters().GetKey(cnti);
-                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                   SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
                   if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -596,7 +608,7 @@ namespace Com.Mparang.AZLib {
                   //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                   //param.Direction = ParameterDirection.Output;
                   string key = GetReturnParameters().GetKey(cnti);
-                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                   SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   sqlParam.Direction = ParameterDirection.Output;
                   if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
@@ -616,7 +628,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -654,7 +667,7 @@ namespace Com.Mparang.AZLib {
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   string key = GetParameters().GetKey(cnti);
-                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                   NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
                   if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -665,7 +678,7 @@ namespace Com.Mparang.AZLib {
                   //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                   //param.Direction = ParameterDirection.Output;
                   string key = GetReturnParameters().GetKey(cnti);
-                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                   NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   sqlParam.Direction = ParameterDirection.Output;
                   if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
@@ -685,7 +698,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -707,7 +721,7 @@ namespace Com.Mparang.AZLib {
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   string key = GetParameters().GetKey(cnti);
-                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                   MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
                   if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -718,7 +732,7 @@ namespace Com.Mparang.AZLib {
                   //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                   //param.Direction = ParameterDirection.Output;
                   string key = GetReturnParameters().GetKey(cnti);
-                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                   MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   sqlParam.Direction = ParameterDirection.Output;
                   if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
@@ -738,7 +752,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -845,12 +860,23 @@ namespace Com.Mparang.AZLib {
               // parameter 값이 지정된 경우에 한해서 처리
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
-                  sqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
                 }
               }
               if (GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
-                  sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
                 }
               }
               rtnValue = sqlCommand.ExecuteScalar();
@@ -858,7 +884,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -875,7 +902,7 @@ namespace Com.Mparang.AZLib {
               if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
               if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
               // parameter 값이 지정된 경우에 한해서 처리
-              if (GetParameters() != null) {
+              /*if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   npgsqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
                 }
@@ -884,13 +911,35 @@ namespace Com.Mparang.AZLib {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   npgsqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
                 }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
               }
               rtnValue = npgsqlCommand.ExecuteScalar();
 
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -901,7 +950,7 @@ namespace Com.Mparang.AZLib {
               if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
               if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
               // parameter 값이 지정된 경우에 한해서 처리
-              if (GetParameters() != null) {
+              /*if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   mySqlCommand.Parameters.AddWithValue(GetParameters().GetKey(cnti), GetParameters().Get(cnti));
                 }
@@ -910,13 +959,35 @@ namespace Com.Mparang.AZLib {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   mySqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null).Direction = ParameterDirection.Output;
                 }
+              }*/
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
+                  //param.Direction = ParameterDirection.Output;
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
               }
               rtnValue = mySqlCommand.ExecuteScalar();
 
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -1108,7 +1179,7 @@ namespace Com.Mparang.AZLib {
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   string key = GetParameters().GetKey(cnti);
-                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                   SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
                   if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -1119,7 +1190,7 @@ namespace Com.Mparang.AZLib {
                   //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                   //param.Direction = ParameterDirection.Output;
                   string key = GetReturnParameters().GetKey(cnti);
-                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                   SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   sqlParam.Direction = ParameterDirection.Output;
                   if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
@@ -1139,7 +1210,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -1162,7 +1234,7 @@ namespace Com.Mparang.AZLib {
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   string key = GetParameters().GetKey(cnti);
-                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                   MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
                   if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -1173,7 +1245,7 @@ namespace Com.Mparang.AZLib {
                   //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                   //param.Direction = ParameterDirection.Output;
                   string key = GetReturnParameters().GetKey(cnti);
-                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                   MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   sqlParam.Direction = ParameterDirection.Output;
                   if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
@@ -1193,7 +1265,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -1229,7 +1302,7 @@ namespace Com.Mparang.AZLib {
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   string key = GetParameters().GetKey(cnti);
-                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                   NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
                   if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -1240,7 +1313,7 @@ namespace Com.Mparang.AZLib {
                   //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                   //param.Direction = ParameterDirection.Output;
                   string key = GetReturnParameters().GetKey(cnti);
-                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                   NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   sqlParam.Direction = ParameterDirection.Output;
                   if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
@@ -1260,7 +1333,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -1425,7 +1499,7 @@ namespace Com.Mparang.AZLib {
               if (GetParameters() != null) {
                 for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                   string key = GetParameters().GetKey(cnti);
-                  ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                   SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
                   if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -1436,7 +1510,7 @@ namespace Com.Mparang.AZLib {
                   //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                   //param.Direction = ParameterDirection.Output;
                   string key = GetReturnParameters().GetKey(cnti);
-                  ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                   SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
                   sqlParam.Direction = ParameterDirection.Output;
                   if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
@@ -1468,7 +1542,8 @@ namespace Com.Mparang.AZLib {
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
-                  GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  //GetReturnParameters().Set(key, sqlCommand.Parameters[key].Value);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
                 }
               }
               break;
@@ -1516,7 +1591,7 @@ namespace Com.Mparang.AZLib {
                 if (GetParameters() != null) {
                   for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                     string key = GetParameters().GetKey(cnti);
-                    ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                    ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                     NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
                     if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
                     if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -1527,7 +1602,7 @@ namespace Com.Mparang.AZLib {
                     //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                     //param.Direction = ParameterDirection.Output;
                     string key = GetReturnParameters().GetKey(cnti);
-                    ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                    ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                     NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
                     sqlParam.Direction = ParameterDirection.Output;
                     if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
@@ -1559,7 +1634,8 @@ namespace Com.Mparang.AZLib {
                 if (IsStoredProcedure() && GetReturnParameters() != null) {
                   for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                     string key = GetReturnParameters().GetKey(cnti);
-                    GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                    //GetReturnParameters().Set(key, npgsqlCommand.Parameters[key].Value);
+                    UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
                   }
                 }
                 break;
@@ -1581,7 +1657,7 @@ namespace Com.Mparang.AZLib {
                 if (GetParameters() != null) {
                   for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
                     string key = GetParameters().GetKey(cnti);
-                    ParameterData paramData = GetParameters().Get<ParameterData>(cnti);
+                    ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
                     MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
                     if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
                     if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
@@ -1592,7 +1668,7 @@ namespace Com.Mparang.AZLib {
                     //SqlParameter param = sqlCommand.Parameters.AddWithValue(GetReturnParameters().GetKey(cnti), null);
                     //param.Direction = ParameterDirection.Output;
                     string key = GetReturnParameters().GetKey(cnti);
-                    ParameterData paramData = GetReturnParameters().Get<ParameterData>(cnti);
+                    ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
                     MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
                     sqlParam.Direction = ParameterDirection.Output;
                     if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
@@ -1624,7 +1700,8 @@ namespace Com.Mparang.AZLib {
                 if (IsStoredProcedure() && GetReturnParameters() != null) {
                   for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                     string key = GetReturnParameters().GetKey(cnti);
-                    GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                    //GetReturnParameters().Set(key, mySqlCommand.Parameters[key].Value);
+                    UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
                   }
                 }
 						    break;
@@ -2117,6 +2194,18 @@ namespace Com.Mparang.AZLib {
     /// Created in 2017-03-28, leeyonghun
     public Prepared AddReturnParameters(params object[] parameters) {
       this.azSql.AddReturnParameters(parameters);
+      return this;
+    }
+    public Prepared UpdateReturnParameter(int idx, object value) {
+      ParameterData data = (ParameterData)this.azSql.return_parameters.Get(idx);
+      data.Value = value;
+      this.azSql.return_parameters.Set(idx, data);
+      return this;
+    }
+    public Prepared UpdateReturnParameter(string key, object value) {
+      ParameterData data = (ParameterData)this.azSql.return_parameters.Get(key);
+      data.Value = value;
+      this.azSql.return_parameters.Set(key, data);
       return this;
     }
     /// Created in 2017-03-28, leeyonghun
