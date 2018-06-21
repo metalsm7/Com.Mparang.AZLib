@@ -18,33 +18,33 @@ namespace Com.Mparang.AZLib {
       public object Value {get;set;}
       public ParameterData() {}
       public ParameterData(object value) {
-        this.Value = Value;
+        this.Value = value;
       }
       public ParameterData(object value, SqlDbType dbType) {
-        this.Value = Value;
+        this.Value = value;
         this.DbType = dbType;
       }
       public ParameterData(object value, SqlDbType dbType, int size) {
-        this.Value = Value;
+        this.Value = value;
         this.DbType = dbType;
         this.Size = size;
       }
 #if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
       public ParameterData(object value, NpgsqlTypes.NpgsqlDbType dbType) {
-        this.Value = Value;
+        this.Value = value;
         this.DbType = dbType;
       }
       public ParameterData(object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
-        this.Value = Value;
+        this.Value = value;
         this.DbType = dbType;
         this.Size = size;
       }
       public ParameterData(object value, MySqlDbType dbType) {
-        this.Value = Value;
+        this.Value = value;
         this.DbType = dbType;
       }
       public ParameterData(object value, MySqlDbType dbType, int size) {
-        this.Value = Value;
+        this.Value = value;
         this.DbType = dbType;
         this.Size = size;
       }
