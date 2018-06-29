@@ -391,32 +391,59 @@ namespace Com.Mparang.AZLib {
       this.parameters.Add(key, new ParameterData(value));
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
     public AZSql AddParameter(string key, object value, SqlDbType dbType) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value, dbType));
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public AZSql AddParameter(string key, object value, SqlDbType dbType, int size) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value, dbType, size));
       return this;
     }
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
     public AZSql AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value, dbType));
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public AZSql AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value, dbType, size));
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
     public AZSql AddParameter(string key, object value, MySqlDbType dbType) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value, dbType));
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public AZSql AddParameter(string key, object value, MySqlDbType dbType, int size) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value, dbType, size));
@@ -441,45 +468,105 @@ namespace Com.Mparang.AZLib {
       this.parameters = null;
     }
 
-    /// <summary></summary>
+    /// <summary>PreparedStatement 또는 StoredProcedure 사용의 경우 전달할 리턴 인수값 설정.
+    /// 실제 처리는 AddParameter(string, object)의 반복</summary>
     public AZSql SetReturnParameters(AZData parameters) {
       this.return_parameters.Clear();
       for (int cnti=0; cnti<parameters.Size(); cnti++) {
         this.return_parameters.Add(parameters.GetKey(cnti), new ParameterData(parameters.Get(cnti)));
       }
-      //this.return_parameters = parameters;
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 설정된 return parameter 값 반환
+    /// AZData(string key, ParameterData value) 형식으로 구성되어 있어, 
+    /// value 값 사용시 캐스팅 필요</summary>
     public AZData GetReturnParameters() {
       return this.return_parameters;
     }
+    /// <summary>설정된 key에 해당하는 ParameterData 객체 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public ParameterData GetReturnParameter(string key) {
       return (ParameterData)this.return_parameters.Get(key);
     }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public object GetReturnParameterValue(string key) {
       return GetReturnParameter(key).Value;
     }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값에 대해 T형식으로 캐스팅하여 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public T GetReturnParameterValue<T>(string key) {
       return (T)GetReturnParameter(key).Value;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
     public AZSql AddReturnParameter(string key, object value) {
       if (this.return_parameters == null) this.return_parameters = new AZData();
       this.return_parameters.Add(key, new ParameterData(value));
       return this;
     }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
     public AZSql AddReturnParameter(string key, object value, SqlDbType dbType) {
       if (this.return_parameters == null) this.return_parameters = new AZData();
       this.return_parameters.Add(key, new ParameterData(value, dbType));
       return this;
     }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public AZSql AddReturnParameter(string key, object value, SqlDbType dbType, int size) {
       if (this.return_parameters == null) this.return_parameters = new AZData();
       this.return_parameters.Add(key, new ParameterData(value, dbType, size));
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
+    public AZSql AddReturnParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
+      if (this.return_parameters == null) this.return_parameters = new AZData();
+      this.return_parameters.Add(key, new ParameterData(value, dbType));
+      return this;
+    }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
+    public AZSql AddReturnParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
+      if (this.return_parameters == null) this.return_parameters = new AZData();
+      this.return_parameters.Add(key, new ParameterData(value, dbType, size));
+      return this;
+    }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
+    public AZSql AddReturnParameter(string key, object value, MySqlDbType dbType) {
+      if (this.return_parameters == null) this.return_parameters = new AZData();
+      this.return_parameters.Add(key, new ParameterData(value, dbType));
+      return this;
+    }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
+    public AZSql AddReturnParameter(string key, object value, MySqlDbType dbType, int size) {
+      if (this.return_parameters == null) this.return_parameters = new AZData();
+      this.return_parameters.Add(key, new ParameterData(value, dbType, size));
+      return this;
+    }
+#endif
+    /// <summary>return parameter 추가, AddReturnParameters("key1", value1, "key2", value2...) 형식으로 사용</summary>
+    /// <param name="parameters">키, 값 순서로 만들어진 object배열값</param>
     public AZSql AddReturnParameters(params object[] parameters) {
       if (this.return_parameters == null) this.return_parameters = new AZData();
       for (int cnti=0; cnti<parameters.Length; cnti+=2) {
@@ -487,78 +574,88 @@ namespace Com.Mparang.AZLib {
       }
       return this;
     }
+    /// <summary>return parameter 에서 idx에 해당하는 자료의 값을 설정</summary>
+    /// <param name="idx">return parameter에서의 index값</param>
+    /// <param name="value">해당하는 ParameterData.Value에 설정할 값</param>
     public AZSql UpdateReturnParameter(int idx, object value) {
       ParameterData data = (ParameterData)this.return_parameters.Get(idx);
       data.Value = value;
       this.return_parameters.Set(idx, data);
       return this;
     }
+    /// <summary>return parameter 에서 지정된 key값에 해당하는 자료의 값을 설정</summary>
+    /// <param name="key">return parameter에서의 key값</param>
+    /// <param name="value">해당하는 ParameterData.Value에 설정할 값</param>
     public AZSql UpdateReturnParameter(string key, object value) {
       ParameterData data = (ParameterData)this.return_parameters.Get(key);
       data.Value = value;
       this.return_parameters.Set(key, data);
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql객체에 설정된 return_parameter 값 초기화</summary>
     public void ClearReturnParameters() {
       this.return_parameters.Clear();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql객체에 설정된 return_parameter 초기화 처리, 재사용시 새로운 객체 생성 절차가 포함됨</summary>
     public void RemoveReturnParameters() {
       this.return_parameters = null;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>insert 쿼리 실행 후 발생된 identity값을 반환 받을지 여부 설정</summary>
     public AZSql SetIdentity(bool identity) {
       this.identity = identity;
       return this;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>insert 쿼리 실행 후 발생된 identity값을 반환 받을지 여부 반환</summary>
     public bool GetIdentity() {
       return this.identity;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>실행할 쿼리가 stored procedure인지 여부 설정</summary>
     public AZSql SetIsStoredProcedure(bool is_stored_procedure) {
       this.is_stored_procedure = is_stored_procedure;
       return this;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>실행할 쿼리가 stored procedure인지 여부 설정값 반환</summary>
     public bool IsStoredProcedure() {
       return this.is_stored_procedure;
     }
 
-    /// <summary></summary>
-    /// <param name="query"> 실행할 쿼리문</param>
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public int Execute(string query) {
       SetQuery(query);
       return Execute();
     }
     
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public int Execute(bool identity) {
       SetIdentity(identity);
       return Execute();
     }
     
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public int Execute(string query, bool identity) {
       SetQuery(query);
       SetIdentity(identity);
       return Execute();
     }
         
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public int Execute(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return Execute();
     }
     
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public int Execute(string query, AZData parameters, bool identity) {
       SetQuery(query);
       SetParameters(parameters);
@@ -566,8 +663,7 @@ namespace Com.Mparang.AZLib {
       return Execute();
     }
         
-    /// <summary></summary>
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
 		public int Execute() {
 			int rtnValue = 0;
       if (in_transaction && !connected) return rtnValue;
@@ -799,33 +895,40 @@ namespace Com.Mparang.AZLib {
 		}
     
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<int> ExecuteAsync(string query) {
       SetQuery(query);
       return await ExecuteAsync();
     }
 
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public async Task<int> ExecuteAsync(bool identity) {
       SetIdentity(identity);
       return await ExecuteAsync();
     }
 
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public async Task<int> ExecuteAsync(string query, bool identity) {
       SetQuery(query);
       SetIdentity(identity);
       return await ExecuteAsync();
     }
 
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public async Task<int> ExecuteAsync(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return await ExecuteAsync();
     }
 
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<int> ExecuteAsync(string query, AZData parameters, bool identity) {
       SetQuery(query);
       SetParameters(parameters);
@@ -833,7 +936,7 @@ namespace Com.Mparang.AZLib {
       return await ExecuteAsync();
     }
 
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> ExecuteAsync() {
       int rtnValue = 0;
       if (in_transaction && !connected) return rtnValue;
@@ -1033,20 +1136,23 @@ namespace Com.Mparang.AZLib {
     }
 #endif
 
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
 		public object Get(string query) {
       SetQuery(query);
       return Get();
     }
         
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
 		public object Get(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return Get();
     }
 
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
 		public object Get() {
 			object rtnValue = null;
       //
@@ -1249,19 +1355,23 @@ namespace Com.Mparang.AZLib {
 		}
     
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<object> GetAsync(string query) {
       SetQuery(query);
       return await GetAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public async Task<object> GetAsync(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return await GetAsync();
     }
 
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
 		public async Task<object> GetAsync() {
 			object rtnValue = null;
       //
@@ -1429,198 +1539,204 @@ namespace Com.Mparang.AZLib {
 		}
 #endif
 
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
     public object GetObject() {
       return Get();
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public object GetObject(string query) {
       return Get(query);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public object GetObject(string query, AZData parameters) {
       return Get(query, parameters);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt() {
       return AZString.Init(Get()).ToInt(0);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(int default_value) {
       return AZString.Init(Get()).ToInt(default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(string query, int default_value) {
       return AZString.Init(Get(query)).ToInt(default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(string query, AZData parameters, int default_value) {
       return AZString.Init(Get(query, parameters)).ToInt(default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(string query) {
       return GetInt(query, 0);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public long GetLong() {
       return AZString.Init(Get()).ToLong(0);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public long GetLong(long default_value) {
       return AZString.Init(Get()).ToLong(default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public long GetLong(string query) {
       return GetLong(query, 0);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public long GetLong(string query, long default_value) {
       return AZString.Init(Get(query)).ToLong(default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public long GetLong(string query, AZData parameters, long default_value) {
       return AZString.Init(Get(query, parameters)).ToLong(default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat() {
       return AZString.Init(Get()).ToFloat(0f);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(float p_default_value) {
       return AZString.Init(Get()).ToFloat(p_default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(string query, float p_default_value) {
       return AZString.Init(Get(query)).ToFloat(p_default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(string query, AZData parameters, float p_default_value) {
       return AZString.Init(Get(query, parameters)).ToFloat(p_default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(string query) {
       return GetFloat(query, 0f);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString() {
       return AZString.Init(Get()).String("");
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString(string query, string p_default_value) {
       return AZString.Init(Get(query)).String(p_default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString(string query, AZData parameters, string p_default_value) {
       return AZString.Init(Get(query, parameters)).String(p_default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString(string query) {
       return GetString();
     }
 
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<object> GetObjectAsync() {
       return await GetAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<object> GetObjectAsync(string query) {
       return await GetAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<object> GetObjectAsync(string query, AZData parameters) {
       return await GetAsync(query, parameters);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync() {
       return AZString.Init(await GetAsync()).ToInt(0);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(int default_value) {
       return AZString.Init(await GetAsync()).ToInt(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(string query) {
       return await GetIntAsync(query, 0);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(string query, int default_value) {
       return AZString.Init(await GetAsync(query)).ToInt(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(string query, AZData parameters, int default_value) {
       return AZString.Init(await GetAsync(query, parameters)).ToInt(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync() {
       return AZString.Init(await GetAsync()).ToLong(0);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(long default_value) {
       return AZString.Init(await GetAsync()).ToLong(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(string query) {
       return await GetLongAsync(query, 0);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(string query, long default_value) {
       return AZString.Init(await GetAsync(query)).ToLong(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(string query, AZData parameters, long default_value) {
       return AZString.Init(await GetAsync(query, parameters)).ToLong(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync() {
       return AZString.Init(await GetAsync()).ToFloat(0f);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(float p_default_value) {
       return AZString.Init(await GetAsync()).ToFloat(p_default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(string query, float p_default_value) {
       return AZString.Init(await GetAsync(query)).ToFloat(p_default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(string query, AZData parameters, float p_default_value) {
       return AZString.Init(await GetAsync(query, parameters)).ToFloat(p_default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(string query) {
       return await GetFloatAsync(query, 0f);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync() {
       return AZString.Init(await GetAsync()).String("");
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync(string query, string p_default_value) {
       return AZString.Init(await GetAsync(query)).String(p_default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync(string query, AZData parameters, string p_default_value) {
       return AZString.Init(await GetAsync(query, parameters)).String(p_default_value);
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync(string query) {
       return await GetStringAsync();
     }
 #endif
 
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
 		public AZData GetData(string query) {
       SetQuery(query);
       return GetData();
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
 		public AZData GetData(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return GetData();
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
 		public AZData GetData() {
 			AZData rtnValue = new AZData ();
       if (in_transaction && !connected) return rtnValue;
@@ -1877,18 +1993,20 @@ namespace Com.Mparang.AZLib {
 		}
 
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
 		public async Task<AZData> GetDataAsync(string query) {
       SetQuery(query);
       return await GetDataAsync();
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
 		public async Task<AZData> GetDataAsync(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return await GetDataAsync();
     }
-    /// Created in 2015-06-23, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
 		public async Task<AZData> GetDataAsync() {
 			AZData rtnValue = new AZData ();
       //
@@ -2095,51 +2213,66 @@ namespace Com.Mparang.AZLib {
 		}
 #endif
         
-    /// <summary></summary>
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
     public AZList GetList() {
       return GetList(0, -1);
     }
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public AZList GetList(string query) {
       SetQuery(query);
       return GetList(0);
     }
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
 		public AZList GetList(string query, int offset) {
       SetQuery(query);
       return GetList(offset);
     }
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
 		public AZList GetList(string query, int offset, int length) {
       SetQuery(query);
       return GetList(offset, length);
     }
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
 		public AZList GetList(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return GetList();
     }
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
 		public AZList GetList(string query, AZData parameters, int offset) {
       SetQuery(query);
       SetParameters(parameters);
       return GetList(offset);
     }
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
 		public AZList GetList(string query, AZData parameters, int offset, int length) {
       SetQuery(query);
       SetParameters(parameters);
       return GetList(offset, length);
     }
-    /// Created in 2015-06-24, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
 		public AZList GetList(int offset) {
       return GetList(offset, -1);
     }
-
-    /// <summary>주어진 쿼리에 대해 offset, length 만큼의 데이터 반환</summary>
-    /// Created in 2015, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
 		public AZList GetList(int offset, int length) {
 			AZList rtnValue = new AZList ();
       if (in_transaction && !connected) return rtnValue;
@@ -2449,51 +2582,66 @@ namespace Com.Mparang.AZLib {
 		}
 
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
-    /// <summary></summary>
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<AZList> GetListAsync() {
       return await GetListAsync(0, -1);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<AZList> GetListAsync(string query) {
       SetQuery(query);
       return await GetListAsync(0);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
 		public async Task<AZList> GetListAsync(string query, int offset) {
       SetQuery(query);
       return await GetListAsync(offset);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
 		public async Task<AZList> GetListAsync(string query, int offset, int length) {
       SetQuery(query);
       return await GetListAsync(offset, length);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
 		public async Task<AZList> GetListAsync(string query, AZData parameters) {
       SetQuery(query);
       SetParameters(parameters);
       return await GetListAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
 		public async Task<AZList> GetListAsync(string query, AZData parameters, int offset) {
       SetQuery(query);
       SetParameters(parameters);
       return await GetListAsync(offset);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
 		public async Task<AZList> GetListAsync(string query, AZData parameters, int offset, int length) {
       SetQuery(query);
       SetParameters(parameters);
       return await GetListAsync(offset, length);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
 		public async Task<AZList> GetListAsync(int offset) {
       return await GetListAsync(offset, -1);
     }
-
-    /// <summary>주어진 쿼리에 대해 offset, length 만큼의 데이터 반환</summary>
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
 		public async Task<AZList> GetListAsync(int offset, int length) {
 			AZList rtnValue = new AZList ();
       //
@@ -2734,7 +2882,7 @@ namespace Com.Mparang.AZLib {
 #endif
 
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
-    /// <summary>/Created in 2018-06-27</summary>
+    /// <summary>설정된 연결 정보를 통해 DB연결 비동기 처리</summary>
     private async Task<bool> OpenAsync() {
 			bool rtnValue = false;
 
@@ -2764,7 +2912,7 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
     }
 #endif
-    /// Created in 2015, leeyonghun
+    /// <summary>설정된 연결 정보를 통해 DB연결 처리</summary>
 		private bool Open() {
 			bool rtnValue = false;
 
@@ -2796,7 +2944,7 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
-    /// Created in 2015, leeyonghun
+    /// <summary>DB연결 종료 처리</summary>
 		private bool Close() {
 			bool rtnValue = false;
 
@@ -2848,10 +2996,8 @@ namespace Com.Mparang.AZLib {
 		}
 
     /// <summary>DB 연결 정보 저장용 객체</summary>
-    /// 작성일 : 2015-06-03 이용훈
     public class DBConnectionInfo {
       /// <summary>기본 생성자</summary>
-      /// 작성일 : 2015-06-03 이용훈
       public DBConnectionInfo(string p_json) {
         p_json = p_json.Trim();
         if (!p_json.StartsWith ("{") || !p_json.EndsWith("}")) {
@@ -2970,7 +3116,6 @@ namespace Com.Mparang.AZLib {
 
             
     /// <summary></summary>
-    /// Created in 2015-08-19, leeyonghun
     private string GetSqlTypeString(SQL_TYPE p_sql_type) {
       string rtn_value = "";
       switch (p_sql_type) {
@@ -2986,7 +3131,6 @@ namespace Com.Mparang.AZLib {
     }
 
     /// <summary></summary>
-    /// Created in 2015-08-19, leeyonghun
     private SQL_TYPE GetSqlType(string p_sql_type) {
       SQL_TYPE rtn_value = SQL_TYPE.MSSQL;
       switch (p_sql_type.ToLower()) {
@@ -3001,37 +3145,39 @@ namespace Com.Mparang.AZLib {
       return rtn_value;
     }
 
-    /// Created in 2015-08-19, leeyonghun
+    /// <summary>DB 종류 설정</summary>
+    /// <param name="sql_type"></param>
     public DBConnectionInfo SetSqlType(SQL_TYPE sql_type) {
       SqlType = sql_type;
       return this;
     }
-    /// Created in 2015-08-19, leeyonghun
+    /// <summary>DB 연결 문자열 설정</summary>
+    /// <param name="connection_string">연결 문자열</param>
     public DBConnectionInfo SetConnectionString(string connection_string) {
       ConnectionString = connection_string;
       return this;
     }
-    /// Created in 2015-08-19, leeyonghun
+    /// <summary>DB 연결점 설정</summary>
     public DBConnectionInfo SetServer(string server) {
       Server = server;
       return this;
     }
-    /// Created in 2015-08-19, leeyonghun
+    /// <summary>DB 연결 port 설정</summary>
     public DBConnectionInfo SetPort(int port) {
       Port = port;
       return this;
     }
-    /// Created in 2015-08-19, leeyonghun
+    /// <summary>DB 연결시 초기에 연결할 catalog/database 설정</summary>
     public DBConnectionInfo SetCatalog(string catalog) {
       Catalog = catalog;
       return this;
     }
-    /// Created in 2015-08-19, leeyonghun
+    /// <summary>DB 연결시 사용할 id 설정</summary>
     public DBConnectionInfo SetID(string id) {
       ID = id;
       return this;
     }
-    /// Created in 2015-08-19, leeyonghun
+    /// <summary>DB 연결시 사용할 비번 설정</summary>
     public DBConnectionInfo SetPW(string pw) {
       PW = pw;
       return this;
@@ -3047,73 +3193,107 @@ namespace Com.Mparang.AZLib {
   }
   
   /// <summary>Prepared Statement 사용한 DB 처리부분</summary>
-  /// Created in 2017-03-27, leeyonghun
   public class Prepared {
     private AZSql azSql;
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>기본 생성자, 새로운 AZSql 객체를 내부적으로 생성</summary>
     public Prepared() {
       azSql = new AZSql();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>생성자, 지정된 AZSql 객체 사용</summary>
     public Prepared(AZSql azSql) {
       this.azSql = azSql;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>생성자, 지정된 문자열을 통해 내부적으로 새로운 AZSql을 생성</summary>
+    /// <param name="json">AZSql 객체 생성시 사용되는 문자열</param>
     public Prepared(string json) {
       azSql = new AZSql(json);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>생성자, 지정된 문자열을 통해 내부적으로 가지고 있는 AZSql에 대해 Set처리</summary>
     public Prepared Set(string json) {
       azSql.Set(json);
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>지정된 문자열을 통해 새로운 Prepared 객체 생성 후 반환</summary>
     public static Prepared Init(string json) {
       return new Prepared(json);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 Prepared 객체에 대해 실행할 쿼리 지정</summary>
     public Prepared SetQuery(string query) {
       this.azSql.SetQuery(query);
       return this;
     }
-    /// Created in 2017-03-29, leeyonghun
+    /// <summary>현재 Prepared 객체에 대해 지정된 실행할 쿼리 반환</summary>
     public string GetQuery() {
       return this.azSql.GetQuery();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
     public Prepared AddParameter(string key, object value) {
       this.azSql.AddParameter(key, value);
-      //if (this.azSql.parameters == null) this.azSql.parameters = new AZData();
-      //this.azSql.parameters.Add(key, value);
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
     public Prepared AddParameter(string key, object value, SqlDbType dbType) {
       this.azSql.AddParameter(key, value, dbType);
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public Prepared AddParameter(string key, object value, SqlDbType dbType, int size) {
       this.azSql.AddParameter(key, value, dbType, size);
       return this;
     }
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
     public Prepared AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
       this.azSql.AddParameter(key, value, dbType);
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public Prepared AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
       this.azSql.AddParameter(key, value, dbType, size);
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
     public Prepared AddParameter(string key, object value, MySqlDbType dbType) {
       this.azSql.AddParameter(key, value, dbType);
       return this;
     }
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public Prepared AddParameter(string key, object value, MySqlDbType dbType, int size) {
       this.azSql.AddParameter(key, value, dbType, size);
       return this;
     }
 #endif
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>PreparedStatement 또는 StoredProcedure 사용의 경우 전달할 인수값 설정.
+    /// 실제 처리는 AddParameter(string, object)의 반복</summary>
+    public Prepared SetParameters(AZData parameters) {
+      this.azSql.SetParameters(parameters);
+      return this;
+    }
+    /// <summary>parameter 추가, AddParameters("key1", value1, "key2", value2...) 형식으로 사용</summary>
+    /// <param name="parameters">키, 값 순서로 만들어진 object배열값</param>
     public Prepared AddParameter(params object[] parameters) {
       if (this.azSql.parameters == null) this.azSql.parameters = new AZData();
       for (int cnti=0; cnti<parameters.Length; cnti+=2) {
@@ -3121,20 +3301,32 @@ namespace Com.Mparang.AZLib {
       }
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
-    public Prepared SetParameters(AZData parameters) {
-      this.azSql.SetParameters(parameters);
-      return this;
-    }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 설정된 parameter 값 반환
+    /// AZData(string key, ParameterData value) 형식으로 구성되어 있어, 
+    /// value 값 사용시 캐스팅 필요</summary>
     public AZData GetParameters() {
       return this.azSql.GetParameters();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>설정된 key에 해당하는 ParameterData 객체 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
+    public ParameterData GetParameter(string key) {
+      return (ParameterData)this.azSql.parameters.Get(key);
+    }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
+    public object GetParameterValue(string key) {
+      return GetParameter(key).Value;
+    }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값에 대해 T형식으로 캐스팅하여 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
+    public T GetParameterValue<T>(string key) {
+      return (T)GetParameter(key).Value;
+    }
+    /// <summary>현재 AZSql객체에 설정된 parameter 값 초기화</summary>
     public void ClearParameters() {
       this.azSql.ClearParameters();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql객체에 설정된 parameter 초기화 처리, 재사용시 새로운 객체 생성 절차가 포함됨</summary>
     public void RemoveParameters() {
       this.azSql.RemoveParameters();
     }
@@ -3145,377 +3337,527 @@ namespace Com.Mparang.AZLib {
       return this;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 설정된 return parameter 값 반환
+    /// AZData(string key, ParameterData value) 형식으로 구성되어 있어, 
+    /// value 값 사용시 캐스팅 필요</summary>
     public AZData GetReturnParameters() {
       return this.azSql.GetReturnParameters();
     }
+    /// <summary>설정된 key에 해당하는 ParameterData 객체 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public ParameterData GetReturnParameter(string key) {
       return this.azSql.GetReturnParameter(key);
     }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public object GetReturnParameterValue(string key) {
       return GetReturnParameter(key).Value;
     }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값에 대해 T형식으로 캐스팅하여 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public T GetReturnParameterValue<T>(string key) {
       return (T)GetReturnParameter(key).Value;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
     public Prepared AddReturnParameter(string key, object value) {
       this.azSql.AddReturnParameter(key, value);
       return this;
     }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
     public Prepared AddReturnParameter(string key, object value, SqlDbType dbType) {
       this.azSql.AddReturnParameter(key, value, dbType);
       return this;
     }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">SqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
     public Prepared AddReturnParameter(string key, object value, SqlDbType dbType, int size) {
       this.azSql.AddReturnParameter(key, value, dbType, size);
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
+    public Prepared AddReturnParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
+      this.azSql.AddReturnParameter(key, value, dbType);
+      return this;
+    }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">NpgsqlTypes.NpgsqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
+    public Prepared AddReturnParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
+      this.azSql.AddReturnParameter(key, value, dbType, size);
+      return this;
+    }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
+    public Prepared AddReturnParameter(string key, object value, MySqlDbType dbType) {
+      this.azSql.AddReturnParameter(key, value, dbType);
+      return this;
+    }
+    /// <summary>return parameter 추가, AZData.Add(key, new ParameterData(value, dbType))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
+    /// <param name="dbType">MySqlDbType, value값의 DB TYPE 설정</param>
+    /// <param name="size">int, value값의 크기 설정</param>
+    public Prepared AddReturnParameter(string key, object value, MySqlDbType dbType, int size) {
+      this.azSql.AddReturnParameter(key, value, dbType, size);
+      return this;
+    }
+#endif
+    /// <summary>return parameter 추가, AddReturnParameters("key1", value1, "key2", value2...) 형식으로 사용</summary>
+    /// <param name="parameters">키, 값 순서로 만들어진 object배열값</param>
     public Prepared AddReturnParameters(params object[] parameters) {
       this.azSql.AddReturnParameters(parameters);
       return this;
     }
+    /// <summary>return parameter 에서 idx에 해당하는 자료의 값을 설정</summary>
+    /// <param name="idx">return parameter에서의 index값</param>
+    /// <param name="value">해당하는 ParameterData.Value에 설정할 값</param>
     public Prepared UpdateReturnParameter(int idx, object value) {
       ParameterData data = (ParameterData)this.azSql.return_parameters.Get(idx);
       data.Value = value;
       this.azSql.return_parameters.Set(idx, data);
       return this;
     }
+    /// <summary>return parameter 에서 지정된 key값에 해당하는 자료의 값을 설정</summary>
+    /// <param name="key">return parameter에서의 key값</param>
+    /// <param name="value">해당하는 ParameterData.Value에 설정할 값</param>
     public Prepared UpdateReturnParameter(string key, object value) {
       ParameterData data = (ParameterData)this.azSql.return_parameters.Get(key);
       data.Value = value;
       this.azSql.return_parameters.Set(key, data);
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql객체에 설정된 return_parameter 값 초기화</summary>
     public void ClearReturnParameters() {
       this.azSql.ClearReturnParameters();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql객체에 설정된 return_parameter 초기화 처리, 재사용시 새로운 객체 생성 절차가 포함됨</summary>
     public void RemoveReturnParameters() {
       this.azSql.RemoveReturnParameters();
     }
+    /// <summary>insert 쿼리 실행 후 발생된 identity값을 반환 받을지 여부 설정</summary>
+    public Prepared SetIdentity(bool identity) {
+      this.azSql.identity = identity;
+      return this;
+    }
+    /// <summary>insert 쿼리 실행 후 발생된 identity값을 반환 받을지 여부 반환</summary>
+    public bool GetIdentity() {
+      return this.azSql.identity;
+    }
+    /// <summary>실행할 쿼리가 stored procedure인지 여부 설정</summary>
     public Prepared SetIsStoredProcedure(bool is_stored_procedure) {
       this.azSql.SetIsStoredProcedure(is_stored_procedure);
       return this;
     }
-
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>실행할 쿼리가 stored procedure인지 여부 설정값 반환</summary>
     public bool IsStoredProcedure() {
       return this.azSql.IsStoredProcedure();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
     public int Execute() {
       return this.azSql.Execute();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public int Execute(bool identity) {
       return this.azSql.Execute(identity);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public int Execute(string query) {
       return this.azSql.Execute(query);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public int Execute(string query, bool identity) {
       return this.azSql.Execute(query, identity);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public int Execute(string query, AZData parameters, bool identity) {
       return this.azSql.Execute(query, parameters, identity);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
     public object Get() {
       return this.azSql.Get();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public object Get(string query) {
       return this.azSql.Get(query);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public object Get(string query, AZData parameters) {
       return this.azSql.Get(query, parameters);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
     public object GetObject() {
       return this.azSql.GetObject();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public object GetObject(string query) {
       return this.azSql.GetObject(query);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public object GetObject(string query, AZData parameters) {
       return this.azSql.GetObject(query, parameters);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt() {
       return this.azSql.GetInt();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(int default_value) {
       return this.azSql.GetInt(default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(string query) {
       return this.azSql.GetInt(query);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(string query, int default_value) {
       return this.azSql.GetInt(query, default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public int GetInt(string query, AZData parameters, int default_value) {
       return this.azSql.GetInt(query, parameters, default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
+    public long GetLong() {
+      return this.azSql.GetLong();
+    }
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
+    public long GetLong(long default_value) {
+      return this.azSql.GetLong(default_value);
+    }
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
+    public long GetLong(string query) {
+      return this.azSql.GetLong(query);
+    }
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
+    public long GetLong(string query, long default_value) {
+      return this.azSql.GetLong(query, default_value);
+    }
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
+    public long GetLong(string query, AZData parameters, long default_value) {
+      return this.azSql.GetLong(query, parameters, default_value);
+    }
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat() {
       return this.azSql.GetFloat();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(float default_value) {
       return this.azSql.GetFloat(default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(string query) {
       return this.azSql.GetFloat(query);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(string query, float default_value) {
       return this.azSql.GetFloat(query, default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public float GetFloat(string query, AZData parameters, float default_value) {
       return this.azSql.GetFloat(query, parameters, default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString() {
       return this.azSql.GetString();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString(string query) {
       return this.azSql.GetString(query);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString(string query, string default_value) {
       return this.azSql.GetString(query, default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 처리</summary>
     public string GetString(string query, AZData parameters, string default_value) {
       return this.azSql.GetString(query, parameters, default_value);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
     public AZData GetData() {
       return this.azSql.GetData();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public AZData GetData(string query) {
       return this.azSql.GetData(query);
     }
-    /// <summary></summary>
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public AZData GetData(string query, AZData parameters) {
       return this.azSql.GetData(query, parameters);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
     public AZList GetList() {
       return this.azSql.GetList();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
     public AZList GetList(int offset) {
       return this.azSql.GetList(offset);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
     public AZList GetList(int offset, int length) {
       return this.azSql.GetList(offset, length);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public AZList GetList(string query) {
       return this.azSql.GetList(query);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
     public AZList GetList(string query, int offset) {
       return this.azSql.GetList(query, offset);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public AZList GetList(string query, AZData parameters) {
       return this.azSql.GetList(query, parameters);
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
     public AZList GetList(string query, AZData parameters, int offset) {
       return this.azSql.GetList(query, parameters, offset);
     }
-    /// <summary></summary>
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
     public AZList GetList(string query, AZData parameters, int offset, int length) {
       return this.azSql.GetList(query, parameters, offset, length);
     }
 
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> ExecuteAsync() {
       return await this.azSql.ExecuteAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public async Task<int> ExecuteAsync(bool identity) {
       return await this.azSql.ExecuteAsync(identity);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<int> ExecuteAsync(string query) {
       return await this.azSql.ExecuteAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public async Task<int> ExecuteAsync(string query, bool identity) {
       return await this.azSql.ExecuteAsync(query, identity);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="identity">쿼리 실행 후 발생되는 identity값 반환 여부 설정</param>
     public async Task<int> ExecuteAsync(string query, AZData parameters, bool identity) {
       return await this.azSql.ExecuteAsync(query, parameters, identity);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<object> GetAsync() {
       return await this.azSql.GetAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<object> GetAsync(string query) {
       return await this.azSql.GetAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public async Task<object> GetAsync(string query, AZData parameters) {
       return await this.azSql.GetAsync(query, parameters);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<object> GetObjectAsync() {
       return await this.azSql.GetObjectAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<object> GetObjectAsync(string query) {
       return await this.azSql.GetObjectAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public async Task<object> GetObjectAsync(string query, AZData parameters) {
       return await this.azSql.GetObjectAsync(query, parameters);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync() {
       return await this.azSql.GetIntAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(int default_value) {
       return await this.azSql.GetIntAsync(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(string query) {
       return await this.azSql.GetIntAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(string query, int default_value) {
       return await this.azSql.GetIntAsync(query, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 int로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<int> GetIntAsync(string query, AZData parameters, int default_value) {
       return await this.azSql.GetIntAsync(query, parameters, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync() {
       return await this.azSql.GetLongAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(int default_value) {
       return await this.azSql.GetLongAsync(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(string query) {
       return await this.azSql.GetLongAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(string query, int default_value) {
       return await this.azSql.GetLongAsync(query, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 long으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<long> GetLongAsync(string query, AZData parameters, int default_value) {
       return await this.azSql.GetLongAsync(query, parameters, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync() {
       return await this.azSql.GetFloatAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(float default_value) {
       return await this.azSql.GetFloatAsync(default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(string query) {
       return await this.azSql.GetFloatAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(string query, float default_value) {
       return await this.azSql.GetFloatAsync(query, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 float으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<float> GetFloatAsync(string query, AZData parameters, float default_value) {
       return await this.azSql.GetFloatAsync(query, parameters, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync() {
       return await this.azSql.GetStringAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync(string query) {
       return await this.azSql.GetStringAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync(string query, string default_value) {
       return await this.azSql.GetStringAsync(query, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 결과값을 string으로 캐스팅 후 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<string> GetStringAsync(string query, AZData parameters, string default_value) {
       return await this.azSql.GetStringAsync(query, parameters, default_value);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<AZData> GetDataAsync() {
       return await this.azSql.GetDataAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<AZData> GetDataAsync(string query) {
       return await this.azSql.GetDataAsync(query);
     }
-    /// <summary></summary>
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>단일 행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public async Task<AZData> GetDataAsync(string query, AZData parameters) {
       return await this.azSql.GetDataAsync(query, parameters);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
     public async Task<AZList> GetListAsync() {
       return await this.azSql.GetListAsync();
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
     public async Task<AZList> GetListAsync(int offset) {
       return await this.azSql.GetListAsync(offset);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
     public async Task<AZList> GetListAsync(int offset, int length) {
       return await this.azSql.GetListAsync(offset, length);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
     public async Task<AZList> GetListAsync(string query) {
       return await this.azSql.GetListAsync(query);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
     public async Task<AZList> GetListAsync(string query, int offset) {
       return await this.azSql.GetListAsync(query, offset);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
     public async Task<AZList> GetListAsync(string query, AZData parameters) {
       return await this.azSql.GetListAsync(query, parameters);
     }
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
     public async Task<AZList> GetListAsync(string query, AZData parameters, int offset) {
       return await this.azSql.GetListAsync(query, parameters, offset);
     }
     /// <summary></summary>
-    /// Created in 2018-06-27, leeyonghun
+    /// <summary>다행 결과값을 반환하는 지정된 쿼리문 실행 비동기 처리</summary>
+    /// <param name="query">실행할 쿼리문</param>
+    /// <param name="parameters">쿼리와 함께 전달항 parameter 지정</param>
+    /// <param name="offset">반환받을 행의 시작점 지정</param>
+    /// <param name="length">반환받을 행의 수 지정</param>
     public async Task<AZList> GetListAsync(string query, AZData parameters, int offset, int length) {
       return await this.azSql.GetListAsync(query, parameters, offset, length);
     }
@@ -4145,7 +4487,6 @@ namespace Com.Mparang.AZLib {
   }
 }
 
-/// Created in 2015-08-13, leeyonghun
 public class Basic {
   public enum WHERETYPE {
     GREATER_THAN, GREATER_THAN_OR_EQUAL, 
@@ -4161,58 +4502,59 @@ public class Basic {
     public const string VALUE = "value";
     public const string WHERE = "where";
   }
-  /// Prepared Statement 사용 여부, Created in 2017-03-28, leeyonghun
-  public bool IsPrepared {get;set;}
+  private bool prepared {get;set;}
+  
+  /// <summary>Prepared Statement 사용 여부 반환</summary>
+  public bool IsPrepared() {
+    return this.prepared;
+  }
 
-  /// Created in 2017-03-28, leeyonghun
+  /// <summary>Prepared Statement 사용 여부 설정</summary>
   public Basic SetIsPrepared(bool value) {
-    this.IsPrepared = value;
+    this.prepared = value;
     return this;
   }
 
-  /// Created in 2015-08-13, leeyonghun
   public class SetList {
     List<SetData> setList;
 
     /// <summary>기본생성자</summary>
-    /// Created in 2015-08-13, leeyonghun
     public SetList() {
       setList = new List<SetData>();
     }
 
     /// <summary>인스턴스 생성 후 인스턴스 반환</summary>
-    /// Created in 2015-08-13, leeyonghun
     public static SetList Init() {
       return new SetList();
     }
 
-    /// Created in 2015-08-13, leeyonghun
+    /// <summary></summary>
     public SetList Add(SetData p_value) {
       this.setList.Add(p_value);
       return this;
     }
 
-    /// Created in 2015-08-13, leeyonghun
+    /// <summary></summary>
     public SetList Add(string p_column, string p_value, VALUETYPE p_value_type) {
       return Add(new SetData(p_column, p_value, p_value_type));
     }
 
-    /// Created in 2015-08-13, leeyonghun
+    /// <summary></summary>
     public SetList Add(string p_column, string p_value) {
       return Add(new SetData(p_column, p_value));
     }
 
-    /// Created in 2015-08-13, leeyonghun
+    /// <summary></summary>
     public SetData Get(int p_index) {
       return this.setList[p_index];
     }
 
-    /// Created in 2015-08-13, leeyonghun
+    /// <summary></summary>
     public SetData this[int p_index] {
       get { return Get(p_index); }
     }
 
-    /// Created in 2015-08-13, leeyonghun
+    /// <summary></summary>
     public string GetQuery() {
       StringBuilder rtn_value = new StringBuilder();
       for (int cnti = 0; cnti < this.setList.Count; cnti++) {
@@ -4226,45 +4568,39 @@ public class Basic {
       return rtn_value.ToString();
     }
 
-    /// Created in 2015-08-13, leeyonghun
+    /// <summary></summary>
     public int Size() {
       return this.setList.Count;
     }
   }
 
   /// <summary></summary>
-  /// Created in 2015-08-12, leeyonghun
   public class SetData {
     public string Column { get; set; }
     public string Value { get; set; }
     public VALUETYPE ValueType { get; set; }
 
     /// <summary>기본생성자</summary>
-    /// Created in 2015-08-12, leeyonghun
     public SetData() {
       ValueType = VALUETYPE.VALUE;
     }
 
     /// <summary>인스턴스 생성 후 인스턴스 반환 처리</summary>
-    /// Created in 2015-08-13, leeyonghun
     public static SetData Init() {
       return new SetData();
     }
     
-    /// <summary>기본생성자</summary>
-    /// Created in 2015-08-12, leeyonghun
+    /// <summary>생성자</summary>
     public SetData(string p_column, string p_value) {
       Set(p_column, p_value, VALUETYPE.VALUE);
     }
     
-    /// <summary>기본생성자</summary>
-    /// Created in 2015-08-12, leeyonghun
+    /// <summary>생성자</summary>
     public SetData(string p_column, string p_value, VALUETYPE p_value_type) {
       Set(p_column, p_value, p_value_type);
     }
                 
     /// <summary>기본값 설정</summary>
-    /// Created in 2015-08-12, leeyonghun
     public void Set(string p_column, string p_value, VALUETYPE p_value_type) {
       this.Column = p_column;
       this.Value = p_value;
@@ -4272,10 +4608,8 @@ public class Basic {
     }
 
     /// <summary></summary>
-    /// Created in 2015-08-13, leeyonghun
     public string GetQuery() {
       string rtn_value = "";
-
       switch (this.ValueType) {
         case VALUETYPE.QUERY:
           rtn_value = this.Column + " = " + this.Value;
@@ -4284,7 +4618,6 @@ public class Basic {
           rtn_value = this.Column + " = '" + this.Value + "'";
           break;
       }
-
       return rtn_value;
     }
   }
@@ -4299,7 +4632,7 @@ public class Basic {
   private bool has_schema_data;
   private string sql_select;
 
-  /// Created in 2017-03-29, leeyonghun
+  /// <summary>생성자</summary>
   public Basic (string table_name, string connection_json) {
     if (table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4316,13 +4649,13 @@ public class Basic {
     has_schema_data = false;
 
     //
-    IsPrepared = false;
+    SetIsPrepared(false);
 
     // 지정된 테이블에 대한 스키마 설정
     SetSchemaData();
   }
 
-  /// Created in 2017-03-29, leeyonghun
+  /// <summary>생성자</summary>
   public Basic (string table_name, string connection_json, bool is_prepared) {
     if (table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4339,14 +4672,14 @@ public class Basic {
     has_schema_data = false;
 
     //
-    IsPrepared = is_prepared;
+    SetIsPrepared(is_prepared);
 
     // 지정된 테이블에 대한 스키마 설정
     SetSchemaData();
   }
             
 
-  /// Created in 2017-03-29, leeyonghun
+  /// <summary>생성자</summary>
   public Basic (string table_name, AZSql azSql) {
     if (table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4363,13 +4696,13 @@ public class Basic {
     has_schema_data = false;
 
     //
-    IsPrepared = false;
+    SetIsPrepared(false);
 
     // 지정된 테이블에 대한 스키마 설정
     SetSchemaData();
   }
 
-  /// Created in 2017-03-29, leeyonghun
+  /// <summary>생성자</summary>
   public Basic (string table_name, AZSql azSql, bool is_prepared) {
     if (table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4385,7 +4718,7 @@ public class Basic {
     has_schema_data = false;
 
     //
-    IsPrepared = is_prepared;
+    SetIsPrepared(is_prepared);
 
     //query = "";
 
@@ -4393,8 +4726,7 @@ public class Basic {
     SetSchemaData();
   }
 
-  /// <summary>basic constructor</summary>
-  /// Created in 2015-06-23, leeyonghun
+  /// <summary>생성자</summary>
   public Basic(string p_table_name) {
     if (p_table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4409,7 +4741,7 @@ public class Basic {
     has_schema_data = false;
   }
 
-  /// Created in 2017-03-31, leeyonghun
+  /// <summary>생성자</summary>
   public Basic (string table_name, bool is_prepared) {
     if (table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4422,13 +4754,12 @@ public class Basic {
     data_schema = null;
     
     //
-    IsPrepared = is_prepared;
+    SetIsPrepared(is_prepared);
 
     has_schema_data = false;
   }
             
   /// <summary>Creating new class and return</summary>
-  /// Created : 2015-06-02, leeyonghun
   public static AZSql.Basic Init(string p_table_name, string connection_json) {
     if (p_table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4437,7 +4768,6 @@ public class Basic {
   }
   
   /// <summary>지정된 테이블에 대한 스키마 정보 설정 처리</summary>
-  /// Created : 2015-06-03 이용훈
   private void SetSchemaData() {
     if (this.table_name.Trim().Length < 1) {
       throw new Exception("Target table name not specified.");
@@ -4474,21 +4804,19 @@ public class Basic {
   }
 
   /// <summary></summary>
-  /// Created in 2015-08-19, leeyonghun
   public void Clear() {
     this.sql_set.Clear();
     this.sql_where.Clear();
     this.sql_select = "";
   }
 
-  /// Created in 2017-03-29, leeyonghun
+  /// <summary></summary>
   public AZSql.Basic Select(string value) {
     this.sql_select = value;
     return this;
   }
   
   /// <summary></summary>
-  /// Created in 2015-08-12, leeyonghun
   public AZSql.Basic Set(SetData p_set_data) {
     if (p_set_data != null) {
       Set(p_set_data.Column, p_set_data.Value, p_set_data.ValueType);
@@ -4497,7 +4825,6 @@ public class Basic {
   }
 
   /// <summary></summary>
-  /// Created in 2015-08-12, leeyonghun
   public AZSql.Basic Set(SetData[] p_set_datas) {
     if (p_set_datas != null) {
       for (int cnti = 0; cnti < p_set_datas.Length; cnti++) {
@@ -4510,7 +4837,6 @@ public class Basic {
   }
 
   /// <summary></summary>
-  /// Created in 2015-08-12, leeyonghun
   public AZSql.Basic Set(SetList p_set_list) {
     if (p_set_list != null) {
       for (int cnti = 0; cnti < p_set_list.Size(); cnti++) {
@@ -4523,13 +4849,11 @@ public class Basic {
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Set(string p_column, object p_value) {
     return Set(p_column, p_value, VALUETYPE.VALUE);
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Set(string p_column, object p_value, VALUETYPE p_valuetype) {
     if (p_column.Trim().Length < 1) {
       throw new Exception("Target column name is not specified.");
@@ -4550,19 +4874,16 @@ public class Basic {
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Where(string p_column, object p_value) {
     return Where(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE);
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Where(string p_column, object p_value, WHERETYPE p_wheretype) {
     return Where(p_column, p_value, p_wheretype, VALUETYPE.VALUE);
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Where(string p_column, object p_value, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
     if (p_column.Trim().Length < 1) {
       throw new Exception("Target column name is not specified.");
@@ -4584,19 +4905,16 @@ public class Basic {
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Where(string p_column, object[] p_value) {
     return Where(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE);
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Where(string p_column, object[] p_value, WHERETYPE p_wheretype) {
     return Where(p_column, p_value, p_wheretype, VALUETYPE.VALUE);
   }
 
   /// <summary></summary>
-  /// Created : 2015-06-03, leeyonghun
   public AZSql.Basic Where(string p_column, object[] p_values, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
     if (p_column.Trim().Length < 1) {
       throw new Exception("Target column name is not specified.");
@@ -4612,7 +4930,6 @@ public class Basic {
     for (int cnti = 0; cnti < p_values.Length; cnti++) {
       data.Add(p_column, p_values[cnti]);
     }
-    //data.Add(p_column, p_values);
 
     this.sql_where.Add(data);
     data = null;
@@ -4621,7 +4938,6 @@ public class Basic {
   }
 
   /// <summary>특정된 쿼리 타입에 맞게 현재의 자료를 바탕으로 쿼리 문자열 생성</summary>
-  /// Created : 2015-06-04, leeyonghun
   private string CreateQuery(CREATE_QUERY_TYPE p_type) {
     StringBuilder rtn_value = new StringBuilder();
     switch (p_type) {
@@ -4695,7 +5011,7 @@ public class Basic {
               case WHERETYPE.LIKE: rtn_value.Append(" LIKE "); break;
               case WHERETYPE.BETWEEN:
                 rtn_value.Append(" BETWEEN ");
-                if (!this.IsPrepared) {
+                if (!IsPrepared()) {
                   rtn_value.Append("'" + data.GetString(0) + "'");
                   if (data.Size() > 1) {
                     rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
@@ -4710,7 +5026,7 @@ public class Basic {
                 break;
               case WHERETYPE.IN:
                 rtn_value.Append(" IN ( ");
-                if (!this.IsPrepared) {
+                if (!IsPrepared()) {
                   for (int cntk = 0; cntk < data.Size(); cntk++) {
                     rtn_value.Append((cntk > 0 ? ", " : "") + "'" + data.GetString(0) + "'");
                   }
@@ -4731,7 +5047,7 @@ public class Basic {
               case WHERETYPE.LESS_THAN_OR_EQUAL:
               case WHERETYPE.NOT_EQUAL:
               case WHERETYPE.LIKE:
-                if (!this.IsPrepared) {
+                if (!IsPrepared()) {
                   rtn_value.Append("'" + data.GetString(0) + "'");
                 }
                 else {
@@ -4757,7 +5073,7 @@ public class Basic {
             rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetString(0) + "\r\n");
           }
           else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-            if (!this.IsPrepared) {
+            if (!IsPrepared()) {
               rtn_value.Append("  " + (cnti > 0 ? ", " : "") + "'" + data.GetString(0) + "'" + "\r\n");
             }
             else {
@@ -4776,7 +5092,7 @@ public class Basic {
             rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + data.GetString(0) + "\r\n");
           }
           else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-            if (!this.IsPrepared) {
+            if (!IsPrepared()) {
               rtn_value.Append("  " + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "'" + data.GetString(0) + "'" + "\r\n");
             }
             else {
@@ -4849,7 +5165,7 @@ public class Basic {
               case WHERETYPE.LIKE: rtn_value.Append(" LIKE "); break;
               case WHERETYPE.BETWEEN:
                 rtn_value.Append(" BETWEEN ");
-                if (!this.IsPrepared) {
+                if (!IsPrepared()) {
                   rtn_value.Append("'" + data.GetString(0) + "'");
                   if (data.Size() > 1) {
                     rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
@@ -4864,7 +5180,7 @@ public class Basic {
                 break;
               case WHERETYPE.IN:
                 rtn_value.Append(" IN ( ");
-                if (!this.IsPrepared) {
+                if (!IsPrepared()) {
                   for (int cntk = 0; cntk < data.Size(); cntk++) {
                     rtn_value.Append((cntk > 0 ? ", " : "") + "'" + data.GetString(0) + "'");
                   }
@@ -4885,7 +5201,7 @@ public class Basic {
                 case WHERETYPE.LESS_THAN_OR_EQUAL:
                 case WHERETYPE.NOT_EQUAL:
                 case WHERETYPE.LIKE:
-                  if (!this.IsPrepared) {
+                  if (!IsPrepared()) {
                     rtn_value.Append("'" + data.GetString(0) + "'");
                   }
                   else {
@@ -4964,7 +5280,7 @@ public class Basic {
                 case WHERETYPE.LIKE: rtn_value.Append(" LIKE "); break;
                 case WHERETYPE.BETWEEN:
                   rtn_value.Append(" BETWEEN ");
-                  if (!this.IsPrepared) {
+                  if (!IsPrepared()) {
                     rtn_value.Append("'" + data.GetString(0) + "'");
                     if (data.Size() > 1) {
                       rtn_value.Append(" AND " + "'" + data.GetString(0) + "'");
@@ -4979,7 +5295,7 @@ public class Basic {
                   break;
                 case WHERETYPE.IN:
                   rtn_value.Append(" IN ( ");
-                  if (!this.IsPrepared) {
+                  if (!IsPrepared()) {
                     for (int cntk = 0; cntk < data.Size(); cntk++) {
                       rtn_value.Append((cntk > 0 ? ", " : "") + "'" + data.GetString(0) + "'");
                     }
@@ -5000,7 +5316,7 @@ public class Basic {
                 case WHERETYPE.LESS_THAN_OR_EQUAL:
                 case WHERETYPE.NOT_EQUAL:
                 case WHERETYPE.LIKE:
-                  if (!this.IsPrepared) {
+                  if (!IsPrepared()) {
                     rtn_value.Append("'" + data.GetString(0) + "'");
                   }
                   else {
@@ -5017,19 +5333,17 @@ public class Basic {
       }
 
       /// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
-      /// Created : 2015-06-04, leeyonghun
       public int DoDelete() {
         return DoDelete(true);
       }
 
       /// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
-      /// Created : 2015-06-04, leeyonghun
       public int DoDelete(bool p_need_where) {
         int rtn_value = -1;
         if (p_need_where && this.sql_where.Size() < 1) {
           throw new Exception("Where datas required.");
         }
-        if (!IsPrepared) {
+        if (!IsPrepared()) {
           //rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.DELETE));
           rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.DELETE));
         }
@@ -5047,13 +5361,11 @@ public class Basic {
       }
 
       /// <summary>주어진 자료를 바탕으로 update 쿼리 실행</summary>
-      /// Created : 2015-06-04, leeyonghun
       public int DoUpdate() {
         return DoUpdate(true);
       }
 
       /// <summary>주어진 자료를 바탕으로 update 쿼리 실행</summary>
-      /// Created : 2015-06-04, leeyonghun
       public int DoUpdate(bool p_need_where) {
         int rtn_value = -1;
         if (this.sql_set.Size() < 1) {
@@ -5062,7 +5374,7 @@ public class Basic {
         if (p_need_where && this.sql_where.Size() < 1) {
           throw new Exception("Where datas required.");
         }
-        if (!IsPrepared) {
+        if (!IsPrepared()) {
           //rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.UPDATE));
           rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.UPDATE));
         }
@@ -5080,20 +5392,18 @@ public class Basic {
       }
 
       /// <summary>주어진 자료를 바탕으로 insert 쿼리 실행</summary>
-      /// Created : 2015-06-04, leeyonghun
       public int DoInsert() {
         return DoInsert(false);
       }
           
       /// <summary>주어진 자료를 바탕으로 insert 쿼리 실행</summary>
       /// <param name="p_identity">identity값을 받아 올 필요가 있는 경우 true, 아니면 false</param>
-      /// Created : 2015-06-04, leeyonghun
       public int DoInsert(bool p_identity) {
         int rtn_value = -1;
         if (this.sql_set.Size() < 1) {
           throw new Exception("Set datas required.");
         }
-        if (!IsPrepared) {
+        if (!IsPrepared()) {
           rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
         }
         else {
@@ -5107,17 +5417,15 @@ public class Basic {
 #if NET_STD || NET_CORE || NET_FX || NET_STORE
 
       /// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
-      /// Created : 2018-06-27, leeyonghun
       public async Task<int> DoDeleteAsync() {
         return await DoDeleteAsync(true);
       }
 
       /// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
-      /// Created : 2018-06-27, leeyonghun
       public async Task<int> DoDeleteAsync(bool p_need_where) {
         int rtn_value = -1;
         if (p_need_where && this.sql_where.Size() < 1) throw new Exception("Where datas required.");
-        if (!IsPrepared) {
+        if (!IsPrepared()) {
           rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.DELETE));
         }
         else {
@@ -5128,18 +5436,16 @@ public class Basic {
       }
 
       /// <summary>주어진 자료를 바탕으로 update 쿼리 실행</summary>
-      /// Created : 2018-06-27, leeyonghun
       public async Task<int> DoUpdateAsync() {
         return await DoUpdateAsync(true);
       }
 
       /// <summary>주어진 자료를 바탕으로 update 쿼리 실행</summary>
-      /// Created : 2018-06-27, leeyonghun
       public async Task<int> DoUpdateAsync(bool p_need_where) {
         int rtn_value = -1;
         if (this.sql_set.Size() < 1) throw new Exception("Set datas required.");
         if (p_need_where && this.sql_where.Size() < 1) throw new Exception("Where datas required.");
-        if (!IsPrepared) {
+        if (!IsPrepared()) {
           rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.UPDATE));
         }
         else {
@@ -5150,18 +5456,16 @@ public class Basic {
       }
 
       /// <summary>주어진 자료를 바탕으로 insert 쿼리 실행</summary>
-      /// Created : 2018-06-27, leeyonghun
       public async Task<int> DoInsertAsync() {
         return await DoInsertAsync(false);
       }
           
       /// <summary>주어진 자료를 바탕으로 insert 쿼리 실행</summary>
       /// <param name="p_identity">identity값을 받아 올 필요가 있는 경우 true, 아니면 false</param>
-      /// Created : 2018-06-27, leeyonghun
       public async Task<int> DoInsertAsync(bool p_identity) {
         int rtn_value = -1;
         if (this.sql_set.Size() < 1) throw new Exception("Set datas required.");
-        if (!IsPrepared) {
+        if (!IsPrepared()) {
           rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
         }
         else {
@@ -5173,13 +5477,11 @@ public class Basic {
 #endif
 
       /// <summary>특정된 쿼리 실행 종류에 맞는 쿼리 문자열 생성 후 반환</summary>
-      /// Created : 2015-06-03 leeyonghun
       public string GetQuery(CREATE_QUERY_TYPE p_create_query_type) {
         return CreateQuery(p_create_query_type);
       }
 
       /// <summary>Prepared Statement 용 전달 인수 객체를 반환한다</summary>
-      /// Created : 2017-03-28 leeyonghun 
       public AZData GetPreparedParameters() {
         AZData rtn_value = null;
         for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
@@ -5215,10 +5517,9 @@ public class Basic {
       }
 
       /// <summary>Prepared 객체를 반환한다</summary>
-      /// Created : 2017-03-28 leeyonghun
       public AZSql.Prepared GetPrepared(CREATE_QUERY_TYPE create_query_type) {
         AZSql.Prepared rtn_value = null;
-        if (!this.IsPrepared) {
+        if (!IsPrepared()) {
           throw new Exception("Property named IsPrepared is not true.");
         }
         if (azSql == null) {
@@ -5233,10 +5534,9 @@ public class Basic {
       }
 
       /// <summary>Prepared 객체를 반환한다</summary>
-      /// Created : 2017-03-28 leeyonghun 
       public AZSql.Prepared GetPrepared(string connection_json, CREATE_QUERY_TYPE create_query_type) {
         AZSql.Prepared rtn_value = null;
-        if (!this.IsPrepared) {
+        if (!IsPrepared()) {
           throw new Exception("Perperty named IsPrepared is not true.");
         }
         //
@@ -5247,12 +5547,10 @@ public class Basic {
       }
 
       /// <summary>스키마 데이터를 가지고 있는지 확인 용</summary>
-      /// Created : 2015-06-03 leeyonghun
       public bool HasSchemaData() {
         return this.has_schema_data;
       }
 
-      /// Created : 2015-06-03 leeyonghun
       public AZData GetSchemaData() {
         return this.data_schema;
       }
