@@ -17,19 +17,15 @@ namespace Com.Mparang.AZLib {
 
   /// Created in 2015-08-13, leeyonghun
   public AZData() {
-    if (lockObject == null) {
-      lockObject = new object();
-    }
+    if (lockObject == null) lockObject = new object();
+    //
     map_async = new Dictionary<string, object>();
-    //map_attribute = new Dictionary<string, object>();
     attribute_data = new AttributeData();
     indexer = new List<KeyLink>();
   }
 
   public AttributeData Attribute {
-    get {
-      return attribute_data;
-    }
+    get { return attribute_data; }
   }
 
   /// <summary>모델 객체로부터 AZData를 생성</summary>
@@ -37,7 +33,7 @@ namespace Com.Mparang.AZLib {
   /// Created in 2016-09-21, leeyonghun
   public static AZData From<T>(T pSource) {
     AZData rtnValue = new AZData();
-#if NETSTANDARD2_0 || NETCOREAPP2_0
+#if NET_STD || NET_CORE  || NET_STORE
     Type type = typeof(T);
     IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
     foreach (PropertyInfo property in properties) {
@@ -45,14 +41,12 @@ namespace Com.Mparang.AZLib {
       rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pSource, null).ToString() : property.GetValue(pSource, null));
     }
 #endif
-#if NET452
+#if NET_FX
     Type type = typeof(T);
     System.Reflection.PropertyInfo[] properties = type.GetProperties();
     for (int cnti = 0; cnti < properties.Length; cnti++) {
       System.Reflection.PropertyInfo property = properties[cnti];
-      if (!property.CanRead) {
-        continue;
-      }
+      if (!property.CanRead) continue;
       // ICollection 구현체에 대한 재귀 오류 수정처리, 2016-05-19,, leeyonghun
       rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pSource, null).ToString() : property.GetValue(pSource, null));
     }
@@ -129,24 +123,16 @@ namespace Com.Mparang.AZLib {
   /// <param name="pIndex">int, 반환할 자료의 index 값, zero base</param>
   /// Created in 2015-08-13, leeyonghun
   public object this[int pIndex] {
-    get {
-      return Get(pIndex);
-    }
-    set {
-      Set(pIndex, value);
-    }
+    get { return Get(pIndex); }
+    set { Set(pIndex, value); }
   }
 
   /// <summary>현재의 자료 중 key값과 일치하는 자료를 반환</summary>
   /// <param name="pKey">string, 반환할 자료의 key값</param>
   /// Created in 2015-08-13, leeyonghun
   public object this[string pKey] {
-    get {
-      return Get(pKey);
-    }
-    set {
-      Set(pKey, value);
-    }
+    get { return Get(pKey); }
+    set { Set(pKey, value); }
   }
 
   public string Name { get; set; }
@@ -165,9 +151,7 @@ namespace Com.Mparang.AZLib {
 
   /// Created in 2015-08-13, leeyonghun
   object IEnumerator.Current {
-    get {
-      return Current;
-    }
+    get { return Current; }
   }
 
   /// Created in 2015-08-13, leeyonghun
@@ -203,8 +187,7 @@ namespace Com.Mparang.AZLib {
       try {
         rtnValue = AZString.Init(rtnValue).To<T>();
       }
-      catch (Exception) {
-      }
+      catch (Exception) { }
     }
     return (T)rtnValue;
   }
@@ -254,8 +237,7 @@ namespace Com.Mparang.AZLib {
       try {
         rtnValue = AZString.Init(rtnValue).To<T>();
       }
-      catch (Exception) {
-      }
+      catch (Exception) { }
     }
     return (T)rtnValue;
   }
@@ -293,7 +275,7 @@ namespace Com.Mparang.AZLib {
   public T Convert<T>() {
     Type type = typeof(T);
     object rtnValue = Activator.CreateInstance(type);
-#if NET462 || NET452
+#if NET_FX
     System.Reflection.PropertyInfo[] properties = type.GetProperties();
 
     for (int cnti = 0; cnti < properties.Length; cnti++) {
@@ -322,7 +304,7 @@ namespace Com.Mparang.AZLib {
       }
     }
 #endif
-#if NETSTANDARD2_0 || NETCOREAPP2_0
+#if NET_STD || NET_CORE || NET_STORE
     IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
     foreach (PropertyInfo property in properties) {
       if (HasKey(property.Name)) {
@@ -354,47 +336,26 @@ namespace Com.Mparang.AZLib {
   }
 
   public AZList GetList(int pIndex) { return (AZList)Get(pIndex); }
-
   public AZList GetList(string pKey) { return (AZList)Get(pKey); }
-
   public AZData GetData(int pIndex) { return (AZData)Get(pIndex); }
-
   public AZData GetData(string pKey) { return (AZData)Get(pKey); }
-
   public string GetString(int pIndex) { return AZString.Init(Get(pIndex)).String(); }
-
   public string GetString(int pIndex, string pDefaultValue) { return AZString.Init(Get(pIndex)).String(pDefaultValue); }
-
   public string GetString(string pKey) { return AZString.Init(Get(pKey)).String(); }
-
   public string GetString(string pKey, string pDefaultValue) { return AZString.Init(Get(pKey)).String(pDefaultValue); }
-
   public int GetInt(int pIndex) { return AZString.Init(Get(pIndex)).ToInt(); }
-
   public int GetInt(int pIndex, int pDefaultValue) { return AZString.Init(Get(pIndex)).ToInt(pDefaultValue); }
-
   public int GetInt(string pKey) { return AZString.Init(Get(pKey)).ToInt(); }
-
   public int GetInt(string pKey, int pDefaultValue) { return AZString.Init(Get(pKey)).ToInt(pDefaultValue); }
-
   public long GetLong(int pIndex) { return AZString.Init(Get(pIndex)).ToLong(); }
-
   public long GetLong(int pIndex, long pDefaultValue) { return AZString.Init(Get(pIndex)).ToLong(pDefaultValue); }
-
   public long GetLong(string pKey) { return AZString.Init(Get(pKey)).ToLong(); }
-
   public long GetLong(string pKey, long pDefaultValue) { return AZString.Init(Get(pKey)).ToLong(pDefaultValue); }
-
   public float GetFloat(int pIndex) { return AZString.Init(Get(pIndex)).ToFloat(); }
-
   public float GetFloat(int pIndex, float pDefaultValue) { return AZString.Init(Get(pIndex)).ToFloat(pDefaultValue); }
-
   public float GetFloat(string pKey) { return AZString.Init(Get(pKey)).ToFloat(); }
-
   public float GetFloat(string pKey, float pDefaultValue) { return AZString.Init(Get(pKey)).ToFloat(pDefaultValue); }
-
   public string GetKey(int pIndex) { return indexer[pIndex].GetKey(); }
-
   public string GetLink(int pIndex) { return indexer[pIndex].GetLink(); }
 
   /// <summary>key에 해당하는 자료의 값을 지정된 value 값으로 변경. Remove 후 Add 처리를 하게 되며, 이로 인해 index 값이 변경</summary>
@@ -402,14 +363,11 @@ namespace Com.Mparang.AZLib {
   /// <param name="pValue">object, 변경할 자료</param>
   /// Created in 2017-08-17, leeyonghun
   public AZData Set(string pKey, object pValue) {
-    //bool rtnValue;
     lock (lockObject) {
-      //rtnValue = false;
       if (map_async.ContainsKey(pKey)) {
         // 동일 키값이 이미 존재하는 경우
         map_async.Remove(pKey);
         map_async.Add(pKey, pValue);
-        //rtnValue = true;
       }
     }
     return this;
@@ -420,16 +378,11 @@ namespace Com.Mparang.AZLib {
   /// <param name="pValue">object, 변경할 자료</param>
   /// Created in 2017-08-17, leeyonghun
   public AZData Set(int pIndex, object pValue) {
-    //bool rtnValue;
     lock (lockObject) {
-      //rtnValue = false;
-      if (pIndex < indexer.Count) {
-        if (map_async[indexer[pIndex].GetLink()] != null) {
-          // 동일 키값이 이미 존재하는 경우
-          map_async.Remove(indexer[pIndex].GetLink());
-          map_async.Add(indexer[pIndex].GetLink(), pValue);
-          //rtnValue = true;
-        }
+      if (pIndex < indexer.Count && map_async[indexer[pIndex].GetLink()] != null) {
+        // 동일 키값이 이미 존재하는 경우
+        map_async.Remove(indexer[pIndex].GetLink());
+        map_async.Add(indexer[pIndex].GetLink(), pValue);
       }
     }
     return this;
@@ -439,14 +392,11 @@ namespace Com.Mparang.AZLib {
   /// <param name="pKey">string, 삭제할 자료의 key값</param>
   /// Created in 2017-08-17, leeyonghun
   public AZData Remove(string pKey) {
-    //bool rtnValue;
     lock (lockObject) {
-      //rtnValue = false;
       if (map_async.ContainsKey(pKey)) {
         // 동일 키값이 이미 존재하는 경우
         indexer.RemoveAt(IndexOf(pKey));
         map_async.Remove(pKey);
-        //rtnValue = true;
       }
     }
     return this;
@@ -456,13 +406,10 @@ namespace Com.Mparang.AZLib {
   /// <param name="pIndex">int, 삭제할 자료의 index값, zero base</param>
   /// Created in 2017-08-17, leeyonghun
   public AZData Remove(int pIndex) {
-    //bool rtnValue;
     lock (lockObject) {
-      //rtnValue = false;
       if (pIndex < indexer.Count) {
         map_async.Remove (indexer [pIndex].GetLink ());
         indexer.RemoveAt (pIndex);
-        //rtnValue = true;
       }
     }
     return this;
@@ -491,7 +438,6 @@ namespace Com.Mparang.AZLib {
         }
       }
     }
-
     return rtnValue;
   }
 
@@ -540,40 +486,80 @@ namespace Com.Mparang.AZLib {
           else if (Get(cnti).GetType().Equals(typeof(AZList))) {
             builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + ":" + "[" + ((AZList)Get(cnti)).ToString() + "]");
           }
-          else if (Get(cnti).GetType().Equals(typeof(string))) {
-            string valueString = GetString(cnti);
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + ":" + "\"" + valueString + "\"");
+          else if (Get(cnti).GetType().Equals(typeof(string[]))) {
+            string[] valueSrc = (string[])Get(cnti);
+            StringBuilder sBuilder = new StringBuilder();
+            for (int cntk=0; cntk<valueSrc.Length; cntk++) {
+              sBuilder.AppendFormat("{0}\"{1}\"", cntk > 0 ? "," : "", AZString.Encode(AZString.ENCODE.JSON, valueSrc[cntk]));
+            }
+            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + sBuilder.ToString() + "]");
+          }
+          else if (Get(cnti).GetType().Equals(typeof(int[]))) {
+            string valueString = ((int[])Get(cnti)).Join(",");
+            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + valueString + "]");
+          }
+          else if (Get(cnti).GetType().Equals(typeof(long[]))) {
+            string valueString = ((long[])Get(cnti)).Join(",");
+            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + valueString + "]");
+          }
+          else if (Get(cnti).GetType().Equals(typeof(float[]))) {
+            string valueString = ((float[])Get(cnti)).Join(",");
+            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + valueString + "]");
+          }
+          else if (Get(cnti).GetType().Equals(typeof(double[]))) {
+            string valueString = ((double[])Get(cnti)).Join(",");
+            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + valueString + "]");
+          }
+          else if (Get(cnti).GetType().Equals(typeof(bool[]))) {
+            string valueString = ((bool[])Get(cnti)).Join(",");
+            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + valueString + "]");
+          }
+          else if (Get(cnti) == null) {
+            string valueString = ((int[])Get(cnti)).Join(",");
+            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "null");
           }
           else {
-            string valueString = "";
-            if (!Get(cnti).GetType().IsNested || Get(cnti).GetType() == typeof(DBNull)) {
-              valueString = GetString(cnti);
+            string str;
+            object value = Get(cnti);
+            switch (Type.GetTypeCode(value.GetType())) {
+              case TypeCode.Decimal: case TypeCode.Double:
+              case TypeCode.Int16: case TypeCode.Int32: case TypeCode.Int64:
+              case TypeCode.UInt16: case TypeCode.UInt32: case TypeCode.UInt64:
+              case TypeCode.Single:
+                str = string.Format(
+                  "{0}\"{1}\":{2}", (cnti > 0 ? ", " : ""), 
+                  AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                  (Get(cnti) == null ? "" : AZString.Encode(AZString.ENCODE.JSON, value.ToString()))
+                );
+                break;
+              case TypeCode.DBNull:
+                str = string.Format(
+                  "{0}\"{1}\":{2}", (cnti > 0 ? ", " : ""), 
+                  AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                  "null"
+                );
+                break;
+              case TypeCode.Boolean:
+                str = string.Format(
+                  "{0}\"{1}\":{2}", (cnti > 0 ? ", " : ""), 
+                  AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                  ((bool)value) ? "true" : "false"
+                );
+                break;
+              default:
+                str = string.Format(
+                  "{0}\"{1}\":\"{2}\"", (cnti > 0 ? ", " : ""), 
+                  AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                  (Get(cnti) == null ? "" : AZString.Encode(AZString.ENCODE.JSON, value.ToString()))
+                );
+                break;
             }
-            else {
-              valueString = Get(cnti).ToString();
-            }
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + ":" + "\"" + valueString + "\"");
+            builder.Append(str);
           }
         }
         catch (Exception) {
           builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + ":\"\"");
         }
-      /*
-      if (Get(cnti) is AZData) {
-        builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + 
-          ":" + "{" + ((AZData)Get(cnti)).ToString() + "}");
-      }
-      else if (Get(cnti) is AZList) {
-        builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + 
-          ":" + "[" + ((AZList)Get(cnti)).ToString() + "]");
-      }
-      else {
-        string valueString = GetString(cnti);
-        //builder.Append((cnti > 0 ? ", " : "") + GetKey(cnti) + ":" + (valueString.Contains(" ") ? "\"" + valueString + "\"" : valueString));
-        builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + 
-          ":" + "\"" + valueString + "\"");
-      }
-      */
     }
     return builder.ToString();
   }
@@ -582,68 +568,13 @@ namespace Com.Mparang.AZLib {
     /// <returns>string, json형식의 문자열</returns>
     /// Created in 2017-08-17, leeyonghun
 		public string ToJsonString() {
-			StringBuilder builder = new StringBuilder();
-      for (int cnti = 0; cnti < indexer.Count; cnti++) {
-        try {
-          if (Get(cnti).GetType().Equals(typeof(AZData))) {
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + ((AZData)Get(cnti)).ToJsonString());
-          }
-          else if (Get(cnti).GetType().Equals(typeof(AZList))) {
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + ((AZList)Get(cnti)).ToJsonString());
-          }
-          else if (Get(cnti).GetType().Equals(typeof(string))) {
-            string valueString = GetString(cnti);
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "\"" + AZString.Encode(AZString.ENCODE.JSON, valueString) + "\"");
-          }
-          else if (Get(cnti).GetType().Equals(typeof(string[]))) {
-            string valueString = ((string[])Get(cnti)).Each(x => x.Encode(AZString.ENCODE.JSON)).Join(",");
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + AZString.Encode(AZString.ENCODE.JSON, valueString) + "]");
-          }
-          else if (Get(cnti).GetType().Equals(typeof(int[])) || Get(cnti).GetType().Equals(typeof(double[]))) {
-            string valueString = ((int[])Get(cnti)).Join(",");
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + AZString.Encode(AZString.ENCODE.JSON, valueString) + "]");
-          }
-          else {
-            string valueString = "";
-            if (!Get(cnti).GetType().IsNested || Get(cnti).GetType() == typeof(DBNull)) {
-              valueString = GetString(cnti);
-              builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "\"" + AZString.Encode(AZString.ENCODE.JSON, valueString) + "\"");
-            }
-            else {
-              valueString = Get(cnti).ToString();
-              builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + valueString);
-            }
-          }
-        }
-        catch (Exception) {
-            builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":\"\"");
-        }
-        /*
-        if (Get(cnti) is AZData) {
-          builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.ToJSONSafeEncoding(GetKey(cnti)) + "\"" + 
-            ":" + ((AZData)Get(cnti)).ToJsonString());
-        }
-        else if (Get(cnti) is AZList) {
-          builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.ToJSONSafeEncoding(GetKey(cnti)) + "\"" + 
-            ":" + ((AZList)Get(cnti)).ToJsonString());
-        }
-        else {
-          string valueString = GetString(cnti);
-          //builder.Append((cnti > 0 ? ", " : "") + GetKey(cnti) + ":" + (valueString.Contains(" ") ? "\"" + valueString + "\"" : valueString));
-          builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.ToJSONSafeEncoding(GetKey(cnti)) + "\"" + 
-            ":" + "\"" + AZString.ToJSONSafeEncoding(valueString) + "\"");
-        }
-        */
-			}
-			return "{" + builder.ToString() + "}";
+			return string.Format("{{{0}}", ToString());
 		}
 
     public string ToXmlString() {
       StringBuilder builder = new StringBuilder();
       builder.Append("<" + Name);
-      //string[] attribute_names = GetAttributeNames();
       for (int cnti = 0; cnti < Attribute.Size(); cnti++) {
-        //builder.Append(" " + attribute_names[cnti] + "=\"" + GetAttribute(attribute_names[cnti]) + "\"");
         if (Attribute.Get(cnti) == null) {
           builder.Append(" " + Attribute.GetKey(cnti));
         }
@@ -653,7 +584,6 @@ namespace Com.Mparang.AZLib {
       }
       if (indexer.Count > 0 || Value != null) {
         builder.Append(">");
-
         for (int cnti = 0; cnti < indexer.Count; cnti++) {
           if (Get(cnti) is AZData) {
             builder.Append(((AZData)Get(cnti)).ToXmlString());
@@ -705,10 +635,8 @@ namespace Com.Mparang.AZLib {
       }
 
       public string GetKey() { return this.key; }
-
       public object GetValue() { return this.value; }
       public void SetValue(object p_value) { this.value = p_value; }
-
       override public string ToString() { return GetKey() + ":" + GetValue(); }
     }
 
@@ -867,8 +795,42 @@ namespace Com.Mparang.AZLib {
       public override string ToString() {
         StringBuilder rtnValue = new StringBuilder();
         for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
-          rtnValue.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" +
-            ":" + "\"" + (Get(cnti) == null ? "" : AZString.Encode(AZString.ENCODE.JSON, Get(cnti).ToString())) + "\"");
+          string str;
+          object value = Get(cnti);
+          switch (Type.GetTypeCode(value.GetType())) {
+            case TypeCode.Decimal: case TypeCode.Double:
+            case TypeCode.Int16: case TypeCode.Int32: case TypeCode.Int64:
+            case TypeCode.UInt16: case TypeCode.UInt32: case TypeCode.UInt64:
+            case TypeCode.Single:
+              str = string.Format(
+                "{0}\"{1}\":{2}", (cnti > 0 ? ", " : ""), 
+                AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                (Get(cnti) == null ? "" : AZString.Encode(AZString.ENCODE.JSON, value.ToString()))
+              );
+              break;
+            case TypeCode.DBNull:
+              str = string.Format(
+                "{0}\"{1}\":{2}", (cnti > 0 ? ", " : ""), 
+                AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                "null"
+              );
+              break;
+            case TypeCode.Boolean:
+              str = string.Format(
+                "{0}\"{1}\":{2}", (cnti > 0 ? ", " : ""), 
+                AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                ((bool)value) ? "true" : "false"
+              );
+              break;
+            default:
+              str = string.Format(
+                "{0}\"{1}\":\"{2}\"", (cnti > 0 ? ", " : ""), 
+                AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+                (Get(cnti) == null ? "" : AZString.Encode(AZString.ENCODE.JSON, value.ToString()))
+              );
+              break;
+          }
+          rtnValue.Append(str);
         }
         return rtnValue.ToString();
       }

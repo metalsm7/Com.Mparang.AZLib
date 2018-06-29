@@ -118,7 +118,7 @@ namespace Com.Mparang.AZLib {
       }
       else {
         try {
-          rtnValue = Convert.ToInt32(this.value_object.ToString());
+          rtnValue = Convert.ToInt64(this.value_object.ToString());
         }
         catch (Exception ex) {
           string msg = ex.Message;
@@ -132,7 +132,7 @@ namespace Com.Mparang.AZLib {
     public static long ToLong(string pValue, long pDefaultValue) {
       long rtnValue = 0;
       try {
-        rtnValue = Convert.ToInt32(pValue);
+        rtnValue = Convert.ToInt64(pValue);
       }
       catch (Exception ex) {
         string msg = ex.Message;
@@ -1062,10 +1062,24 @@ namespace Com.Mparang.AZLib {
                 }
               }
               else if (valueString[0] == '"' || valueString[0] == '\'') {
-                  value = (String)valueString.Substring(1, valueString.Length - 2);
+                value = (String)valueString.Substring(1, valueString.Length - 2);
               }
               else {
-                  value = valueString;
+                value = valueString;
+                if (((String)value).IsNumeric()) {
+                  if (((String)value).IndexOf(".") > 0) {
+                    value = ((String)value).ToFloat();
+                  }
+                  else {
+                    value = ((String)value).ToLong();
+                  }
+                }
+                else if (((String)value).Equals("true")) {
+                  value = true;
+                }
+                else if (((String)value).Equals("false")) {
+                  value = false;
+                }
               }
 
               rtnValue.Add(key, value);
@@ -1097,7 +1111,6 @@ namespace Com.Mparang.AZLib {
               else if (valueString[0] == '[') {
                 valueString = valueString.Substring(1, valueString.Length - 2);
                 //Console.WriteLine("ToAZData:" + valueString);
-
                 //
                 while (true) {
                   if (valueString.StartsWith(" ") || valueString.StartsWith("\r") || valueString.StartsWith("\n") || valueString.StartsWith("\t")) {
@@ -1116,6 +1129,54 @@ namespace Com.Mparang.AZLib {
                 }
                 else {
                   value = valueString.Split(',').Each(x => (x.Trim().StartsWith("'") && x.Trim().EndsWith("'") ? x.Trim().Substring(1, x.Trim().Length - 2) : x.Trim()));
+                  string[] values = valueString.Split(',');
+                  TypeCode typeCode = TypeCode.String;
+                  for (int cnti=0; cnti<values.Length; cnti++) {
+                    string col = values[cnti];
+                    if (col.Equals("true") || col.Equals("false")) {
+                      typeCode = TypeCode.Boolean;
+                    }
+                    else if (!col.StartsWith("\"")) {
+                      typeCode = TypeCode.Int64;
+                      if (col.IndexOf(".") > -1) {
+                        typeCode = TypeCode.Double;
+                        break;
+                      }
+                    }
+                  }
+                  switch (typeCode) {
+                    case TypeCode.String:
+                      string[] rVal = new string[values.Length];
+                      for (int cnti=0; cnti<values.Length; cnti++) {
+                        string col = values[cnti];
+                        if (col.StartsWith("\"")) col = col.Substring(1);
+                        if (col.EndsWith("\"")) col = col.Substring(0, col.Length - 1);
+                        rVal[cnti] = col;
+                      }
+                      value = rVal;
+                      break;
+                    case TypeCode.Int64:
+                      long[] rnVal = new long[values.Length];
+                      for (int cnti=0; cnti<values.Length; cnti++) {
+                        rnVal[cnti] = values[cnti].ToLong();
+                      }
+                      value = rnVal;
+                      break;
+                    case TypeCode.Double:
+                      float[] rfVal = new float[values.Length];
+                      for (int cnti=0; cnti<values.Length; cnti++) {
+                        rfVal[cnti] = values[cnti].ToFloat();
+                      }
+                      value = rfVal;
+                      break;
+                    case TypeCode.Boolean:
+                      bool[] bfVal = new bool[values.Length];
+                      for (int cnti=0; cnti<values.Length; cnti++) {
+                        bfVal[cnti] = values[cnti].Equals("true");
+                      }
+                      value = bfVal;
+                      break;
+                  }
                 }
               }
               else if (valueString[0] == '"' || valueString[0] == '\'') {
@@ -1123,6 +1184,20 @@ namespace Com.Mparang.AZLib {
               }
               else {
                 value = valueString;
+                if (((String)value).IsNumeric()) {
+                  if (((String)value).IndexOf(".") > 0) {
+                    value = ((String)value).ToFloat();
+                  }
+                  else {
+                    value = ((String)value).ToLong();
+                  }
+                }
+                else if (((String)value).Equals("true")) {
+                  value = true;
+                }
+                else if (((String)value).Equals("false")) {
+                  value = false;
+                }
               }
 
               rtnValue.Add(key, value);
@@ -1289,13 +1364,19 @@ namespace Com.Mparang.AZLib {
     /// <summary></summary>
     /// Created in 2017-02-23, leeyonghun
     public static string Join<T>(this T[] pSrc, string pSeperator) {
-      if (pSrc.GetType() != typeof(int[]) && pSrc.GetType() != typeof(float[]) &&
-        pSrc.GetType() != typeof(double[]) && pSrc.GetType() != typeof(string[])) {
+      if (pSrc.GetType() != typeof(int[]) && pSrc.GetType() != typeof(long[]) && pSrc.GetType() != typeof(float[]) &&
+        pSrc.GetType() != typeof(double[]) && pSrc.GetType() != typeof(string[]) && pSrc.GetType() != typeof(bool[])) {
           throw new Exception("Only int, float, double, string type supported.");
       }
       StringBuilder rtnValue = new StringBuilder();
       for (int cnti=0; cnti<pSrc.Length; cnti++) {
-        rtnValue.Append(pSrc[cnti]);
+        if (pSrc[cnti].GetType() == typeof(bool)) {
+          bool? bVal = (pSrc[cnti] as bool?);
+          rtnValue.Append(bVal.HasValue ? (bVal.Value ? "true" : "false") : "null");
+        }
+        else {
+          rtnValue.Append(pSrc[cnti]);
+        }
         if (cnti < pSrc.Length - 1 && pSeperator.Length > 0) {
           rtnValue.Append(pSeperator);
         }
@@ -1457,10 +1538,13 @@ namespace Com.Mparang.AZLib {
     /// <summary></summary>
     /// Created in 2016-02-15, leeyonghun
     public static bool IsNumeric(this string s) {
+      int idx = 0;
       foreach (char c in s) {
         if (!char.IsDigit(c) && c != '.') {
+          if (idx == 0 && c == '-') return true;
           return false;
         }
+        idx++;
       }
       return true;
     }
@@ -1468,7 +1552,7 @@ namespace Com.Mparang.AZLib {
     /// Created in 2017-03-29, leeyognhun
     public static string[] GetPropertyNames<T>(this object src) {
       List<string> rtnValue = new List<string>();            
-#if NETCOREAPP2_0 || NETSTANDARD2_0
+#if NET_STD || NET_CORE || NET_STORE
       Type type = typeof(T);
       IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
       foreach (PropertyInfo property in properties) {
@@ -1476,7 +1560,7 @@ namespace Com.Mparang.AZLib {
         rtnValue.Add(property.Name);
       }
 #endif
-#if NET452
+#if NET_FX
       Type type = typeof(T);
       PropertyInfo[] properties = type.GetProperties();
       for (int cnti = 0; cnti < properties.Length; cnti++) {

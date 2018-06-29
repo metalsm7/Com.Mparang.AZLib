@@ -1,4 +1,4 @@
-#if NETCORE1_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 using System;
 using System.Text;
 using System.Threading;

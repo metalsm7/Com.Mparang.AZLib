@@ -17,21 +17,20 @@ namespace Com.Mparang.AZLib {
     /// Created in 2017-08-17, leeyonghun
 		public AZList() {
       list = new List<AZData>();
-      //map_attribute = new Dictionary<string, object>();
       attribute_data = new AttributeData();
 		}
 
     /// Created in 2015-08-13, leeyonghun
     public AttributeData Attribute {
-      get {
-        return attribute_data;
-      }
+      get { return attribute_data; }
     }
 
     /// <summary>AZData 자료를 추가</summary>
     /// <param name="pData">AZData, 추가할 AZData 자료</param>
     /// Created in 2015-08-13, leeyonghun
-		public AZList Add(AZData pData) { list.Add(pData); return this; }
+		public AZList Add(AZData pData) {
+      list.Add(pData); return this;
+    }
 
     /// <summary>AZList 자료의 모든 AZData 자료를 추가</summary>
     /// <param name="pList">AZList, 추가할 AZList 자료</param>
@@ -52,14 +51,11 @@ namespace Com.Mparang.AZLib {
     /// <param name="pIndex">int, 삭제할 AZData 자료가 위치하는 index 값, zero base</param>
     /// Created in 2015-08-13, leeyonghun
 		public AZList Remove(int pIndex) {
-			//AZData rtnValue = null;
 			if (list.Count > pIndex) {
 				if (list[pIndex] != null) {
-					//rtnValue = list[pIndex];
 					list.RemoveAt(pIndex);
 				}
 			}
-			//return rtnValue;
       return this;
 		}
 
@@ -198,18 +194,14 @@ namespace Com.Mparang.AZLib {
     /// <param name="pIndex">int, 반환할 자료의 index 값, zero base</param>
     /// Created in 2015-08-13, leeyonghun
 		public AZData this[int pIndex] {
-			get {
-				return Get(pIndex);
-			}
+			get { return Get(pIndex); }
 		}
 
     /// <summary>모든 AZData 중 Name값이 설정되고, Name값이 지정된 Name값과 일치하는 자료의 목록을 반환</summary>
     /// <param name="pName">string, </param>
     /// Created in 2015-08-13, leeyonghun
     public AZList this[string pName] {
-      get {
-        return Get(pName);
-      }
+      get { return Get(pName); }
     }
 
     /// <summary>모든 AZData자료에 대해 개별로 T형식으로 Convert()를 수행 후 T형식의 배열로 반환</summary>
@@ -220,6 +212,40 @@ namespace Com.Mparang.AZLib {
         rtnValue[cnti] = Get(cnti).Convert<T>();
       }
       return rtnValue;
+    }
+
+    /// <summary></summary>
+    /// Created in 2018-06-22, leeyonghun
+    public AZList GetList(int start_index) {
+      return GetList(start_index, Size() - start_index);
+    }
+
+    /// <summary></summary>
+    /// Created in 2018-06-22, leeyonghun
+    public AZList GetList(int start_index, int length) {
+      if (start_index < 0 || length < 1 || start_index >= Size()) {
+        throw new Exception("start_index or length value is invalid");
+      }
+      int end_index = start_index + length;
+      if (end_index >= Size()) end_index = Size();
+      //
+      AZList rtnValue = new AZList();
+      for (int cnti=start_index; cnti<end_index; cnti++) {
+        rtnValue.Add(Get(cnti));
+      }
+      return rtnValue;
+    }
+
+    /// <summary></summary>
+    /// Created in 2018-06-22, leeyonghun
+    public T[] GetList<T>(int start_index) {
+      return GetList<T>(start_index, Size() - start_index);
+    }
+
+    /// <summary></summary>
+    /// Created in 2018-06-22, leeyonghun
+    public T[] GetList<T>(int start_index, int length) {
+      return GetList(start_index, length).Convert<T>();
     }
 
     /// AttributeData 에서 사용할 key:value 에 대응하는 자료형 클래스
@@ -239,10 +265,8 @@ namespace Com.Mparang.AZLib {
       }
 
       public string GetKey() { return this.key; }
-
       public object GetValue() { return this.value; }
       public void SetValue(object p_value) { this.value = p_value; }
-
       override public string ToString() { return GetKey() + ":" + GetValue(); }
     }
 

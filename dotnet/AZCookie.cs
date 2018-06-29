@@ -1,4 +1,4 @@
-#if NETCOREAPP2_0
+#if NET_CORE
 using System;
 using System.Text;
 using System.Text.Encodings.Web;

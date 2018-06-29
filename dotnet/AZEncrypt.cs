@@ -10,6 +10,9 @@ namespace Com.Mparang.AZLib {
     }
     public class AES256 {
       public String Enc(String Input, String key) {
+        return Enc(Input, key, new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+      }
+      public String Enc(String Input, String key, byte[] iv) {
         string rtnValue = "";
         if (key.EndsWith("|")) {
           throw new Exception("key value can't ends with \"|\"!");
@@ -29,7 +32,8 @@ namespace Com.Mparang.AZLib {
           aes.Mode = CipherMode.CBC;
           aes.Padding = PaddingMode.PKCS7;
           aes.Key = Encoding.UTF8.GetBytes(key);
-          aes.IV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+          //aes.IV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+          aes.IV = iv;
           
           ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
 
@@ -45,8 +49,10 @@ namespace Com.Mparang.AZLib {
         rtnValue = Convert.ToBase64String(xBuff);
         return rtnValue;
       }
-
       public String Dec(String Input, String key) {
+        return Dec(Input, key, new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+      }
+      public String Dec(String Input, String key, byte[] iv) {
         string rtnValue = "";
         if (key.EndsWith("|")) {
           throw new Exception("key value can't ends with \"|\"!");
@@ -63,7 +69,8 @@ namespace Com.Mparang.AZLib {
           aes.Mode = CipherMode.CBC;
           aes.Padding = PaddingMode.PKCS7;
           aes.Key = Encoding.UTF8.GetBytes(key);
-          aes.IV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+          //aes.IV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+          aes.IV = iv;
           
           // Create a decrytor to perform the stream transform.
           ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);

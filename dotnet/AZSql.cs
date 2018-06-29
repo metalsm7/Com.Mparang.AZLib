@@ -3,59 +3,73 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+using System.Threading.Tasks;
 using Npgsql;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 #endif
 
 namespace Com.Mparang.AZLib {
+  /// <summary>RDBMS에 대한 Query Helper Class</summary>
 	public class AZSql {
+    /// <summary>PreparedStatement 또는 StoredProcedure에 사용하기 위한 전달값 Class</summary>
     public class ParameterData {
       public object DbType {get;set;}
       public int? Size {get;set;}
       public object Value {get;set;}
+      /// <summary>기본 생성자</summary>
       public ParameterData() {}
       public ParameterData(object value) {
         this.Value = value;
       }
+      /// <summary>생성자(for SqlServer), DbType, Value 지정</summary>
       public ParameterData(object value, SqlDbType dbType) {
         this.Value = value;
         this.DbType = dbType;
       }
+      /// <summary>생성자(for SqlServer), DbType, Value, Size 지정</summary>
       public ParameterData(object value, SqlDbType dbType, int size) {
         this.Value = value;
         this.DbType = dbType;
         this.Size = size;
       }
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+      /// <summary>생성자(for PostgresQl), DbType, Value 지정</summary>
       public ParameterData(object value, NpgsqlTypes.NpgsqlDbType dbType) {
         this.Value = value;
         this.DbType = dbType;
       }
+      /// <summary>생성자(for PostgresQl), DbType, Value, Size 지정</summary>
       public ParameterData(object value, NpgsqlTypes.NpgsqlDbType dbType, int size) {
         this.Value = value;
         this.DbType = dbType;
         this.Size = size;
       }
+      /// <summary>생성자(for MySql), DbType, Value 지정</summary>
       public ParameterData(object value, MySqlDbType dbType) {
         this.Value = value;
         this.DbType = dbType;
       }
+      /// <summary>생성자(for MySql), DbType, Value, Size 지정</summary>
       public ParameterData(object value, MySqlDbType dbType, int size) {
         this.Value = value;
         this.DbType = dbType;
         this.Size = size;
       }
 #endif
+      /// <summary>DbType 반환(for SqlServer)</summary>
       public SqlDbType GetSqlDbType() {
         return (SqlDbType)this.DbType;
       }
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+      /// <summary>DbType 반환(for PostgresQl)</summary>
       public NpgsqlTypes.NpgsqlDbType GetNpgsqlDbType() {
         return (NpgsqlTypes.NpgsqlDbType)this.DbType;
       }
+      /// <summary>DbType 반환(for MySql)</summary>
       public MySqlDbType GetMySqlDbType() {
         return (MySqlDbType)this.DbType;
       }
@@ -101,49 +115,45 @@ namespace Com.Mparang.AZLib {
     private Action<Exception> action_tran_on_rollback;
     // BeginTran 메소드를 통해 트랜잭션이 처리중인지를 확인하기 위한 변수
 		private bool in_transaction = false;
-
-    // 트랜잭션 처리 중 반환되는 값들을 저장학 위한 데이터 자료`
+    // 트랜잭션 처리 중 반환되는 값들을 저장하기 위한 데이터 자료
     private AZData transaction_result;
     // SP 처리 여부 확인용 변수
 		private bool is_stored_procedure = false;
     private DBConnectionInfo db_info = null;
 		private bool connected = false;
 		private static AZSql this_object = null;
-
+    //
 		private SqlConnection sqlConnection = null;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
     private NpgsqlConnection npgsqlConnection = null;
 		private MySqlConnection mySqlConnection = null;
 		private SqliteConnection sqliteConnection = null;
 #endif
-
+    //
 		private SqlCommand sqlCommand = null;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
     private NpgsqlCommand npgsqlCommand = null;
 		private MySqlCommand mySqlCommand = null;
 		private SqliteCommand sqliteCommand = null;
 #endif
-
     // 트랜잭션 처리시 사용 변수
     private SqlTransaction sqlTransaction = null;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
     private MySqlTransaction mySqlTransaction = null;
     private NpgsqlTransaction npgsqlTransaction = null;
 #endif
 
+    /// <summary>static Class 객체 반환 처리</summary>
 		public static AZSql getInstance() {
-			if (this_object == null) {
-				this_object = new AZSql ();
-			}
+			if (this_object == null) this_object = new AZSql ();
 			return this_object;
 		}
 
     /// <summary>기본 생성자</summary>
-    /// Created include 2017-06-27, leeyonghun
-		public AZSql () {}
+		public AZSql() {}
 
-    /// Created in 2015-08-19, leeyonghun
-		public AZSql (string p_json) {
+    /// <summary>생성자, 연결 문자열</summary>
+		public AZSql(string p_json) {
 			Set(p_json);
 		}
 
@@ -180,7 +190,11 @@ namespace Com.Mparang.AZLib {
       return this.db_info.SqlType;
     }
 
-    /// <summary>
+    /// <summary></summary>
+    /// <param name="on_commit">Action<Exception>, commit 처리 및 이전 쿼리 처리 진행 중 예외가 발생하는 경우 처리를 하기 위한 Action</param>
+    /// <param name="on_rollback">Action<Exception>, commit 처리중 예외 발생으로 rollback처리 중 예외가 발생하는 경우 처리를 위한 Action</param>
+    /// <example>
+    /// <code>
     /// 트랜잭션 처리 시작을 알리며, 이후 Commit때까지 트랜잭션 진행, 
     /// 사용예)
     /// AZSql sql = new AZSql("~~~");
@@ -198,14 +212,12 @@ namespace Com.Mparang.AZLib {
     /// basic.DoUpdate();
     ///
     /// AZData result = sql.Commit();
-    /// </summary>
-    /// <param name="on_commit">Action<Exception>, commit 처리 및 이전 쿼리 처리 진행 중 예외가 발생하는 경우 처리를 하기 위한 Action</param>
-    /// <param name="on_rollback">Action<Exception>, commit 처리중 예외 발생으로 rollback처리 중 예외가 발생하는 경우 처리를 위한 Action</param>
+    /// </code>
+    /// </example>
     /// Created in 2017-06-27, leeyonghun
     public void BeginTran(Action<Exception> on_commit, Action<Exception> on_rollback) {
-      if (sqlConnection == null) {
-        Open();
-      }
+      if (sqlConnection == null) Open();
+      //
       switch (this.GetSqlType()) {
         case AZSql.SQL_TYPE.MSSQL:
           sqlTransaction = sqlConnection.BeginTransaction();
@@ -218,44 +230,35 @@ namespace Com.Mparang.AZLib {
           break;
       }
       transaction_result = new AZData();
-
       //
       this.action_tran_on_commit = on_commit;
       this.action_tran_on_rollback = on_rollback;
-
       //
       this.in_transaction = true;
     }
 
     /// <summary>현재 AZSql객체에서 트랜잭션 진행 정보를 삭제 및 초기화</summary>
-    /// Created in 2017-06-27, leeyonghun
     public void RemoveTran() {
       sqlTransaction = null;
       mySqlTransaction = null;
-
       //
       transaction_result = null;
-
       //
       this.in_transaction = false;
-
       //
-      transaction_result = null;
-
+      //transaction_result = null;
       //
       Close();
     }
     
-    /// Created in 2017-08-03, leeyonghun
+    /// <summary>현재 AZSql객체에서 트랜잭션에 대한 Callback 초기화 처리</summary>
     public void ClearTransCallback() {
-      //
       this.action_tran_on_commit = null;
       this.action_tran_on_rollback = null;
     }
 
     /// <summary>트랜잭션 commit 처리</summary>
-    /// <return>AZData, 트랜잭션 처리 중 발생한 반환값들의 집합인 AZData를 반환한다.</return>
-    /// Created in 2017-06-27, leeyonghun
+    /// <return>AZData, 트랜잭션 처리 중 발생한 반환값들의 집합인 AZData를 반환</return>
     public AZData Commit() {
       AZData rtn_value = null;
       Exception exception_commit = null;
@@ -263,17 +266,10 @@ namespace Com.Mparang.AZLib {
       try {
         if (connected) {
           switch (this.GetSqlType()) {
-            case AZSql.SQL_TYPE.MSSQL:
-              sqlTransaction.Commit();
-              break;
-            case AZSql.SQL_TYPE.MYSQL:
-              mySqlTransaction.Commit();
-              break;
-            case AZSql.SQL_TYPE.POSTGRESQL:
-              npgsqlTransaction.Commit();
-              break;
+            case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Commit(); break;
+            case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Commit(); break;
+            case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Commit(); break;
           }
-          //
           rtn_value = transaction_result;
         }
       }
@@ -282,15 +278,9 @@ namespace Com.Mparang.AZLib {
         //
         try {
           switch (this.GetSqlType()) {
-            case AZSql.SQL_TYPE.MSSQL:
-              sqlTransaction.Rollback();
-              break;
-            case AZSql.SQL_TYPE.MYSQL:
-              mySqlTransaction.Rollback();
-              break;
-            case AZSql.SQL_TYPE.POSTGRESQL:
-              npgsqlTransaction.Rollback();
-              break;
+            case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+            case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+            case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
           }
         }
         catch (Exception ex_rollback) {
@@ -313,8 +303,7 @@ namespace Com.Mparang.AZLib {
     }
 
     /// <summary>트랜잭션 tollback 처리</summary>
-    /// <return>AZData, 트랜잭션 처리 중 발생한 반환값들의 집합인 AZData를 반환한다.</return>
-    /// Created in 2017-06-27, leeyonghun
+    /// <return>AZData, 트랜잭션 처리 중 발생한 반환값들의 집합인 AZData를 반환</return>
     public AZData Rollback() {
       AZData rtn_value = null;
       
@@ -330,15 +319,9 @@ namespace Com.Mparang.AZLib {
       try {
         if (connected) {
           switch (this.GetSqlType()) {
-            case AZSql.SQL_TYPE.MSSQL:
-              sqlTransaction.Rollback();
-              break;
-            case AZSql.SQL_TYPE.MYSQL:
-              mySqlTransaction.Rollback();
-              break;
-            case AZSql.SQL_TYPE.POSTGRESQL:
-              npgsqlTransaction.Rollback();
-              break;
+            case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+            case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+            case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
           }
         }
       }
@@ -357,41 +340,52 @@ namespace Com.Mparang.AZLib {
       return rtn_value;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql 객체에 대해 실행할 쿼리문 설정</summary>
+    /// <param name="query">string, 쿼리문</param>
     public AZSql SetQuery(string query) {
       this.query = query;
       return this;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql 객체에 대해 설정된 쿼리문 반환</summary>
     public string GetQuery() {
       return this.query;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>PreparedStatement 또는 StoredProcedure 사용의 경우 전달할 인수값 설정.
+    /// 실제 처리는 AddParameter(string, object)의 반복</summary>
     public AZSql SetParameters(AZData parameters) {
       this.parameters.Clear();
       for (int cnti=0; cnti<parameters.Size(); cnti++) {
         this.parameters.Add(parameters.GetKey(cnti), new ParameterData(parameters.Get(cnti)));
       }
-      //this.parameters = parameters;
       return this;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 설정된 parameter 값 반환
+    /// AZData(string key, ParameterData value) 형식으로 구성되어 있어, 
+    /// value 값 사용시 캐스팅 필요</summary>
     public AZData GetParameters() {
       return this.parameters;
     }
+    /// <summary>설정된 key에 해당하는 ParameterData 객체 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public ParameterData GetParameter(string key) {
       return (ParameterData)this.parameters.Get(key);
     }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public object GetParameterValue(string key) {
       return GetParameter(key).Value;
     }
+    /// <summary>설정된 key에 해당하는 ParameterData.Value 값에 대해 T형식으로 캐스팅하여 반환</summary>
+    /// <param name="key">string, Parameter 전달 key</param>
     public T GetParameterValue<T>(string key) {
       return (T)GetParameter(key).Value;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>parameter 추가, AZData.Add(key, new ParameterData(value))로 처리됨</summary>
+    /// <param name="key">string, parameter key값</param>
+    /// <param name="value">object, key에 대응하는 값</param>
     public AZSql AddParameter(string key, object value) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value));
@@ -407,7 +401,7 @@ namespace Com.Mparang.AZLib {
       this.parameters.Add(key, new ParameterData(value, dbType, size));
       return this;
     }
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
     public AZSql AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
       if (this.parameters == null) this.parameters = new AZData();
       this.parameters.Add(key, new ParameterData(value, dbType));
@@ -429,7 +423,8 @@ namespace Com.Mparang.AZLib {
       return this;
     }
 #endif
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>parameter 추가, AddParameters("key1", value1, "key2", value2...) 형식으로 사용</summary>
+    /// <param name="parameters">키, 값 순서로 만들어진 object배열값</param>
     public AZSql AddParameters(params object[] parameters) {
       if (this.parameters == null) this.parameters = new AZData();
       for (int cnti=0; cnti<parameters.Length; cnti+=2) {
@@ -437,16 +432,16 @@ namespace Com.Mparang.AZLib {
       }
       return this;
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql객체에 설정된 parameter 값 초기화</summary>
     public void ClearParameters() {
       this.parameters.Clear();
     }
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary>현재 AZSql객체에 설정된 parameter 초기화 처리, 재사용시 새로운 객체 생성 절차가 포함됨</summary>
     public void RemoveParameters() {
       this.parameters = null;
     }
 
-    /// Created in 2017-03-28, leeyonghun
+    /// <summary></summary>
     public AZSql SetReturnParameters(AZData parameters) {
       this.return_parameters.Clear();
       for (int cnti=0; cnti<parameters.Size(); cnti++) {
@@ -455,7 +450,6 @@ namespace Com.Mparang.AZLib {
       //this.return_parameters = parameters;
       return this;
     }
-
     /// Created in 2017-03-28, leeyonghun
     public AZData GetReturnParameters() {
       return this.return_parameters;
@@ -576,15 +570,9 @@ namespace Com.Mparang.AZLib {
     /// Created in 2015-06-23, leeyonghun
 		public int Execute() {
 			int rtnValue = 0;
-
-      if (in_transaction && !connected) {
-        return rtnValue;
-      }
-
-      //
+      if (in_transaction && !connected) return rtnValue;
 			try {
-        if (!connected) Open ();
-
+        if (!connected) Open();
 				if (connected) {
 					switch (this.db_info.SqlType) {
             case SQL_TYPE.MSSQL:    // mssql 접속 처리시
@@ -624,7 +612,6 @@ namespace Com.Mparang.AZLib {
               else {
                 rtnValue = sqlCommand.ExecuteNonQuery();
               }
-
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
@@ -633,7 +620,7 @@ namespace Com.Mparang.AZLib {
                 }
               }
               break;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 					  case SQL_TYPE.SQLITE:
               //sqliteCommand = new SQLiteCommand(p_query, sqliteConnection);
               sqliteCommand = sqliteConnection.CreateCommand();
@@ -771,19 +758,12 @@ namespace Com.Mparang.AZLib {
           }
         }
         else {
-          //
           Exception exception_rollback = null;
           try {
             switch (this.GetSqlType()) {
-              case AZSql.SQL_TYPE.MSSQL:
-                sqlTransaction.Rollback();
-                break;
-              case AZSql.SQL_TYPE.MYSQL:
-                mySqlTransaction.Rollback();
-                break;
-              case AZSql.SQL_TYPE.POSTGRESQL:
-                npgsqlTransaction.Rollback();
-                break;
+              case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
             }
           }
           catch (Exception ex_rollback) {
@@ -806,24 +786,252 @@ namespace Com.Mparang.AZLib {
 			finally {
         //if (sqlTransaction == null) Close ();
         switch (this.GetSqlType()) {
-          case AZSql.SQL_TYPE.MSSQL:
-            if (sqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.MYSQL:
-            if (mySqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.POSTGRESQL:
-            if (npgsqlTransaction == null) Close ();
-            break;
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close (); break;
         }
 			}
 
-      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
-        transaction_result != null) {
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && transaction_result != null) {
         transaction_result.Add("Execute." + (transaction_result.Size() + 1), rtnValue);
       }
 			return rtnValue;
 		}
+    
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(string query) {
+      SetQuery(query);
+      return await ExecuteAsync();
+    }
+
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(bool identity) {
+      SetIdentity(identity);
+      return await ExecuteAsync();
+    }
+
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(string query, bool identity) {
+      SetQuery(query);
+      SetIdentity(identity);
+      return await ExecuteAsync();
+    }
+
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(string query, AZData parameters) {
+      SetQuery(query);
+      SetParameters(parameters);
+      return await ExecuteAsync();
+    }
+
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(string query, AZData parameters, bool identity) {
+      SetQuery(query);
+      SetParameters(parameters);
+      SetIdentity(identity);
+      return await ExecuteAsync();
+    }
+
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync() {
+      int rtnValue = 0;
+      if (in_transaction && !connected) return rtnValue;
+      try {
+        if (!connected) await OpenAsync();
+        if (connected) {
+					switch (this.db_info.SqlType) {
+            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+              sqlCommand = sqlConnection.CreateCommand();
+              sqlCommand.CommandText = GetQuery();
+              if (sqlTransaction != null) sqlCommand.Transaction = sqlTransaction;
+              if (IsStoredProcedure()) sqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetIdentity()) {
+                await sqlCommand.ExecuteNonQueryAsync();
+                //
+                sqlCommand = new SqlCommand("SELECT @@IDENTITY;", sqlConnection);
+                rtnValue = AZString.Init(await sqlCommand.ExecuteScalarAsync()).ToInt(-1);
+              }
+              else {
+                rtnValue = await sqlCommand.ExecuteNonQueryAsync();
+              }
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+					  case SQL_TYPE.SQLITE:
+              sqliteCommand = sqliteConnection.CreateCommand();
+              sqliteCommand.CommandText = GetQuery();
+              if (GetIdentity()) {
+                await sqliteCommand.ExecuteNonQueryAsync();
+                //
+                sqliteCommand = sqliteConnection.CreateCommand();
+                sqliteCommand.CommandText = "SELECT last_insert_rowid();";
+                rtnValue = AZString.Init(await sqliteCommand.ExecuteScalarAsync()).ToInt(-1);
+              }
+              else {
+                rtnValue = await sqliteCommand.ExecuteNonQueryAsync();
+              }
+              break;
+            case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
+              //npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+              npgsqlCommand = npgsqlConnection.CreateCommand();
+              npgsqlCommand.CommandText = GetQuery();
+              if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+              if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetIdentity()) {
+                await npgsqlCommand.ExecuteNonQueryAsync();
+                //
+                npgsqlCommand = new NpgsqlCommand("SELECT @@IDENTITY;", npgsqlConnection);
+                rtnValue = AZString.Init(await npgsqlCommand.ExecuteScalarAsync()).ToInt(-1);
+              }
+              else {
+                rtnValue = await npgsqlCommand.ExecuteNonQueryAsync();
+              }
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+            case SQL_TYPE.MYSQL:
+              //mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
+              mySqlCommand = mySqlConnection.CreateCommand();
+              mySqlCommand.CommandText = GetQuery();
+              if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+              if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetIdentity()) {
+                await mySqlCommand.ExecuteNonQueryAsync();
+                //
+                mySqlCommand = new MySqlCommand("SELECT LAST_INSERT_ID();", mySqlConnection);
+                rtnValue = AZString.Init(await mySqlCommand.ExecuteScalarAsync()).ToInt(-1);
+              }
+              else {
+                rtnValue = await mySqlCommand.ExecuteNonQueryAsync();
+              }
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+					}
+        }
+      }
+      catch (Exception ex) {
+        if (sqlTransaction == null) {
+          if (ex.InnerException != null) {
+            throw new Exception("Exception in Execute.Inner", ex.InnerException);
+          }
+          else {
+            throw new Exception("Exception in Execute", ex);
+          }
+        }
+        else {
+          Exception exception_rollback = null;
+          try {
+            switch (this.GetSqlType()) {
+              case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
+            }
+          }
+          catch (Exception ex_rollback) {
+            exception_rollback = ex_rollback;
+          }
+          finally {
+            RemoveTran();
+            //
+            if (this.action_tran_on_commit != null) {
+              this.action_tran_on_commit(ex);
+            }
+            if (exception_rollback != null && this.action_tran_on_rollback != null) {
+              this.action_tran_on_rollback(exception_rollback);
+            }
+            //
+            ClearTransCallback();
+          }
+        }
+      }
+			finally {
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close (); break;
+        }
+			}
+
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && transaction_result != null) {
+        transaction_result.Add("Execute." + (transaction_result.Size() + 1), rtnValue);
+      }
+      return rtnValue;
+    }
+#endif
 
     /// Created in 2015-06-23, leeyonghun
 		public object Get(string query) {
@@ -841,14 +1049,10 @@ namespace Com.Mparang.AZLib {
     /// Created in 2015-06-23, leeyonghun
 		public object Get() {
 			object rtnValue = null;
-
-      if (in_transaction && !connected) {
-        return rtnValue;
-      }
-
+      //
+      if (in_transaction && !connected) return rtnValue;
 			try {
-        if (!connected) Open ();
-
+        if (!connected) Open();
 				if (connected) {
           switch (this.db_info.SqlType) {
             case SQL_TYPE.MSSQL:    // mssql 접속 처리시
@@ -889,7 +1093,7 @@ namespace Com.Mparang.AZLib {
                 }
               }
               break;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 					  case SQL_TYPE.SQLITE:
               sqliteCommand = sqliteConnection.CreateCommand();
               sqliteCommand.CommandText = GetQuery();
@@ -1012,15 +1216,9 @@ namespace Com.Mparang.AZLib {
           Exception exception_rollback = null;
           try {
             switch (this.GetSqlType()) {
-              case AZSql.SQL_TYPE.MSSQL:
-                sqlTransaction.Rollback();
-                break;
-              case AZSql.SQL_TYPE.MYSQL:
-                mySqlTransaction.Rollback();
-                break;
-              case AZSql.SQL_TYPE.POSTGRESQL:
-                npgsqlTransaction.Rollback();
-                break;
+              case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
             }
           }
           catch (Exception ex_rollback) {
@@ -1029,12 +1227,8 @@ namespace Com.Mparang.AZLib {
           finally {
             RemoveTran();
             //
-            if (ex != null && this.action_tran_on_commit != null) {
-              this.action_tran_on_commit(ex);
-            }
-            if (exception_rollback != null && this.action_tran_on_rollback != null) {
-              this.action_tran_on_rollback(exception_rollback);
-            }
+            if (ex != null && this.action_tran_on_commit != null) this.action_tran_on_commit(ex);
+            if (exception_rollback != null && this.action_tran_on_rollback != null) this.action_tran_on_rollback(exception_rollback);
             //
             ClearTransCallback();
           }
@@ -1042,24 +1236,198 @@ namespace Com.Mparang.AZLib {
 			}
 			finally {
         switch (this.GetSqlType()) {
-          case AZSql.SQL_TYPE.MSSQL:
-            if (sqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.MYSQL:
-            if (mySqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.POSTGRESQL:
-            if (npgsqlTransaction == null) Close ();
-            break;
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close(); break;
         }
 			}
 
-      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
-        transaction_result != null) {
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && transaction_result != null) {
         transaction_result.Add("Get." + (transaction_result.Size() + 1), rtnValue);
       }
 			return rtnValue;
 		}
+    
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetAsync(string query) {
+      SetQuery(query);
+      return await GetAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetAsync(string query, AZData parameters) {
+      SetQuery(query);
+      SetParameters(parameters);
+      return await GetAsync();
+    }
+
+    /// Created in 2015-06-23, leeyonghun
+		public async Task<object> GetAsync() {
+			object rtnValue = null;
+      //
+      if (in_transaction && !connected) return rtnValue;
+			try {
+        if (!connected) await OpenAsync();
+
+				if (connected) {
+          switch (this.db_info.SqlType) {
+            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+              sqlCommand = sqlConnection.CreateCommand();
+              sqlCommand.CommandText = GetQuery();
+              if (sqlTransaction != null) sqlCommand.Transaction = sqlTransaction;
+              if (IsStoredProcedure()) sqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              rtnValue = await sqlCommand.ExecuteScalarAsync();
+              //
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+					  case SQL_TYPE.SQLITE:
+              sqliteCommand = sqliteConnection.CreateCommand();
+              sqliteCommand.CommandText = GetQuery();
+						  rtnValue = await sqliteCommand.ExecuteScalarAsync();
+              break;
+            case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
+              npgsqlCommand = npgsqlConnection.CreateCommand();
+              npgsqlCommand.CommandText = GetQuery();
+              if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+              if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              rtnValue = await npgsqlCommand.ExecuteScalarAsync();
+              //
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+            case SQL_TYPE.MYSQL:
+              mySqlCommand = mySqlConnection.CreateCommand();
+              mySqlCommand.CommandText = GetQuery();
+              if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+              if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              rtnValue = await mySqlCommand.ExecuteScalarAsync();
+              //
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+					}
+        }
+        else {
+          throw new Exception("Exception occured in Get : Can not open connection!");
+        }
+      }
+      catch (Exception ex) {
+        if (sqlTransaction == null) {
+          if (ex.InnerException != null) {
+            throw new Exception("Exception in Get.Inner", ex.InnerException);
+          }
+          else {
+            throw new Exception("Exception in Get", ex);
+          }
+        }
+        else {
+          //
+          Exception exception_rollback = null;
+          try {
+            switch (this.GetSqlType()) {
+              case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+              case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
+            }
+          }
+          catch (Exception ex_rollback) {
+            exception_rollback = ex_rollback;
+          }
+          finally {
+            RemoveTran();
+            //
+            if (ex != null && this.action_tran_on_commit != null) this.action_tran_on_commit(ex);
+            if (exception_rollback != null && this.action_tran_on_rollback != null) this.action_tran_on_rollback(exception_rollback);
+            //
+            ClearTransCallback();
+          }
+        }
+			}
+			finally {
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close(); break;
+        }
+			}
+
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && transaction_result != null) {
+        transaction_result.Add("Get." + (transaction_result.Size() + 1), rtnValue);
+      }
+			return rtnValue;
+		}
+#endif
 
     /// Created in 2015-06-23, leeyonghun
     public object GetObject() {
@@ -1092,6 +1460,26 @@ namespace Com.Mparang.AZLib {
     /// Created in 2015-06-23, leeyonghun
     public int GetInt(string query) {
       return GetInt(query, 0);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public long GetLong() {
+      return AZString.Init(Get()).ToLong(0);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public long GetLong(long default_value) {
+      return AZString.Init(Get()).ToLong(default_value);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public long GetLong(string query) {
+      return GetLong(query, 0);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public long GetLong(string query, long default_value) {
+      return AZString.Init(Get(query)).ToLong(default_value);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public long GetLong(string query, AZData parameters, long default_value) {
+      return AZString.Init(Get(query, parameters)).ToLong(default_value);
     }
     /// Created in 2015-06-23, leeyonghun
     public float GetFloat() {
@@ -1129,6 +1517,98 @@ namespace Com.Mparang.AZLib {
     public string GetString(string query) {
       return GetString();
     }
+
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetObjectAsync() {
+      return await GetAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetObjectAsync(string query) {
+      return await GetAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetObjectAsync(string query, AZData parameters) {
+      return await GetAsync(query, parameters);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync() {
+      return AZString.Init(await GetAsync()).ToInt(0);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(int default_value) {
+      return AZString.Init(await GetAsync()).ToInt(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(string query) {
+      return await GetIntAsync(query, 0);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(string query, int default_value) {
+      return AZString.Init(await GetAsync(query)).ToInt(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(string query, AZData parameters, int default_value) {
+      return AZString.Init(await GetAsync(query, parameters)).ToInt(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync() {
+      return AZString.Init(await GetAsync()).ToLong(0);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(long default_value) {
+      return AZString.Init(await GetAsync()).ToLong(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(string query) {
+      return await GetLongAsync(query, 0);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(string query, long default_value) {
+      return AZString.Init(await GetAsync(query)).ToLong(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(string query, AZData parameters, long default_value) {
+      return AZString.Init(await GetAsync(query, parameters)).ToLong(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync() {
+      return AZString.Init(await GetAsync()).ToFloat(0f);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(float p_default_value) {
+      return AZString.Init(await GetAsync()).ToFloat(p_default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(string query, float p_default_value) {
+      return AZString.Init(await GetAsync(query)).ToFloat(p_default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(string query, AZData parameters, float p_default_value) {
+      return AZString.Init(await GetAsync(query, parameters)).ToFloat(p_default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(string query) {
+      return await GetFloatAsync(query, 0f);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public async Task<string> GetStringAsync() {
+      return AZString.Init(await GetAsync()).String("");
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public async Task<string> GetStringAsync(string query, string p_default_value) {
+      return AZString.Init(await GetAsync(query)).String(p_default_value);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public async Task<string> GetStringAsync(string query, AZData parameters, string p_default_value) {
+      return AZString.Init(await GetAsync(query, parameters)).String(p_default_value);
+    }
+    /// Created in 2015-06-23, leeyonghun
+    public async Task<string> GetStringAsync(string query) {
+      return await GetStringAsync();
+    }
+#endif
+
     /// Created in 2015-06-23, leeyonghun
 		public AZData GetData(string query) {
       SetQuery(query);
@@ -1143,20 +1623,16 @@ namespace Com.Mparang.AZLib {
     /// Created in 2015-06-23, leeyonghun
 		public AZData GetData() {
 			AZData rtnValue = new AZData ();
-
-      if (in_transaction && !connected) {
-        return rtnValue;
-      }
-
+      if (in_transaction && !connected) return rtnValue;
+      //
       SqlDataReader reader_mssql = null;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 			MySqlDataReader reader_mysql = null;
       SqliteDataReader reader_sqlite = null;
       NpgsqlDataReader reader_npgsql = null;
 #endif
 			try {
         if (!connected) Open ();
-
 				if (connected) {
           switch (this.db_info.SqlType) {
             case SQL_TYPE.MSSQL:    // mssql 접속 처리시
@@ -1200,7 +1676,6 @@ namespace Com.Mparang.AZLib {
               reader_mssql = sqlCommand.ExecuteReader();
               while (reader_mssql.Read()) {
                 int colCnt = reader_mssql.FieldCount;
-
                 for (int cnti = 0; cnti < colCnt; cnti++) {
                   rtnValue.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
                 }
@@ -1215,7 +1690,7 @@ namespace Com.Mparang.AZLib {
                 }
               }
               break;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
             case SQL_TYPE.MYSQL:
               mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
               if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
@@ -1261,7 +1736,6 @@ namespace Com.Mparang.AZLib {
                 }
                 break;
               }
-
               if (IsStoredProcedure() && GetReturnParameters() != null) {
                 for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
                   string key = GetReturnParameters().GetKey(cnti);
@@ -1359,15 +1833,9 @@ namespace Com.Mparang.AZLib {
           try {
             if (connected) {
               switch (this.GetSqlType()) {
-                case AZSql.SQL_TYPE.MSSQL:
-                  sqlTransaction.Rollback();
-                  break;
-                case AZSql.SQL_TYPE.MYSQL:
-                  mySqlTransaction.Rollback();
-                  break;
-                case AZSql.SQL_TYPE.POSTGRESQL:
-                  npgsqlTransaction.Rollback();
-                  break;
+                case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
               }
             }
           }
@@ -1390,21 +1858,15 @@ namespace Com.Mparang.AZLib {
 			}
 			finally {
         if (reader_mssql != null) reader_mssql.Dispose();
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 				if (reader_mysql != null) reader_mysql.Dispose ();
 				if (reader_sqlite != null) reader_sqlite.Dispose ();
         if (reader_npgsql != null) reader_npgsql.Dispose();
 #endif
         switch (this.GetSqlType()) {
-          case AZSql.SQL_TYPE.MSSQL:
-            if (sqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.MYSQL:
-            if (mySqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.POSTGRESQL:
-            if (npgsqlTransaction == null) Close ();
-            break;
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close(); break;
         }
       }
       if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
@@ -1414,6 +1876,224 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// Created in 2015-06-23, leeyonghun
+		public async Task<AZData> GetDataAsync(string query) {
+      SetQuery(query);
+      return await GetDataAsync();
+    }
+    /// Created in 2015-06-23, leeyonghun
+		public async Task<AZData> GetDataAsync(string query, AZData parameters) {
+      SetQuery(query);
+      SetParameters(parameters);
+      return await GetDataAsync();
+    }
+    /// Created in 2015-06-23, leeyonghun
+		public async Task<AZData> GetDataAsync() {
+			AZData rtnValue = new AZData ();
+      //
+      if (in_transaction && !connected) return rtnValue;
+      //
+      SqlDataReader reader_mssql = null;
+			DbDataReader reader_mysql = null;
+      SqliteDataReader reader_sqlite = null;
+      DbDataReader reader_npgsql = null;
+			try {
+        if (!connected) await OpenAsync();
+				if (connected) {
+          switch (this.db_info.SqlType) {
+            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+              sqlCommand = sqlConnection.CreateCommand();
+              sqlCommand.CommandText = GetQuery();
+              if (sqlTransaction != null) sqlCommand.Transaction = sqlTransaction;
+              if (IsStoredProcedure()) sqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              reader_mssql = await sqlCommand.ExecuteReaderAsync();
+              while (await reader_mssql.ReadAsync()) {
+                int colCnt = reader_mssql.FieldCount;
+                for (int cnti = 0; cnti < colCnt; cnti++) {
+                  rtnValue.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
+                }
+                break;
+              }
+              //
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+            case SQL_TYPE.MYSQL:
+              //mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
+              mySqlCommand = mySqlConnection.CreateCommand();
+              mySqlCommand.CommandText = GetQuery();
+              if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+              if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              reader_mysql = await mySqlCommand.ExecuteReaderAsync();
+              while (await reader_mysql.ReadAsync()) {
+                int colCnt = reader_mysql.FieldCount;
+                for (int cnti = 0; cnti < colCnt; cnti++) {
+                  rtnValue.Add(reader_mysql.GetName (cnti), reader_mysql [cnti]);
+                }
+                break;
+              }
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+            case SQL_TYPE.SQLITE:
+              sqliteCommand = sqliteConnection.CreateCommand();
+              sqliteCommand.CommandText = GetQuery();
+              reader_sqlite = await sqliteCommand.ExecuteReaderAsync();
+              //
+              while (await reader_sqlite.ReadAsync()) {
+                int colCnt = reader_sqlite.FieldCount;
+                for (int cnti = 0; cnti < colCnt; cnti++) {
+                  rtnValue.Add (reader_sqlite.GetName (cnti), reader_sqlite [cnti]);
+                }
+                break;
+              }
+					  	break;
+            case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
+              //npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+              npgsqlCommand = npgsqlConnection.CreateCommand();
+              npgsqlCommand.CommandText = GetQuery();
+              if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+              if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              reader_npgsql = await npgsqlCommand.ExecuteReaderAsync();
+              while (await reader_npgsql.ReadAsync()) {
+                int colCnt = reader_npgsql.FieldCount;
+                for (int cnti = 0; cnti < colCnt; cnti++) {
+                  rtnValue.Add(reader_npgsql.GetName(cnti), reader_npgsql[cnti]);
+                }
+                break;
+              }
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+					}
+				}
+			}
+			catch (Exception ex) {
+        if (this.GetSqlType() == AZSql.SQL_TYPE.MSSQL && sqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.MYSQL && mySqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.POSTGRESQL && npgsqlTransaction == null) {
+          if (ex.InnerException != null) {
+            throw new Exception("Exception in GetData.Inner", ex.InnerException);
+          }
+          else {
+            throw new Exception("Exception in GetData", ex);
+          }
+        }
+        else {
+          //
+          Exception exception_rollback = null;
+          try {
+            if (connected) {
+              switch (this.GetSqlType()) {
+                case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
+              }
+            }
+          }
+          catch (Exception ex_rollback) {
+            exception_rollback = ex_rollback;
+          }
+          finally {
+            RemoveTran();
+            //
+            if (this.action_tran_on_commit != null) this.action_tran_on_commit(ex);
+            if (exception_rollback != null && this.action_tran_on_rollback != null) this.action_tran_on_rollback(exception_rollback);
+            //
+            ClearTransCallback();
+          }
+        }
+			}
+			finally {
+        if (reader_mssql != null) reader_mssql.Dispose();
+				if (reader_mysql != null) reader_mysql.Dispose ();
+				if (reader_sqlite != null) reader_sqlite.Dispose ();
+        if (reader_npgsql != null) reader_npgsql.Dispose();
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close(); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close(); break;
+        }
+      }
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && transaction_result != null) {
+        transaction_result.Add("GetData." + (transaction_result.Size() + 1), rtnValue);
+      }
+			return rtnValue;
+		}
+#endif
         
     /// <summary></summary>
     /// Created in 2015-06-24, leeyonghun
@@ -1462,20 +2142,16 @@ namespace Com.Mparang.AZLib {
     /// Created in 2015, leeyonghun
 		public AZList GetList(int offset, int length) {
 			AZList rtnValue = new AZList ();
-
-        if (in_transaction && !connected) {
-            return rtnValue;
-        }
-
-        SqlDataReader reader_mssql = null;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
-			  MySqlDataReader reader_mysql = null;
-        SqliteDataReader reader_sqlite = null;
-        NpgsqlDataReader reader_npgsql = null;
+      if (in_transaction && !connected) return rtnValue;
+      //
+      SqlDataReader reader_mssql = null;
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+      MySqlDataReader reader_mysql = null;
+      SqliteDataReader reader_sqlite = null;
+      NpgsqlDataReader reader_npgsql = null;
 #endif
 			try {
         if (!connected) Open ();
-
         int idx;
 				if (connected) {
           switch (this.db_info.SqlType) {
@@ -1547,7 +2223,7 @@ namespace Com.Mparang.AZLib {
                 }
               }
               break;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
             case SQL_TYPE.SQLITE:
                 sqliteCommand = sqliteConnection.CreateCommand();
                 sqliteCommand.CommandText = GetQuery();
@@ -1729,15 +2405,9 @@ namespace Com.Mparang.AZLib {
           try {
             if (connected) {
               switch (this.GetSqlType()) {
-                case AZSql.SQL_TYPE.MSSQL:
-                  sqlTransaction.Rollback();
-                  break;
-                case AZSql.SQL_TYPE.MYSQL:
-                  mySqlTransaction.Rollback();
-                  break;
-                case AZSql.SQL_TYPE.POSTGRESQL:
-                  npgsqlTransaction.Rollback();
-                  break;
+                case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
               }
             }
           }
@@ -1760,30 +2430,340 @@ namespace Com.Mparang.AZLib {
 			}
 			finally {
         if (reader_mssql != null) reader_mssql.Dispose();
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 				if (reader_mysql != null) reader_mysql.Dispose();
 				if (reader_sqlite != null) reader_sqlite.Dispose();
         if (reader_npgsql != null) reader_npgsql.Dispose();
 #endif
         switch (this.GetSqlType()) {
-          case AZSql.SQL_TYPE.MSSQL:
-            if (sqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.MYSQL:
-            if (mySqlTransaction == null) Close ();
-            break;
-          case AZSql.SQL_TYPE.POSTGRESQL:
-            if (npgsqlTransaction == null) Close ();
-            break;
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close (); break;
         }
 			}
 
-      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && 
-        transaction_result != null) {
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && transaction_result != null) {
         transaction_result.Add("GetList." + (transaction_result.Size() + 1), rtnValue);
       }
 			return rtnValue;
 		}
+
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary></summary>
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync() {
+      return await GetListAsync(0, -1);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(string query) {
+      SetQuery(query);
+      return await GetListAsync(0);
+    }
+    /// Created in 2018-06-27, leeyonghun
+		public async Task<AZList> GetListAsync(string query, int offset) {
+      SetQuery(query);
+      return await GetListAsync(offset);
+    }
+    /// Created in 2018-06-27, leeyonghun
+		public async Task<AZList> GetListAsync(string query, int offset, int length) {
+      SetQuery(query);
+      return await GetListAsync(offset, length);
+    }
+    /// Created in 2018-06-27, leeyonghun
+		public async Task<AZList> GetListAsync(string query, AZData parameters) {
+      SetQuery(query);
+      SetParameters(parameters);
+      return await GetListAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+		public async Task<AZList> GetListAsync(string query, AZData parameters, int offset) {
+      SetQuery(query);
+      SetParameters(parameters);
+      return await GetListAsync(offset);
+    }
+    /// Created in 2018-06-27, leeyonghun
+		public async Task<AZList> GetListAsync(string query, AZData parameters, int offset, int length) {
+      SetQuery(query);
+      SetParameters(parameters);
+      return await GetListAsync(offset, length);
+    }
+    /// Created in 2018-06-27, leeyonghun
+		public async Task<AZList> GetListAsync(int offset) {
+      return await GetListAsync(offset, -1);
+    }
+
+    /// <summary>주어진 쿼리에 대해 offset, length 만큼의 데이터 반환</summary>
+    /// Created in 2018-06-27, leeyonghun
+		public async Task<AZList> GetListAsync(int offset, int length) {
+			AZList rtnValue = new AZList ();
+      //
+      if (in_transaction && !connected) return rtnValue;
+      //
+      SqlDataReader reader_mssql = null;
+      DbDataReader reader_mysql = null;
+      SqliteDataReader reader_sqlite = null;
+      DbDataReader reader_npgsql = null;
+      //
+			try {
+        if (!connected) await OpenAsync();
+        int idx;
+				if (connected) {
+          switch (this.db_info.SqlType) {
+            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
+              sqlCommand = sqlConnection.CreateCommand();
+              sqlCommand.CommandText = GetQuery();
+              if (sqlTransaction != null) sqlCommand.Transaction = sqlTransaction;
+              if (IsStoredProcedure()) sqlCommand.CommandType = CommandType.StoredProcedure;
+              // parameter 값이 지정된 경우에 한해서 처리
+              if (GetParameters() != null) {
+                for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                  string key = GetParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              if (GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                  SqlParameter sqlParam = sqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                  sqlParam.Direction = ParameterDirection.Output;
+                  if (paramData.DbType != null) sqlParam.SqlDbType = paramData.GetSqlDbType();
+                  if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                }
+              }
+              reader_mssql = await sqlCommand.ExecuteReaderAsync();
+              //
+              idx = 0;    // for check offset
+              while (await reader_mssql.ReadAsync()) {
+                if (idx < offset) { idx++; continue; } // 시작점보다 작으면 다음으로.
+                if (length > 0 && idx >= (offset + length)) break; // 시작점 + 길이 보다 크면 종료
+                //
+                int colCnt = reader_mssql.FieldCount;
+                AZData data = new AZData();
+                for (int cnti = 0; cnti < colCnt; cnti++) {
+                  data.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
+                }
+                rtnValue.Add(data);
+                idx++;  // offset check value update
+              }
+              //
+              if (IsStoredProcedure() && GetReturnParameters() != null) {
+                for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                  string key = GetReturnParameters().GetKey(cnti);
+                  UpdateReturnParameter(key, sqlCommand.Parameters[key].Value);
+                }
+              }
+              break;
+            case SQL_TYPE.SQLITE:
+                sqliteCommand = sqliteConnection.CreateCommand();
+                sqliteCommand.CommandText = GetQuery();
+						    reader_sqlite = await sqliteCommand.ExecuteReaderAsync();
+                //
+                idx = 0;    // for check offset
+                while (await reader_sqlite.ReadAsync()) {
+                  if (idx < offset) { idx++; continue; } // 시작점보다 작으면 다음으로.
+                  if (length > 0 && idx >= (offset + length)) break;  // 시작점 + 길이 보다 크면 종료
+                  //
+							    int colCnt = reader_sqlite.FieldCount;
+							    AZData data = new AZData ();
+							    for (int cnti = 0; cnti < colCnt; cnti++) {
+								    data.Add (reader_sqlite.GetName (cnti), reader_sqlite [cnti]);
+							    }
+                  rtnValue.Add(data);
+                  idx++;  // offset check value update
+						    }
+						    break;
+              case SQL_TYPE.POSTGRESQL:    // postgresql 접속 처리시
+                //npgsqlCommand = new NpgsqlCommand(GetQuery(), npgsqlConnection);
+                npgsqlCommand = npgsqlConnection.CreateCommand();
+                npgsqlCommand.CommandText = GetQuery();
+                if (npgsqlTransaction != null) npgsqlCommand.Transaction = npgsqlTransaction;
+                if (IsStoredProcedure()) npgsqlCommand.CommandType = CommandType.StoredProcedure;
+                // parameter 값이 지정된 경우에 한해서 처리
+                if (GetParameters() != null) {
+                  for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                    string key = GetParameters().GetKey(cnti);
+                    ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                    NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
+                if (GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    string key = GetReturnParameters().GetKey(cnti);
+                    ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                    NpgsqlParameter sqlParam = npgsqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    sqlParam.Direction = ParameterDirection.Output;
+                    if (paramData.DbType != null) sqlParam.NpgsqlDbType = paramData.GetNpgsqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
+                reader_npgsql = await npgsqlCommand.ExecuteReaderAsync();
+                //
+                idx = 0;    // for check offset
+                while (await reader_npgsql.ReadAsync()) {
+                  if (idx < offset) { idx++; continue; } // 시작점보다 작으면 다음으로.
+                  if (length > 0 && idx >= (offset + length)) break;  // 시작점 + 길이 보다 크면 종료
+                  //
+                  int colCnt = reader_npgsql.FieldCount;
+                  AZData data = new AZData();
+                  for (int cnti = 0; cnti < colCnt; cnti++) {
+                    data.Add(reader_npgsql.GetName(cnti), reader_npgsql[cnti]);
+                  }
+                  rtnValue.Add(data);
+                  idx++;  // offset check value update
+                }
+                if (IsStoredProcedure() && GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    string key = GetReturnParameters().GetKey(cnti);
+                    UpdateReturnParameter(key, npgsqlCommand.Parameters[key].Value);
+                  }
+                }
+                break;
+					    case SQL_TYPE.MYSQL:
+						    mySqlCommand = new MySqlCommand (GetQuery(), mySqlConnection);
+                if (mySqlTransaction != null) mySqlCommand.Transaction = mySqlTransaction;
+                if (IsStoredProcedure()) mySqlCommand.CommandType = CommandType.StoredProcedure;
+                // parameter 값이 지정된 경우에 한해서 처리
+                if (GetParameters() != null) {
+                  for (int cnti=0; cnti<GetParameters().Size(); cnti++) {
+                    string key = GetParameters().GetKey(cnti);
+                    ParameterData paramData = (ParameterData)GetParameters().Get(cnti);
+                    MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
+                if (GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    string key = GetReturnParameters().GetKey(cnti);
+                    ParameterData paramData = (ParameterData)GetReturnParameters().Get(cnti);
+                    MySqlParameter sqlParam = mySqlCommand.Parameters.AddWithValue(key, paramData.Value);
+                    sqlParam.Direction = ParameterDirection.Output;
+                    if (paramData.DbType != null) sqlParam.MySqlDbType = paramData.GetMySqlDbType();
+                    if (paramData.Size.HasValue) sqlParam.Size = paramData.Size.Value;
+                  }
+                }
+						    reader_mysql = await mySqlCommand.ExecuteReaderAsync();
+                //
+                idx = 0;    // for check offset
+						    while (await reader_mysql.ReadAsync()) {
+                  if (idx < offset) { idx++; continue; }  // 시작점보다 작으면 다음으로.
+                  if (length > 0 && idx >= (offset + length)) break;  // 시작점 + 길이 보다 크면 종료
+                  //
+							    int colCnt = reader_mysql.FieldCount;
+							    AZData data = new AZData ();
+							    for (int cnti = 0; cnti < colCnt; cnti++) {
+								    data.Add(reader_mysql.GetName (cnti), reader_mysql[cnti]);
+							    }
+							    rtnValue.Add(data);
+                  idx++;  // offset check value update
+						    }
+                //
+                if (IsStoredProcedure() && GetReturnParameters() != null) {
+                  for (int cnti=0; cnti<GetReturnParameters().Size(); cnti++) {
+                    string key = GetReturnParameters().GetKey(cnti);
+                    UpdateReturnParameter(key, mySqlCommand.Parameters[key].Value);
+                  }
+                }
+						    break;
+					}
+				}
+        else {
+          throw new Exception("Exception occured in GetList : Can not open connection!");
+        }
+			}
+			catch (Exception ex) {
+        if (this.GetSqlType() == AZSql.SQL_TYPE.MSSQL && sqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.MYSQL && mySqlTransaction == null ||
+          this.GetSqlType() == AZSql.SQL_TYPE.POSTGRESQL && npgsqlTransaction == null) {
+          if (ex.InnerException != null) {
+            throw new Exception("Exception in GetList.Inner", ex.InnerException);
+          }
+          else {
+            throw new Exception("Exception in GetList", ex);
+          }
+        }
+        else {
+          //
+          Exception exception_rollback = null;
+          try {
+            if (connected) {
+              switch (this.GetSqlType()) {
+                case AZSql.SQL_TYPE.MSSQL: sqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.MYSQL: mySqlTransaction.Rollback(); break;
+                case AZSql.SQL_TYPE.POSTGRESQL: npgsqlTransaction.Rollback(); break;
+              }
+            }
+          }
+          catch (Exception ex_rollback) {
+            exception_rollback = ex_rollback;
+          }
+          finally {
+            RemoveTran();
+            //
+            if (this.action_tran_on_commit != null) this.action_tran_on_commit(ex);
+            if (exception_rollback != null && this.action_tran_on_rollback != null) {
+              this.action_tran_on_rollback(exception_rollback);
+            }
+            //
+            ClearTransCallback();
+          }
+        }
+			}
+			finally {
+        if (reader_mssql != null) reader_mssql.Dispose();
+				if (reader_mysql != null) reader_mysql.Dispose();
+				if (reader_sqlite != null) reader_sqlite.Dispose();
+        if (reader_npgsql != null) reader_npgsql.Dispose();
+        switch (this.GetSqlType()) {
+          case AZSql.SQL_TYPE.MSSQL: if (sqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.MYSQL: if (mySqlTransaction == null) Close (); break;
+          case AZSql.SQL_TYPE.POSTGRESQL: if (npgsqlTransaction == null) Close (); break;
+        }
+			}
+      if ((sqlTransaction != null || mySqlTransaction != null || npgsqlTransaction != null) && transaction_result != null) {
+        transaction_result.Add("GetList." + (transaction_result.Size() + 1), rtnValue);
+      }
+			return rtnValue;
+		}
+#endif
+
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary>/Created in 2018-06-27</summary>
+    private async Task<bool> OpenAsync() {
+			bool rtnValue = false;
+
+      switch (this.db_info.SqlType) {
+			case SQL_TYPE.MSSQL:
+        sqlConnection = new SqlConnection(this.db_info.ConnectionString);
+				await sqlConnection.OpenAsync();
+				rtnValue = true;
+				break;
+			case SQL_TYPE.MYSQL:
+        mySqlConnection = new MySqlConnection(this.db_info.ConnectionString);
+				await mySqlConnection.OpenAsync();
+				rtnValue = true;
+				break;
+			case SQL_TYPE.SQLITE:
+        sqliteConnection = new SqliteConnection(this.db_info.ConnectionString);
+				await sqliteConnection.OpenAsync();
+				rtnValue = true;
+				break;
+			case SQL_TYPE.POSTGRESQL:
+        npgsqlConnection = new NpgsqlConnection(this.db_info.ConnectionString);
+				await npgsqlConnection.OpenAsync();
+				rtnValue = true;
+				break;
+			}
+			connected = rtnValue;
+			return rtnValue;
+    }
+#endif
     /// Created in 2015, leeyonghun
 		private bool Open() {
 			bool rtnValue = false;
@@ -1794,7 +2774,7 @@ namespace Com.Mparang.AZLib {
 				sqlConnection.Open ();
 				rtnValue = true;
 				break;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 			case SQL_TYPE.MYSQL:
         mySqlConnection = new MySqlConnection(this.db_info.ConnectionString);
 				mySqlConnection.Open ();
@@ -1830,7 +2810,7 @@ namespace Com.Mparang.AZLib {
 				sqlCommand = null;
 				rtnValue = true;
 				break;
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
 			case SQL_TYPE.MYSQL:
 				if (mySqlConnection != null && mySqlConnection.State.Equals (System.Data.ConnectionState.Open)) {
 					mySqlConnection.Close ();
@@ -2115,7 +3095,7 @@ namespace Com.Mparang.AZLib {
       this.azSql.AddParameter(key, value, dbType, size);
       return this;
     }
-#if NETCOREAPP2_0 || NETSTANDARD2_0 || NET452
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
     public Prepared AddParameter(string key, object value, NpgsqlTypes.NpgsqlDbType dbType) {
       this.azSql.AddParameter(key, value, dbType);
       return this;
@@ -2366,75 +3346,180 @@ namespace Com.Mparang.AZLib {
     public AZList GetList(string query, AZData parameters, int offset) {
       return this.azSql.GetList(query, parameters, offset);
     }
-
     /// <summary></summary>
     /// Created in 2017-03-28, leeyonghun
     public AZList GetList(string query, AZData parameters, int offset, int length) {
       return this.azSql.GetList(query, parameters, offset, length);
-      /*AZList rtnValue = new AZList ();
-
-      SqlDataReader reader_mssql = null;
-      try {
-        azSql.Open();
-
-        int idx;
-        if (azSql.connected) {
-          switch (this.azSql.db_info.SqlType) {
-            case SQL_TYPE.MSSQL:    // mssql 접속 처리시
-              azSql.sqlCommand = azSql.sqlConnection.CreateCommand();
-              azSql.sqlCommand.CommandText = query;
-              if (parameters != null) {
-                for (int cnti=0; cnti<parameters.Size(); cnti++) {
-                  azSql.sqlCommand.Parameters.AddWithValue(parameters.GetKey(cnti), parameters.Get(cnti));
-                }
-              }
-              reader_mssql = azSql.sqlCommand.ExecuteReader();
-              
-              idx = 0;    // for check offset
-              while (reader_mssql.Read()) {
-                if (idx < offset) {   // 시작점보다 작으면 다음으로.
-                  idx++;  // offset check value update
-                  continue;
-                }
-                if (length > 0 && idx >= (offset + length)) {  // 시작점 + 길이 보다 크면 종료
-                  break;
-                }
-                int colCnt = reader_mssql.FieldCount;
-                AZData data = new AZData();
-
-                for (int cnti = 0; cnti < colCnt; cnti++) {
-                  data.Add(reader_mssql.GetName(cnti), reader_mssql[cnti]);
-                }
-                rtnValue.Add(data);
-
-                idx++;  // offset check value update
-              }
-              break;
-          }
-        }
-      }
-      catch (Exception ex) {
-        if (ex.InnerException != null) {
-          throw new Exception("Exception in GetData.Inner", ex.InnerException);
-        }
-        else {
-          throw new Exception("Exception in GetData", ex);
-        }
-      }
-      finally {
-        if (reader_mssql != null) {
-          reader_mssql.Dispose();
-        }
-#if NETCOREAPP1_0
-        /*if (reader_mysql != null) {
-          reader_mysql.Dispose ();
-        }*//*
-#endif
-        azSql.Close ();
-      }
-      return rtnValue;
-      */
     }
+
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync() {
+      return await this.azSql.ExecuteAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(bool identity) {
+      return await this.azSql.ExecuteAsync(identity);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(string query) {
+      return await this.azSql.ExecuteAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(string query, bool identity) {
+      return await this.azSql.ExecuteAsync(query, identity);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> ExecuteAsync(string query, AZData parameters, bool identity) {
+      return await this.azSql.ExecuteAsync(query, parameters, identity);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetAsync() {
+      return await this.azSql.GetAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetAsync(string query) {
+      return await this.azSql.GetAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetAsync(string query, AZData parameters) {
+      return await this.azSql.GetAsync(query, parameters);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetObjectAsync() {
+      return await this.azSql.GetObjectAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetObjectAsync(string query) {
+      return await this.azSql.GetObjectAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<object> GetObjectAsync(string query, AZData parameters) {
+      return await this.azSql.GetObjectAsync(query, parameters);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync() {
+      return await this.azSql.GetIntAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(int default_value) {
+      return await this.azSql.GetIntAsync(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(string query) {
+      return await this.azSql.GetIntAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(string query, int default_value) {
+      return await this.azSql.GetIntAsync(query, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<int> GetIntAsync(string query, AZData parameters, int default_value) {
+      return await this.azSql.GetIntAsync(query, parameters, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync() {
+      return await this.azSql.GetLongAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(int default_value) {
+      return await this.azSql.GetLongAsync(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(string query) {
+      return await this.azSql.GetLongAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(string query, int default_value) {
+      return await this.azSql.GetLongAsync(query, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<long> GetLongAsync(string query, AZData parameters, int default_value) {
+      return await this.azSql.GetLongAsync(query, parameters, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync() {
+      return await this.azSql.GetFloatAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(float default_value) {
+      return await this.azSql.GetFloatAsync(default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(string query) {
+      return await this.azSql.GetFloatAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(string query, float default_value) {
+      return await this.azSql.GetFloatAsync(query, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<float> GetFloatAsync(string query, AZData parameters, float default_value) {
+      return await this.azSql.GetFloatAsync(query, parameters, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<string> GetStringAsync() {
+      return await this.azSql.GetStringAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<string> GetStringAsync(string query) {
+      return await this.azSql.GetStringAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<string> GetStringAsync(string query, string default_value) {
+      return await this.azSql.GetStringAsync(query, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<string> GetStringAsync(string query, AZData parameters, string default_value) {
+      return await this.azSql.GetStringAsync(query, parameters, default_value);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZData> GetDataAsync() {
+      return await this.azSql.GetDataAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZData> GetDataAsync(string query) {
+      return await this.azSql.GetDataAsync(query);
+    }
+    /// <summary></summary>
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZData> GetDataAsync(string query, AZData parameters) {
+      return await this.azSql.GetDataAsync(query, parameters);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync() {
+      return await this.azSql.GetListAsync();
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(int offset) {
+      return await this.azSql.GetListAsync(offset);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(int offset, int length) {
+      return await this.azSql.GetListAsync(offset, length);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(string query) {
+      return await this.azSql.GetListAsync(query);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(string query, int offset) {
+      return await this.azSql.GetListAsync(query, offset);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(string query, AZData parameters) {
+      return await this.azSql.GetListAsync(query, parameters);
+    }
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(string query, AZData parameters, int offset) {
+      return await this.azSql.GetListAsync(query, parameters, offset);
+    }
+    /// <summary></summary>
+    /// Created in 2018-06-27, leeyonghun
+    public async Task<AZList> GetListAsync(string query, AZData parameters, int offset, int length) {
+      return await this.azSql.GetListAsync(query, parameters, offset, length);
+    }
+#endif
   }
 
   /// Created in 2015-06-11, leeyonghun
@@ -4019,6 +5104,73 @@ public class Basic {
         }
         return rtn_value;
       }
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+
+      /// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
+      /// Created : 2018-06-27, leeyonghun
+      public async Task<int> DoDeleteAsync() {
+        return await DoDeleteAsync(true);
+      }
+
+      /// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
+      /// Created : 2018-06-27, leeyonghun
+      public async Task<int> DoDeleteAsync(bool p_need_where) {
+        int rtn_value = -1;
+        if (p_need_where && this.sql_where.Size() < 1) throw new Exception("Where datas required.");
+        if (!IsPrepared) {
+          rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.DELETE));
+        }
+        else {
+          if (this.azSql == null) throw new Exception("AZSql required.");
+          rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.DELETE), GetPreparedParameters());
+        }
+        return rtn_value;
+      }
+
+      /// <summary>주어진 자료를 바탕으로 update 쿼리 실행</summary>
+      /// Created : 2018-06-27, leeyonghun
+      public async Task<int> DoUpdateAsync() {
+        return await DoUpdateAsync(true);
+      }
+
+      /// <summary>주어진 자료를 바탕으로 update 쿼리 실행</summary>
+      /// Created : 2018-06-27, leeyonghun
+      public async Task<int> DoUpdateAsync(bool p_need_where) {
+        int rtn_value = -1;
+        if (this.sql_set.Size() < 1) throw new Exception("Set datas required.");
+        if (p_need_where && this.sql_where.Size() < 1) throw new Exception("Where datas required.");
+        if (!IsPrepared) {
+          rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.UPDATE));
+        }
+        else {
+          if (this.azSql == null) throw new Exception("AZSql required.");
+          rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.UPDATE), GetPreparedParameters());
+        }
+        return rtn_value;
+      }
+
+      /// <summary>주어진 자료를 바탕으로 insert 쿼리 실행</summary>
+      /// Created : 2018-06-27, leeyonghun
+      public async Task<int> DoInsertAsync() {
+        return await DoInsertAsync(false);
+      }
+          
+      /// <summary>주어진 자료를 바탕으로 insert 쿼리 실행</summary>
+      /// <param name="p_identity">identity값을 받아 올 필요가 있는 경우 true, 아니면 false</param>
+      /// Created : 2018-06-27, leeyonghun
+      public async Task<int> DoInsertAsync(bool p_identity) {
+        int rtn_value = -1;
+        if (this.sql_set.Size() < 1) throw new Exception("Set datas required.");
+        if (!IsPrepared) {
+          rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.INSERT), p_identity);
+        }
+        else {
+          if (this.azSql == null) throw new Exception("AZSql required.");
+          rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.INSERT), GetPreparedParameters());
+        }
+        return rtn_value;
+      }
+#endif
 
       /// <summary>특정된 쿼리 실행 종류에 맞는 쿼리 문자열 생성 후 반환</summary>
       /// Created : 2015-06-03 leeyonghun
