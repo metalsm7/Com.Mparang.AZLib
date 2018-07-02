@@ -9,13 +9,13 @@ namespace Com.Mparang.AZLib {
 	private Dictionary<string, object> map_async = null;
 	private AttributeData attribute_data = null;
 	private List<KeyLink> indexer = null;
-
 	private static object lockObject;
-
+	public string Name { get; set; }
+	public string Value { get; set; }
 	// IEnumerable 용
 	private int index = -1;
 
-	/// Created in 2015-08-13, leeyonghun
+	/// <summary>기본 생성자</summary>
 	public AZData() {
 		if (lockObject == null) lockObject = new object();
 		//
@@ -29,16 +29,15 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>모델 객체로부터 AZData를 생성</summary>
-	/// <param name="pSource">AZData로 변경할 모델 객체</param>
-	/// Created in 2016-09-21, leeyonghun
-	public static AZData From<T>(T pSource) {
+	/// <param name="source">AZData로 변경할 모델 객체</param>
+	public static AZData From<T>(T source) {
 		AZData rtnValue = new AZData();
 #if NET_STD || NET_CORE	|| NET_STORE
 		Type type = typeof(T);
 		IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
 		foreach (PropertyInfo property in properties) {
 			if (!property.CanRead) { continue; }
-			rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pSource, null).ToString() : property.GetValue(pSource, null));
+			rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(source, null).ToString() : property.GetValue(source, null));
 		}
 #endif
 #if NET_FX
@@ -48,17 +47,16 @@ namespace Com.Mparang.AZLib {
 			System.Reflection.PropertyInfo property = properties[cnti];
 			if (!property.CanRead) continue;
 			// ICollection 구현체에 대한 재귀 오류 수정처리, 2016-05-19,, leeyonghun
-			rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(pSource, null).ToString() : property.GetValue(pSource, null));
+			rtnValue.Add(property.Name, property.Name.Equals("SyncRoot") ? property.GetValue(source, null).ToString() : property.GetValue(source, null));
 		}
 #endif
 		return rtnValue;
 	}
 
 	/// <summary>json 형식의 문자열을 AZData로 변경, 이 자료를 현재의 자료에 추가</summary>
-	/// <param name="pJson">string, json형식의 문자열</param>
-	/// Created in 2015-08-13, leeyonghun
-	public AZData Add(string pJson) {
-		AZData data_json = AZString.JSON.Init(pJson).ToAZData();
+	/// <param name="json">string, json형식의 문자열</param>
+	public AZData Add(string json) {
+		AZData data_json = AZString.JSON.Init(json).ToAZData();
 		for (int cnti = 0; cnti < data_json.Size(); cnti++) {
 			Add(data_json.GetKey(cnti), data_json.Get(cnti));
 		}
@@ -66,53 +64,49 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>현재의 자료에 입력받은 자료를 추가</summary>
-	/// <param name="pValue">AZData, 추가할 AZData 자료</param>
-	/// Created in 2015-08-13, leeyonghun
-	public AZData Add(AZData pValue) {
-		for (int cnti = 0; cnti < pValue.Size(); cnti++) {
-			Add(pValue.GetKey(cnti), pValue.Get(cnti));
+	/// <param name="value">AZData, 추가할 AZData 자료</param>
+	public AZData Add(AZData value) {
+		for (int cnti = 0; cnti < value.Size(); cnti++) {
+			Add(value.GetKey(cnti), value.Get(cnti));
 		}
 		return this;
 	}
 
 	/// <summary>key, value 자료를 입력받아 현재의 자료에 추가</summary>
-	/// <param name="pKey">string, key값</param>
-	/// <param name="pValue">object, kye에 해당하는 자료값</param>
-	/// Created in 2015-08-13, leeyonghun
-	public AZData Add(string pKey, object pValue) {
+	/// <param name="key">string, key값</param>
+	/// <param name="value">object, kye에 해당하는 자료값</param>
+	public AZData Add(string key, object value) {
 		lock (lockObject) {
-			if (map_async.ContainsKey(pKey)) {
+			if (map_async.ContainsKey(key)) {
 				// 동일 키값이 이미 존재하는 경우
 				string linkString = AZString.Random(20);
-				map_async.Add(linkString, pValue);
-				indexer.Add(new KeyLink(pKey, linkString));
+				map_async.Add(linkString, value);
+				indexer.Add(new KeyLink(key, linkString));
 			}
 			else {
-				map_async.Add(pKey, pValue);
-				indexer.Add(new KeyLink(pKey, pKey));
+				map_async.Add(key, value);
+				indexer.Add(new KeyLink(key, key));
 			}
 		}
 		return this;
 	}
 
 	/// <summary>현재의 자료 중 지정된 순서에 해당하는 자료를 반환</summary>
-	/// <param name="pIndex">int, 반환할 자료의 index 값, zero base</param>
-	/// Created in 2015-08-13, leeyonghun
-	public object Get(int pIndex) {
-		if (pIndex >= indexer.Count) {
+	/// <param name="index">int, 반환할 자료의 index 값, zero base</param>
+	public object Get(int index) {
+		if (index >= indexer.Count) {
 			return null;
 		}
 		else {
-			return map_async[indexer[pIndex].GetLink()]; 
+			return map_async[indexer[index].GetLink()]; 
 		}
 	}
 
 	/// <summary>현재의 자료 중 key값과 일치하는 자료를 반환</summary>
-	/// <param name="pKey">string, 반환할 자료의 key값</param>
-	/// Created in 2015-08-13, leeyonghun
-	public object Get(string pKey) {
-		if (map_async.ContainsKey(pKey)) {
-			return map_async[pKey]; 
+	/// <param name="key">string, 반환할 자료의 key값</param>
+	public object Get(string key) {
+		if (map_async.ContainsKey(key)) {
+			return map_async[key]; 
 		}
 		else {
 			return null;
@@ -120,46 +114,41 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>현재의 자료 중 지정된 순서에 해당하는 자료를 반환</summary>
-	/// <param name="pIndex">int, 반환할 자료의 index 값, zero base</param>
-	/// Created in 2015-08-13, leeyonghun
-	public object this[int pIndex] {
-		get { return Get(pIndex); }
-		set { Set(pIndex, value); }
+	/// <param name="index">int, 반환할 자료의 index 값, zero base</param>
+	public object this[int index] {
+		get { return Get(index); }
+		set { Set(index, value); }
 	}
 
 	/// <summary>현재의 자료 중 key값과 일치하는 자료를 반환</summary>
-	/// <param name="pKey">string, 반환할 자료의 key값</param>
-	/// Created in 2015-08-13, leeyonghun
-	public object this[string pKey] {
-		get { return Get(pKey); }
-		set { Set(pKey, value); }
+	/// <param name="key">string, 반환할 자료의 key값</param>
+	public object this[string key] {
+		get { return Get(key); }
+		set { Set(key, value); }
 	}
 
-	public string Name { get; set; }
-	public string Value { get; set; }
-
-	/// Created in 2015-08-13, leeyonghun
+	/// <summary>IEnumerable 구현</summary>
 	public bool MoveNext() {
 		this.index++;
 		return (this.index < Size());
 	}
 
-	/// Created in 2015-08-13, leeyonghun
+	/// <summary>IEnumerable 구현</summary>
 	public void Reset() {
 		this.index = -1;
 	}
 
-	/// Created in 2015-08-13, leeyonghun
+	/// <summary>IEnumerable 구현</summary>
 	object IEnumerator.Current {
 		get { return Current; }
 	}
 
-	/// Created in 2015-08-13, leeyonghun
+	/// <summary>IEnumerable 구현</summary>
 	IEnumerator IEnumerable.GetEnumerator() {
 		return map_async.GetEnumerator();
 	}
 
-	/// Created in 2015-08-13, leeyonghun
+	/// <summary>IEnumerable 구현</summary>
 	public object Current {
 		get {
 			try {
@@ -172,9 +161,8 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>Get 메소드의 generic 형</summary>
-	/// <param name="pIndex">int, 반환할 자료의 index 값, zero base</param>
-	/// Created in 2015-07-25, leeyonghun
-	public T Get<T>(int pIndex) {
+	/// <param name="index">int, 반환할 자료의 index 값, zero base</param>
+	public T Get<T>(int index) {
 		object rtnValue;
 		if (typeof(T).Name.Equals(typeof(String).Name)) {
 			rtnValue = "";
@@ -182,7 +170,7 @@ namespace Com.Mparang.AZLib {
 		else {
 			rtnValue = Activator.CreateInstance(typeof(T));
 		}
-		rtnValue = Get(pIndex);
+		rtnValue = Get(index);
 		if (rtnValue != null) {
 			try {
 				rtnValue = AZString.Init(rtnValue).To<T>();
@@ -193,10 +181,9 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>Get 메소드의 generic 형</summary>
-	/// <param name="pIndex">int, 반환할 자료의 index 값, zero base</param>
-	/// <param name="pDefaultValue">T, 자료 반환시 예외 발생시 반환받을 기본값</param>
-	/// Created in 2015-07-25, leeyonghun
-	public T Get<T>(int pIndex, T pDefaultValue) {
+	/// <param name="index">int, 반환할 자료의 index 값, zero base</param>
+	/// <param name="defaultValue">T, 자료 반환시 예외 발생시 반환받을 기본값</param>
+	public T Get<T>(int index, T defaultValue) {
 		object rtnValue;
 		if (typeof(T).Name.Equals(typeof(String).Name)) {
 			rtnValue = "";
@@ -205,25 +192,24 @@ namespace Com.Mparang.AZLib {
 			rtnValue = Activator.CreateInstance(typeof(T));
 		}
 
-		rtnValue = Get(pIndex);
+		rtnValue = Get(index);
 		if (rtnValue != null) {
 			try {
-				rtnValue = AZString.Init(rtnValue).To<T>(pDefaultValue);
+				rtnValue = AZString.Init(rtnValue).To<T>(defaultValue);
 			}
 			catch (Exception) {
-				rtnValue = pDefaultValue;
+				rtnValue = defaultValue;
 			}
 		}
 		else {
-			rtnValue = pDefaultValue;
+			rtnValue = defaultValue;
 		}
 		return (T)rtnValue;
 	}
 
 	/// <summary>Get 메소드의 generic 형</summary>
-	/// <param name="pKey">string, 반환할 자료의 key 값</param>
-	/// Created in 2015-07-25, leeyonghun
-	public T Get<T>(string pKey) {
+	/// <param name="key">string, 반환할 자료의 key 값</param>
+	public T Get<T>(string key) {
 		object rtnValue;
 
 		if (typeof(T).Name.Equals(typeof(String).Name)) {
@@ -232,7 +218,7 @@ namespace Com.Mparang.AZLib {
 		else {
 			rtnValue = Activator.CreateInstance(typeof(T));
 		}
-		rtnValue = Get(pKey);
+		rtnValue = Get(key);
 		if (rtnValue != null) {
 			try {
 				rtnValue = AZString.Init(rtnValue).To<T>();
@@ -243,10 +229,9 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>Get 메소드의 generic 형</summary>
-	/// <param name="pKey">string, 반환할 자료의 key 값</param>
-	/// <param name="pDefaultValue">T, 예외 발생시 반환받을 기본 값</param>
-	/// Created in 2015-07-25, leeyonghun
-	public T Get<T>(string pKey, T pDefaultValue) {
+	/// <param name="key">string, 반환할 자료의 key 값</param>
+	/// <param name="defaultValue">T, 예외 발생시 반환받을 기본 값</param>
+	public T Get<T>(string key, T defaultValue) {
 		object rtnValue;
 		if (typeof(T).Name.Equals(typeof(String).Name)) {
 			rtnValue = "";
@@ -255,29 +240,27 @@ namespace Com.Mparang.AZLib {
 			rtnValue = Activator.CreateInstance(typeof(T));
 		}
 
-		rtnValue = Get(pKey);
+		rtnValue = Get(key);
 		if (rtnValue != null) {
 			try {
-				rtnValue = AZString.Init(rtnValue).To<T>(pDefaultValue);
+				rtnValue = AZString.Init(rtnValue).To<T>(defaultValue);
 			}
 			catch (Exception) {
-				rtnValue = pDefaultValue;
+				rtnValue = defaultValue;
 			}
 		}
 		else {
-			rtnValue = pDefaultValue;
+			rtnValue = defaultValue;
 		}
 		return (T)rtnValue;
 	}
 
 	/// <summary>AZData 값을 generic형식의 자료형으로 변환(key값과 일치하는 대상 객체의 property값이 있는 경우 자동 mapping)</summary>
-	/// Created in 2015-07-25, leeyonghun
 	public T Convert<T>() {
 		Type type = typeof(T);
 		object rtnValue = Activator.CreateInstance(type);
 #if NET_FX
 		System.Reflection.PropertyInfo[] properties = type.GetProperties();
-
 		for (int cnti = 0; cnti < properties.Length; cnti++) {
 			if (HasKey(properties[cnti].Name)) {
 				if (properties[cnti].PropertyType.Name.Equals(typeof(String).Name)) {
@@ -335,103 +318,170 @@ namespace Com.Mparang.AZLib {
 		return (T)rtnValue;
 	}
 
-	public AZList GetList(int pIndex) { return (AZList)Get(pIndex); }
-	public AZList GetList(string pKey) { return (AZList)Get(pKey); }
-	public AZData GetData(int pIndex) { return (AZData)Get(pIndex); }
-	public AZData GetData(string pKey) { return (AZData)Get(pKey); }
-	public string GetString(int pIndex) { return AZString.Init(Get(pIndex)).String(); }
-	public string GetString(int pIndex, string pDefaultValue) { return AZString.Init(Get(pIndex)).String(pDefaultValue); }
-	public string GetString(string pKey) { return AZString.Init(Get(pKey)).String(); }
-	public string GetString(string pKey, string pDefaultValue) { return AZString.Init(Get(pKey)).String(pDefaultValue); }
-	public int GetInt(int pIndex) { return AZString.Init(Get(pIndex)).ToInt(); }
-	public int GetInt(int pIndex, int pDefaultValue) { return AZString.Init(Get(pIndex)).ToInt(pDefaultValue); }
-	public int GetInt(string pKey) { return AZString.Init(Get(pKey)).ToInt(); }
-	public int GetInt(string pKey, int pDefaultValue) { return AZString.Init(Get(pKey)).ToInt(pDefaultValue); }
-	public long GetLong(int pIndex) { return AZString.Init(Get(pIndex)).ToLong(); }
-	public long GetLong(int pIndex, long pDefaultValue) { return AZString.Init(Get(pIndex)).ToLong(pDefaultValue); }
-	public long GetLong(string pKey) { return AZString.Init(Get(pKey)).ToLong(); }
-	public long GetLong(string pKey, long pDefaultValue) { return AZString.Init(Get(pKey)).ToLong(pDefaultValue); }
-	public float GetFloat(int pIndex) { return AZString.Init(Get(pIndex)).ToFloat(); }
-	public float GetFloat(int pIndex, float pDefaultValue) { return AZString.Init(Get(pIndex)).ToFloat(pDefaultValue); }
-	public float GetFloat(string pKey) { return AZString.Init(Get(pKey)).ToFloat(); }
-	public float GetFloat(string pKey, float pDefaultValue) { return AZString.Init(Get(pKey)).ToFloat(pDefaultValue); }
-	public string GetKey(int pIndex) { return indexer[pIndex].GetKey(); }
-	public string GetLink(int pIndex) { return indexer[pIndex].GetLink(); }
+	/// <summary>Get(int) 메소드에 대한 AZList 캐스팅 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public AZList GetList(int index) { return (AZList)Get(index); }
+
+	/// <summary>Get(string) 메소드에 대한 AZList 캐스팅 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	public AZList GetList(string key) { return (AZList)Get(key); }
+
+	/// <summary>Get(int) 메소드에 대한 AZData 캐스팅 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public AZData GetData(int index) { return (AZData)Get(index); }
+
+	/// <summary>Get(string) 메소드에 대한 AZData 캐스팅 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	public AZData GetData(string key) { return (AZData)Get(key); }
+
+	/// <summary>Get(int) 메소드에 대한 문자열 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public string GetString(int index) { return AZString.Init(Get(index)).String(); }
+
+	/// <summary>Get(int, string) 메소드에 대한 문자열 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public string GetString(int index, string defaultValue) { return AZString.Init(Get(index)).String(defaultValue); }
+
+	/// <summary>Get(string) 메소드에 대한 문자열 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	public string GetString(string key) { return AZString.Init(Get(key)).String(); }
+
+	/// <summary>Get(string) 메소드에 대한 문자열 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public string GetString(string key, string defaultValue) { return AZString.Init(Get(key)).String(defaultValue); }
+
+	/// <summary>Get(int) 메소드에 대한 int형 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public int GetInt(int index) { return AZString.Init(Get(index)).ToInt(); }
+
+	/// <summary>Get(int) 메소드에 대한 int형 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public int GetInt(int index, int defaultValue) { return AZString.Init(Get(index)).ToInt(defaultValue); }
+
+	/// <summary>Get(int) 메소드에 대한 int형 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	public int GetInt(string key) { return AZString.Init(Get(key)).ToInt(); }
+
+	/// <summary>Get(int) 메소드에 대한 int형 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public int GetInt(string key, int defaultValue) { return AZString.Init(Get(key)).ToInt(defaultValue); }
+
+	/// <summary>Get(int) 메소드에 대한 long형 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public long GetLong(int index) { return AZString.Init(Get(index)).ToLong(); }
+
+	/// <summary>Get(int) 메소드에 대한 long형 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public long GetLong(int index, long defaultValue) { return AZString.Init(Get(index)).ToLong(defaultValue); }
+
+	/// <summary>Get(int) 메소드에 대한 long형 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	public long GetLong(string key) { return AZString.Init(Get(key)).ToLong(); }
+
+	/// <summary>Get(int) 메소드에 대한 long형 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public long GetLong(string key, long defaultValue) { return AZString.Init(Get(key)).ToLong(defaultValue); }
+
+	/// <summary>Get(int) 메소드에 대한 float형 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public float GetFloat(int index) { return AZString.Init(Get(index)).ToFloat(); }
+
+	/// <summary>Get(int) 메소드에 대한 float형 변경 처리</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public float GetFloat(int index, float defaultValue) { return AZString.Init(Get(index)).ToFloat(defaultValue); }
+
+	/// <summary>Get(int) 메소드에 대한 float형 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	public float GetFloat(string key) { return AZString.Init(Get(key)).ToFloat(); }
+
+	/// <summary>Get(int) 메소드에 대한 float형 변경 처리</summary>
+	/// <param name="key">가져올 자료에 대한 key값</param>
+	/// <param name="defaultValue">내부 오류 발생시 반환할 기본값</param>
+	public float GetFloat(string key, float defaultValue) { return AZString.Init(Get(key)).ToFloat(defaultValue); }
+
+	/// <summary>지정된 index값에 대한 key값 반환</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public string GetKey(int index) { return indexer[index].GetKey(); }
+
+	/// <summary>지정된 index값에 대한 link값 반환</summary>
+	/// <param name="index">가져올 자료에 대한 index값</param>
+	public string GetLink(int index) { return indexer[index].GetLink(); }
 
 	/// <summary>key에 해당하는 자료의 값을 지정된 value 값으로 변경. Remove 후 Add 처리를 하게 되며, 이로 인해 index 값이 변경</summary>
-	/// <param name="pKey">string, 변경할 자료의 key값</param>
-	/// <param name="pValue">object, 변경할 자료</param>
-	/// Created in 2017-08-17, leeyonghun
-	public AZData Set(string pKey, object pValue) {
+	/// <param name="key">string, 변경할 자료의 key값</param>
+	/// <param name="value">object, 변경할 자료</param>
+	public AZData Set(string key, object value) {
 		lock (lockObject) {
-			if (map_async.ContainsKey(pKey)) {
+			if (map_async.ContainsKey(key)) {
 				// 동일 키값이 이미 존재하는 경우
-				map_async.Remove(pKey);
-				map_async.Add(pKey, pValue);
+				map_async.Remove(key);
+				map_async.Add(key, value);
 			}
 		}
 		return this;
 	}
 
 	/// <summary>index에 해당하는 자료의 값을 지정된 value 값으로 변경. Remove 후 Add 처리를 하게 되며, 이로 인해 index 값이 변경</summary>
-	/// <param name="pIndex">int, 변경할 자료의 index값, zero base</param>
-	/// <param name="pValue">object, 변경할 자료</param>
-	/// Created in 2017-08-17, leeyonghun
-	public AZData Set(int pIndex, object pValue) {
+	/// <param name="index">int, 변경할 자료의 index값, zero base</param>
+	/// <param name="value">object, 변경할 자료</param>
+	public AZData Set(int index, object value) {
 		lock (lockObject) {
-			if (pIndex < indexer.Count && map_async[indexer[pIndex].GetLink()] != null) {
+			if (index < indexer.Count && map_async[indexer[index].GetLink()] != null) {
 				// 동일 키값이 이미 존재하는 경우
-				map_async.Remove(indexer[pIndex].GetLink());
-				map_async.Add(indexer[pIndex].GetLink(), pValue);
+				map_async.Remove(indexer[index].GetLink());
+				map_async.Add(indexer[index].GetLink(), value);
 			}
 		}
 		return this;
 	}
 
 	/// <summary>key값에 해당하는 자료를 삭제</summary>
-	/// <param name="pKey">string, 삭제할 자료의 key값</param>
-	/// Created in 2017-08-17, leeyonghun
-	public AZData Remove(string pKey) {
+	/// <param name="key">string, 삭제할 자료의 key값</param>
+	public AZData Remove(string key) {
 		lock (lockObject) {
-			if (map_async.ContainsKey(pKey)) {
+			if (map_async.ContainsKey(key)) {
 				// 동일 키값이 이미 존재하는 경우
-				indexer.RemoveAt(IndexOf(pKey));
-				map_async.Remove(pKey);
+				indexer.RemoveAt(IndexOf(key));
+				map_async.Remove(key);
 			}
 		}
 		return this;
 	}
 
 	/// <summary>index값에 해당하는 자료를 삭제</summary>
-	/// <param name="pIndex">int, 삭제할 자료의 index값, zero base</param>
-	/// Created in 2017-08-17, leeyonghun
-	public AZData Remove(int pIndex) {
+	/// <param name="index">int, 삭제할 자료의 index값, zero base</param>
+	public AZData Remove(int index) {
 		lock (lockObject) {
-			if (pIndex < indexer.Count) {
-				map_async.Remove (indexer [pIndex].GetLink ());
-				indexer.RemoveAt (pIndex);
+			if (index < indexer.Count) {
+				map_async.Remove (indexer [index].GetLink ());
+				indexer.RemoveAt (index);
 			}
 		}
 		return this;
 	}
 
 	/// <summary>key값이 존재하는지 확인</summary>
-	/// <param name="p_key">string, 존재 확인을 원하는 자료의 key값</param>
-	/// Created in 2017-08-17, leeyonghun
-	public bool HasKey(string p_key) {
-		return map_async.ContainsKey(p_key);
+	/// <param name="key">string, 존재 확인을 원하는 자료의 key값</param>
+	public bool HasKey(string key) {
+		return map_async.ContainsKey(key);
 	}
 
 	/// <summary>key값으로 입력된 자료의 index값 반환</summary>
-	/// <param name="pKey">string, key값</param>
-	/// Created in 2017-08-17, leeyonghun
-	public int IndexOf(string pKey) {
+	/// <param name="key">string, key값</param>
+	public int IndexOf(string key) {
 		int rtnValue = -1;
 
 		lock (lockObject) {
-			if (map_async.ContainsKey (pKey)) {
+			if (map_async.ContainsKey (key)) {
 				for (int cnti = 0; cnti < indexer.Count; cnti++) {
-					if (indexer [cnti].GetKey ().Equals (pKey)) {
+					if (indexer [cnti].GetKey ().Equals (key)) {
 						rtnValue = cnti;
 						break;
 					}
@@ -442,11 +492,9 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>현재 자료 갯수를 반환</summary>
-	/// Created in 2017-08-17, leeyonghun
 	public int Size() { return map_async.Count; }
 
 	/// <summary>모든 자료를 삭제처리</summary>
-	/// Created in 2017-08-17, leeyonghun
 	public void Clear() {
 		lock (lockObject) {
 			map_async.Clear ();
@@ -455,7 +503,6 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>모든 자료를 개별 AZData자료릐 배열로 변환하여 반환</summary>
-	/// Created in 2017-08-17, leeyonghun
 	public AZData[] ToArray() {
 		AZData[] rtnValue = new AZData[Size()];
 		for (int cnti = 0; cnti < Size(); cnti++) {
@@ -467,7 +514,6 @@ namespace Com.Mparang.AZLib {
 	}
 
 	/// <summary>key:value 자료 중 value자료만 문자열로 변환 후 문자열 배열로 반환 처리</summary>
-	/// Created in 2017-08-17, leeyonghun
 	public string[] ToStringArray() {
 		string[] rtnValue = new string[Size()];
 		for (int cnti = 0; cnti < Size(); cnti++) {
@@ -476,6 +522,7 @@ namespace Com.Mparang.AZLib {
 		return rtnValue;
 	}
 
+	/// <summary>ToString에 대한 overriding, JSON형식의 {,} 문자 안쪽의 문자열을 생성</summary>
 	override public string ToString() {
 		StringBuilder builder = new StringBuilder();
 			for (int cnti = 0; cnti < indexer.Count; cnti++) {
@@ -565,12 +612,11 @@ namespace Com.Mparang.AZLib {
 	}
 
 		/// <summary>json형식의 문자열로 반환</summary>
-		/// <returns>string, json형식의 문자열</returns>
-		/// Created in 2017-08-17, leeyonghun
 		public string ToJsonString() {
 			return string.Format("{{{0}}", ToString());
 		}
 
+		/// <summary>xml형식의 문자열로 반환, 정확한 반환을 위해 name, attribute값이 설정되어 있어야 함</summary>
 		public string ToXmlString() {
 			StringBuilder builder = new StringBuilder();
 			builder.Append("<" + Name);
@@ -600,26 +646,29 @@ namespace Com.Mparang.AZLib {
 			return builder.ToString();
 		}
 
+		/// <summary>중복된 key값에 대한 처리를 위해 각 키값별로 별도의 link를 생성하여 매치시키기 위한 자료</summary>
 		private class KeyLink {
 			private string key, link;
-			// 기본생성자
+			/// <summary>생성자</summary>
 			public KeyLink() {
 				this.key = "";
 				this.link = "";
 			}
 
+			/// <summary>생성자</summary>
 			public KeyLink(string pKey, string pLink) {
 				this.key = pKey;
 				this.link = pLink;
 			}
 
+			/// <summary>key값 반환</summary>
 			public string GetKey() { return this.key; }
+			/// <summary>link값 반환</summary>
 			public string GetLink() { return this.link; }
 			override public string ToString() { return GetKey() + ":" + GetLink(); }
 		}
 
 		/// <summary>AttributeData 에서 사용할 key:value 에 대응하는 자료형 클래스</summary>
-		/// Created in 2015-05-22, leeyonghun
 		private class KeyValue {
 			private string key;
 			private object value;
@@ -641,22 +690,18 @@ namespace Com.Mparang.AZLib {
 		}
 
 		/// <summary>속성값(attribute)에 대한 자료 저장용 클래스</summary>
-		/// Created in 2015-05-22, leeyonghun
 		public class AttributeData {
 			private List<KeyValue> attribute_list;
 
-			/// Created in 2015-05-22, leeyonghun
 			public AttributeData() {
 				this.attribute_list = new List<KeyValue>();
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object Add(string p_key, object p_value) {
 				this.attribute_list.Add(new KeyValue(p_key, p_value));
 				return p_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object InsertAt(int p_index, string p_key, object p_value) {
 				object rtn_value = null;
 				if (p_index > -1 && p_index < Size()) {
@@ -666,7 +711,6 @@ namespace Com.Mparang.AZLib {
 				return p_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object InsertBefore(string p_target_key, string p_key, object p_value) {
 				object rtn_value = null;
 				int index = IndexOf(p_target_key);
@@ -677,7 +721,6 @@ namespace Com.Mparang.AZLib {
 				return p_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object InsertAfter(string p_target_key, string p_key, object p_value) {
 				object rtn_value = null;
 				int index = IndexOf(p_target_key);
@@ -692,7 +735,6 @@ namespace Com.Mparang.AZLib {
 				return p_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object Remove(string p_key) {
 				object rtn_value = null;
 				for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -705,7 +747,6 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object Remove(int p_index) {
 				object rtn_value = null;
 				if (p_index > -1 && p_index < Size()) {
@@ -715,17 +756,14 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object RemoveAt(int p_index) {
 				return Remove(p_index);
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public void Clear() {
 				this.attribute_list.Clear();
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public int IndexOf(string p_key) {
 				int rtn_value = -1;
 				for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -737,7 +775,6 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object Get(string p_key) {
 				object rtn_value = null;
 				for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -749,7 +786,6 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object Get(int p_index) {
 				object rtn_value = null;
 				if (p_index > -1 && p_index < Size()) {
@@ -758,7 +794,6 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public object Set(string p_key, object p_value) {
 				object rtn_value = null;
 				for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -771,17 +806,14 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public int Size() {
 				return this.attribute_list.Count;
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public string GetKey(int p_index) {
 				return this.attribute_list[p_index].GetKey();
 			}
 
-			/// Created in 2015-05-22, leeyonghun
 			public string[] GetKeys() {
 				string[] rtn_value = new string[this.attribute_list.Count];
 				for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -791,7 +823,6 @@ namespace Com.Mparang.AZLib {
 			}
 
 			/// <summary>ToString 오버라이딩</summary>
-			/// Created in 2015-05-27, leeyonghun
 			public override string ToString() {
 				StringBuilder rtnValue = new StringBuilder();
 				for (int cnti = 0; cnti < this.attribute_list.Count; cnti++) {
@@ -836,7 +867,6 @@ namespace Com.Mparang.AZLib {
 			}
 
 			/// <summary>해당 객체에 대해 JSON 형식의 문자열로 출력</summary>
-			/// Created in 2015-05-27, leeyonghun
 			public string ToJsonString() {
 				return "{" + ToString() + "}";
 			}

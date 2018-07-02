@@ -7,22 +7,16 @@ using Microsoft.AspNetCore.Http;
 namespace Com.Mparang.AZLib {
 	public class AZCookie {
 			private HttpContext context;
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
 			public enum Encrypt {
 				PLAIN, BASE64, AES256
 			}
 
+			/// <summary>생성자</summary>
 			public AZCookie(HttpContext p_context) {
 				context = p_context;
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public void Set(string p_key, string p_value, string p_domain, int? p_remain_days, Encrypt? p_encrypt, string p_encrypt_key) {
 				string sub_key = null;
 				if (p_key.IndexOf(".") > 0) {
@@ -33,10 +27,7 @@ namespace Com.Mparang.AZLib {
 				Set(p_key, sub_key, p_value, p_domain, p_remain_days, p_encrypt, p_encrypt_key);
 			}
 
-			/**
-			 * <summary></summary>
-			 * Created in 2015-07-29, leeyonghun
-			 */
+			/// <summary></summary>
 			public void Set(string p_key, string p_sub_key, string p_value, string p_domain, int? p_remain_days, Encrypt? p_encrypt, string p_encrypt_key) {
 				//
 				string value = "";
@@ -115,34 +106,22 @@ namespace Com.Mparang.AZLib {
 				context.Response.Cookies.Append(p_key, value, options);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public void Set<T>(T p_model) {
 				Set<T>(null, p_model, null, null, null, null);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public void Set<T>(T p_model, string p_domain) {
 				Set<T>(null, p_model, p_domain, null, null, null);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public void Set<T>(T p_model, string p_domain, Encrypt? p_encrypt, string p_encrypt_key) {
 				Set<T>(null, p_model, p_domain, null, p_encrypt, p_encrypt_key);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public void Set<T>(string p_key, T p_model, string p_domain, int? p_remain_days, Encrypt? p_encrypt, string p_encrypt_key) {
 				string key, value = "";
 				Encrypt encrypt = Encrypt.BASE64;
@@ -204,26 +183,17 @@ namespace Com.Mparang.AZLib {
 				context.Response.Cookies.Append(p_key, value, options);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public T Get<T>() {
 				return Get<T>(null, null, null);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public T Get<T>(Encrypt? p_encrypt, string p_encrypt_key) {
 				return Get<T>(null, p_encrypt, p_encrypt_key);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public T Get<T>(string p_key, Encrypt? p_encrypt, string p_encrypt_key) {
 				Type type = typeof(T);
 				object model = Activator.CreateInstance(type);
@@ -261,10 +231,7 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public string Get(string p_key, Encrypt? p_encrypt, string p_encrypt_key) {
 				string sub_key = null;
 				if (p_key.IndexOf(".") > 0) {
@@ -275,10 +242,7 @@ namespace Com.Mparang.AZLib {
 				return Get(p_key, sub_key, p_encrypt, p_encrypt_key);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public string Get(string p_key, string p_sub_key, Encrypt? p_encrypt, string p_encrypt_key) {
 				string rtn_value = null;
 				string value = "";
@@ -334,18 +298,12 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public void Remove(string p_key) {
 				context.Response.Cookies.Delete(p_key);
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public void Clear() {
 				//HttpContext context = System.Web.HttpContext.Current;
 				foreach (var key in context.Request.Cookies.Keys) {
@@ -355,11 +313,7 @@ namespace Com.Mparang.AZLib {
 				//context.Response.Cookies.Clear();
 			}
 
-
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			public bool HasKey(string p_key) {
 				bool rtn_value = false;
 				//
@@ -374,10 +328,7 @@ namespace Com.Mparang.AZLib {
 				return rtn_value;
 			}
 
-			/**
-				* <summary></summary>
-				* Created in 2015-07-29, leeyonghun
-				*/
+			/// <summary></summary>
 			private string GetSubValue(string p_sub_key, string p_value) {
 				string rtn_value = null;
 				//
