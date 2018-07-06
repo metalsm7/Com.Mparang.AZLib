@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using Npgsql;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
+using MongoDB;
+using MongoDB.Driver;
+using MongoDB.Bson;
 #endif
 
 namespace Com.Mparang.AZLib {
@@ -4153,283 +4156,283 @@ namespace Com.Mparang.AZLib {
 				this.orderingList.Clear();
 				return this;
 			}
-	}
+    }
 
-	/// <summary></summary>
-	public class ConditionData {
-		public string Group { get; set; }
-		public CONJUNCTION Conjunction { get; set; }
-		public string Target { get; set; }
-		public COMPARISON Comparison { get; set; }
-		public List<string> Values { get; set; }
+    /// <summary></summary>
+    public class ConditionData {
+      public string Group { get; set; }
+      public CONJUNCTION Conjunction { get; set; }
+      public string Target { get; set; }
+      public COMPARISON Comparison { get; set; }
+      public List<string> Values { get; set; }
 
-		/// Created in 2015-08-04, leeyonghun
-		public ConditionData() {
-			Group = "";
-			Conjunction = CONJUNCTION.EMPTY;
-			Comparison = COMPARISON.EQUAL;
-			Values = new List<string>();
-		}
-		/// Created in 2015-08-04, leeyonghun
-		public static ConditionData Init() {
-			return new ConditionData();
-		}
-		/// Created in 2015-08-04, leeyonghun
-		private string GetComparisonString(COMPARISON p_value) {
-			string rtnValue = "";
-			switch (p_value) {
-				case COMPARISON.EQUAL: rtnValue = "="; break;
-				case COMPARISON.NOT_EQUAL: rtnValue = "<>"; break;
-				case COMPARISON.GREATER_THAN: rtnValue = ">"; break;
-				case COMPARISON.GREATER_THAN_OR_EQUAL: rtnValue = ">="; break;
-				case COMPARISON.LESS_THAN: rtnValue = "<"; break;
-				case COMPARISON.LESS_THAN_OR_EQUAL: rtnValue = "<="; break;
-				case COMPARISON.BETWEEN: rtnValue = "BETWEEN"; break;
-				case COMPARISON.IN: rtnValue = "IN"; break;
-				case COMPARISON.LIKE: rtnValue = "LIKE"; break;
-			}
-			return rtnValue;
-		}
-		/// <summary></summary>
-		public ConditionData SetGroup(string pValue) { Group = pValue; return this; }
-		/// <summary></summary>
-		public ConditionData SetConjunction(CONJUNCTION pValue) { Conjunction = pValue; return this; }
-		/// <summary></summary>
-		public ConditionData SetTarget(string pValue) { Target = pValue; return this; }
-		/// <summary></summary>
-		public ConditionData SetComparison(COMPARISON pValue) { Comparison = pValue; return this; }
-		/// <summary></summary>
-		public ConditionData SetValues(List<string> pValue) { Values = Values; return this; }
-		/// <summary></summary>
-		public ConditionData SetValue(int pValue) { Values.Clear(); return AddValue("" + pValue); }
-		/// <summary></summary>
-		public ConditionData SetValue(float pValue) { Values.Clear(); return AddValue("" + pValue); }
-		/// <summary></summary>
-		public ConditionData SetValue(string pValue) { Values.Clear(); return AddValue(pValue); }
-		/// <summary></summary>
-		public ConditionData AddValue(int pValue) { AddValue("" + pValue, VALUETYPE.VALUE); return this; }
-		/// <summary></summary>
-		public ConditionData AddValue(float pValue) { AddValue("" + pValue, VALUETYPE.VALUE); return this; }
-		/// <summary></summary>
-		public ConditionData AddValue(string pValue) { AddValue(pValue, VALUETYPE.VALUE); return this; }
-		/// <summary></summary>
-		public ConditionData AddValue(string pValue, VALUETYPE pValueType) { Values.Add(pValueType.Equals(VALUETYPE.VALUE) ? "'" + pValue + "'" : pValue); return this; }
-		/// <summary></summary>
-		public string ToJsonString() {
-			StringBuilder rtnValue = new StringBuilder();
-			rtnValue.Append("{");
-			rtnValue.AppendFormat("\"{0}\": \"{1}\"", "group", Group);
-			if (Conjunction == CONJUNCTION.EMPTY) {
-				rtnValue.AppendFormat(",\"{0}\": \"\"", "conjunction");
-			}
-			else {
-				rtnValue.AppendFormat(",\"{0}\": \"{1}\"", "conjunction", Conjunction);
-			}
-			rtnValue.AppendFormat(",\"{0}\": \"{1}\"", "target", Target);
-			rtnValue.AppendFormat(",\"{0}\": \"{1}\"", "comparison", GetComparisonString(Comparison));
+      /// Created in 2015-08-04, leeyonghun
+      public ConditionData() {
+        Group = "";
+        Conjunction = CONJUNCTION.EMPTY;
+        Comparison = COMPARISON.EQUAL;
+        Values = new List<string>();
+      }
+      /// Created in 2015-08-04, leeyonghun
+      public static ConditionData Init() {
+        return new ConditionData();
+      }
+      /// Created in 2015-08-04, leeyonghun
+      private string GetComparisonString(COMPARISON p_value) {
+        string rtnValue = "";
+        switch (p_value) {
+          case COMPARISON.EQUAL: rtnValue = "="; break;
+          case COMPARISON.NOT_EQUAL: rtnValue = "<>"; break;
+          case COMPARISON.GREATER_THAN: rtnValue = ">"; break;
+          case COMPARISON.GREATER_THAN_OR_EQUAL: rtnValue = ">="; break;
+          case COMPARISON.LESS_THAN: rtnValue = "<"; break;
+          case COMPARISON.LESS_THAN_OR_EQUAL: rtnValue = "<="; break;
+          case COMPARISON.BETWEEN: rtnValue = "BETWEEN"; break;
+          case COMPARISON.IN: rtnValue = "IN"; break;
+          case COMPARISON.LIKE: rtnValue = "LIKE"; break;
+        }
+        return rtnValue;
+      }
+      /// <summary></summary>
+      public ConditionData SetGroup(string pValue) { Group = pValue; return this; }
+      /// <summary></summary>
+      public ConditionData SetConjunction(CONJUNCTION pValue) { Conjunction = pValue; return this; }
+      /// <summary></summary>
+      public ConditionData SetTarget(string pValue) { Target = pValue; return this; }
+      /// <summary></summary>
+      public ConditionData SetComparison(COMPARISON pValue) { Comparison = pValue; return this; }
+      /// <summary></summary>
+      public ConditionData SetValues(List<string> pValue) { Values = Values; return this; }
+      /// <summary></summary>
+      public ConditionData SetValue(int pValue) { Values.Clear(); return AddValue("" + pValue); }
+      /// <summary></summary>
+      public ConditionData SetValue(float pValue) { Values.Clear(); return AddValue("" + pValue); }
+      /// <summary></summary>
+      public ConditionData SetValue(string pValue) { Values.Clear(); return AddValue(pValue); }
+      /// <summary></summary>
+      public ConditionData AddValue(int pValue) { AddValue("" + pValue, VALUETYPE.VALUE); return this; }
+      /// <summary></summary>
+      public ConditionData AddValue(float pValue) { AddValue("" + pValue, VALUETYPE.VALUE); return this; }
+      /// <summary></summary>
+      public ConditionData AddValue(string pValue) { AddValue(pValue, VALUETYPE.VALUE); return this; }
+      /// <summary></summary>
+      public ConditionData AddValue(string pValue, VALUETYPE pValueType) { Values.Add(pValueType.Equals(VALUETYPE.VALUE) ? "'" + pValue + "'" : pValue); return this; }
+      /// <summary></summary>
+      public string ToJsonString() {
+        StringBuilder rtnValue = new StringBuilder();
+        rtnValue.Append("{");
+        rtnValue.AppendFormat("\"{0}\": \"{1}\"", "group", Group);
+        if (Conjunction == CONJUNCTION.EMPTY) {
+          rtnValue.AppendFormat(",\"{0}\": \"\"", "conjunction");
+        }
+        else {
+          rtnValue.AppendFormat(",\"{0}\": \"{1}\"", "conjunction", Conjunction);
+        }
+        rtnValue.AppendFormat(",\"{0}\": \"{1}\"", "target", Target);
+        rtnValue.AppendFormat(",\"{0}\": \"{1}\"", "comparison", GetComparisonString(Comparison));
 
-			string values = "[";
-			for (int cnti = 0; cnti < Values.Count; cnti++) {
-				values += ((cnti > 0 ? "," : "") + "{\"value\": \"" + Values[cnti] + "\"}");
-			}
-			values += "]";
+        string values = "[";
+        for (int cnti = 0; cnti < Values.Count; cnti++) {
+          values += ((cnti > 0 ? "," : "") + "{\"value\": \"" + Values[cnti] + "\"}");
+        }
+        values += "]";
 
-			rtnValue.AppendFormat(",\"{0}\": {1}", "values", values);
-			rtnValue.Append("}");
-			return rtnValue.ToString();
-		}
-		/// <summary></summary>
-		public ConditionData Clear() {
-			Group = "";
-			Conjunction = CONJUNCTION.EMPTY;
-			Target = "";
-			Comparison = COMPARISON.EQUAL;
-			Values.Clear();
+        rtnValue.AppendFormat(",\"{0}\": {1}", "values", values);
+        rtnValue.Append("}");
+        return rtnValue.ToString();
+      }
+      /// <summary></summary>
+      public ConditionData Clear() {
+        Group = "";
+        Conjunction = CONJUNCTION.EMPTY;
+        Target = "";
+        Comparison = COMPARISON.EQUAL;
+        Values.Clear();
 
-			return this;
-		}
-	}
+        return this;
+      }
+    }
 
-	public class Condition {
-		// [{"order":"1~", "group":"", "conjunction":"and|or...", "target":"", "comparison":"=|<>|...", "values":[{"value":""},,,]},,,]
-		List<ConditionData> conditionalList;
-		/// <summary></summary>
-		public Condition() {
-			conditionalList = new List<ConditionData>();
-		}
-		/// <summary></summary>
-		public static Condition Init() {
-			return new Condition();
-		}
-		/// <summary></summary>
-		public Condition Add(ConditionData p_value) {
-			this.conditionalList.Add(p_value);
-			return this;
-		}
-		/// <summary></summary>
-		public string ToJsonString() {
-			StringBuilder rtnValue = new StringBuilder();
-			rtnValue.Append("[");
-			for (int cnti = 0; cnti < this.conditionalList.Count; cnti++) {
-				rtnValue.AppendFormat("{0}{1}", cnti > 0 ? "," : "", this.conditionalList[cnti].ToJsonString());
-			}
-			rtnValue.Append("]");
-			return rtnValue.ToString();
-		}
-		/// <summary></summary>
-		public CONJUNCTION GetFirstConjunction() {
-			CONJUNCTION rtnValue = CONJUNCTION.EMPTY;
-			if (Size() > 0) {
-				rtnValue = conditionalList[0].Conjunction;
-			}
-			return rtnValue;
-		}
-		/// <summary></summary>
-		public int Size() {
-			return this.conditionalList.Count;
-		}
-		/// <summary></summary>
-		public string GetQuery() {
-			return AZSql.Query.Condition.GetQuery(ToJsonString());
-		}
-		/// <summary></summary>
-		public static string GetQuery(string p_json) {
-			StringBuilder rtn_value = new StringBuilder();
+    public class Condition {
+      // [{"order":"1~", "group":"", "conjunction":"and|or...", "target":"", "comparison":"=|<>|...", "values":[{"value":""},,,]},,,]
+      List<ConditionData> conditionalList;
+      /// <summary></summary>
+      public Condition() {
+        conditionalList = new List<ConditionData>();
+      }
+      /// <summary></summary>
+      public static Condition Init() {
+        return new Condition();
+      }
+      /// <summary></summary>
+      public Condition Add(ConditionData p_value) {
+        this.conditionalList.Add(p_value);
+        return this;
+      }
+      /// <summary></summary>
+      public string ToJsonString() {
+        StringBuilder rtnValue = new StringBuilder();
+        rtnValue.Append("[");
+        for (int cnti = 0; cnti < this.conditionalList.Count; cnti++) {
+          rtnValue.AppendFormat("{0}{1}", cnti > 0 ? "," : "", this.conditionalList[cnti].ToJsonString());
+        }
+        rtnValue.Append("]");
+        return rtnValue.ToString();
+      }
+      /// <summary></summary>
+      public CONJUNCTION GetFirstConjunction() {
+        CONJUNCTION rtnValue = CONJUNCTION.EMPTY;
+        if (Size() > 0) {
+          rtnValue = conditionalList[0].Conjunction;
+        }
+        return rtnValue;
+      }
+      /// <summary></summary>
+      public int Size() {
+        return this.conditionalList.Count;
+      }
+      /// <summary></summary>
+      public string GetQuery() {
+        return AZSql.Query.Condition.GetQuery(ToJsonString());
+      }
+      /// <summary></summary>
+      public static string GetQuery(string p_json) {
+        StringBuilder rtn_value = new StringBuilder();
 
-			AZList list = AZString.JSON.Init(p_json).ToAZList();
-			AZData query = new AZData();
-			AZData group = new AZData();		// {"group_name":[]}
-			for (int cnti = 0; cnti < list.Size(); cnti++) {
-				AZData data = list.Get(cnti);
-				//int data_order = data.GetInt("order");
-				string data_group = data.GetString("group");
-				string data_conjunction = data.GetString("conjunction");
-				string data_target = data.GetString("target");
-				string data_comparison = data.GetString("comparison");
-				AZList data_values = data.GetList("values");
+        AZList list = AZString.JSON.Init(p_json).ToAZList();
+        AZData query = new AZData();
+        AZData group = new AZData();		// {"group_name":[]}
+        for (int cnti = 0; cnti < list.Size(); cnti++) {
+          AZData data = list.Get(cnti);
+          //int data_order = data.GetInt("order");
+          string data_group = data.GetString("group");
+          string data_conjunction = data.GetString("conjunction");
+          string data_target = data.GetString("target");
+          string data_comparison = data.GetString("comparison");
+          AZList data_values = data.GetList("values");
 
-				// group 값을 결정짓고
-				data_group = data_group.Trim().Length < 1 ? "_____" : data_group;
+          // group 값을 결정짓고
+          data_group = data_group.Trim().Length < 1 ? "_____" : data_group;
 
-				// 해당 데이터에서 group 값을 삭제
-				data.Remove("group");
+          // 해당 데이터에서 group 값을 삭제
+          data.Remove("group");
 
-				if (group.HasKey(data_group)) {
-					// 해당 키값에 대한 자료가 존재하는 경우 -> 기존 자료에 목록 추가
-					AZList dummy = group.GetList(data_group);
-					dummy.Add(data);
-					group.Set(data_group, dummy);
-				}
-				else {
-					// 해당 키값에 대한 자료가 존재하지 않는 경우 -> 새로운 자료 추가
-					AZList dummy = new AZList();
-					dummy.Add(data);
-					group.Add(data_group, dummy);
-				}
-			}
+          if (group.HasKey(data_group)) {
+            // 해당 키값에 대한 자료가 존재하는 경우 -> 기존 자료에 목록 추가
+            AZList dummy = group.GetList(data_group);
+            dummy.Add(data);
+            group.Set(data_group, dummy);
+          }
+          else {
+            // 해당 키값에 대한 자료가 존재하지 않는 경우 -> 새로운 자료 추가
+            AZList dummy = new AZList();
+            dummy.Add(data);
+            group.Add(data_group, dummy);
+          }
+        }
 
-			for (int cnti = 0; cnti < group.Size(); cnti++) {
-				AZList group_list = group.GetList(cnti);
-				string group_key = group.GetKey(cnti);
-				string tab_string = "	 ";
+        for (int cnti = 0; cnti < group.Size(); cnti++) {
+          AZList group_list = group.GetList(cnti);
+          string group_key = group.GetKey(cnti);
+          string tab_string = "	 ";
 
-				// 그룹 내 목록이 1개 초과인 경우
-				if (group_list.Size() > 1) {
-					if (group_key.Equals("_____")) {
-						rtn_value.Append(tab_string + group_list.Get(0).GetString("conjunction") + " ");
-					}
-					else {
-						rtn_value.Append(tab_string + group_list.Get(0).GetString("conjunction") + " (" + "\r\n");
-						tab_string = "			";
-					}
+          // 그룹 내 목록이 1개 초과인 경우
+          if (group_list.Size() > 1) {
+            if (group_key.Equals("_____")) {
+              rtn_value.Append(tab_string + group_list.Get(0).GetString("conjunction") + " ");
+            }
+            else {
+              rtn_value.Append(tab_string + group_list.Get(0).GetString("conjunction") + " (" + "\r\n");
+              tab_string = "			";
+            }
 
-					for (int cntk = 0; cntk < group_list.Size(); cntk++) {
-						//rtn_value.Append(tab_string);
-						if (cntk > 0) {
-							rtn_value.Append(tab_string);
-							rtn_value.Append(group_list.Get(cntk).GetString("conjunction") + " ");
-						}
-						string sub_target = group_list.Get(cntk).GetString("target");
-						string sub_comparison = group_list.Get(cntk).GetString("comparison");
-						rtn_value.Append(sub_target + (sub_comparison.Length > 0 ? " " + sub_comparison : sub_comparison) + " ");
-						switch (sub_comparison.ToLower()) {
-							case "between":
-								if (group_list.Get(cntk).GetList("values").Size() > 1) {
-									rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(cntk).GetList("values").Get(1).GetString("value") + "\r\n");
-								}
-								else if (group_list.Get(cntk).GetList("values").Size() == 1) {
-									rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + "\r\n");
-								}
-								break;
-							case "in":
-								rtn_value.Append("(");
-								for (int cntm = 0; cntm < group_list.Get(cntk).GetList("values").Size(); cntm++) {
-									if (cntm > 0) {
-										rtn_value.Append(", ");
-									}
-									rtn_value.AppendFormat("{0}", group_list.Get(cntk).GetList("values").Get(cntm).GetString("value"));
-								}
-								rtn_value.AppendFormat(") {0}", "\r\n");
-								break;
-							default:
-								rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + "\r\n");
-								break;
-						}
-					}
+            for (int cntk = 0; cntk < group_list.Size(); cntk++) {
+              //rtn_value.Append(tab_string);
+              if (cntk > 0) {
+                rtn_value.Append(tab_string);
+                rtn_value.Append(group_list.Get(cntk).GetString("conjunction") + " ");
+              }
+              string sub_target = group_list.Get(cntk).GetString("target");
+              string sub_comparison = group_list.Get(cntk).GetString("comparison");
+              rtn_value.Append(sub_target + (sub_comparison.Length > 0 ? " " + sub_comparison : sub_comparison) + " ");
+              switch (sub_comparison.ToLower()) {
+                case "between":
+                  if (group_list.Get(cntk).GetList("values").Size() > 1) {
+                    rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(cntk).GetList("values").Get(1).GetString("value") + "\r\n");
+                  }
+                  else if (group_list.Get(cntk).GetList("values").Size() == 1) {
+                    rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + "\r\n");
+                  }
+                  break;
+                case "in":
+                  rtn_value.Append("(");
+                  for (int cntm = 0; cntm < group_list.Get(cntk).GetList("values").Size(); cntm++) {
+                    if (cntm > 0) {
+                      rtn_value.Append(", ");
+                    }
+                    rtn_value.AppendFormat("{0}", group_list.Get(cntk).GetList("values").Get(cntm).GetString("value"));
+                  }
+                  rtn_value.AppendFormat(") {0}", "\r\n");
+                  break;
+                default:
+                  rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + "\r\n");
+                  break;
+              }
+            }
 
-					if (group_key.Equals("_____")) {
-					}
-					else {
-							rtn_value.Append("	)" + "\r\n");
-					}
-				}
-				else {
-					rtn_value.Append("	" + group_list.Get(0).GetString("conjunction") + " ");
-					string sub_target = group_list.Get(0).GetString("target");
-					string sub_comparison = group_list.Get(0).GetString("comparison");
-					rtn_value.Append(sub_target + " " + sub_comparison + " ");
-					switch (sub_comparison.ToLower()) {
-						case "between":
-							if (group_list.Get(0).GetList("values").Size() > 1) {
-								rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(0).GetList("values").Get(1).GetString("value") + "\r\n");
-							}
-							else if (group_list.Get(0).GetList("values").Size() == 1) {
-								rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + "\r\n");
-							}
-							break;
-						case "in":
-							rtn_value.Append("(");
-							for (int cntm = 0; cntm < group_list.Get(0).GetList("values").Size(); cntm++) {
-								if (cntm > 0) {
-									rtn_value.Append(", ");
-								}
-								rtn_value.AppendFormat("{0}", group_list.Get(0).GetList("values").Get(cntm).GetString("value"));
-							}
-							rtn_value.AppendFormat(") {0}", "\r\n");
-							break;
-						default:
-							rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + "\r\n");
-							break;
-					}
-				}
-			}
-			return rtn_value.ToString();
-		}
-		/// <summary></summary>
-		public Condition Clear() {
-			this.conditionalList.Clear();
-			return this;
-		}
-	}
-}
+            if (group_key.Equals("_____")) {
+            }
+            else {
+                rtn_value.Append("	)" + "\r\n");
+            }
+          }
+          else {
+            rtn_value.Append("	" + group_list.Get(0).GetString("conjunction") + " ");
+            string sub_target = group_list.Get(0).GetString("target");
+            string sub_comparison = group_list.Get(0).GetString("comparison");
+            rtn_value.Append(sub_target + " " + sub_comparison + " ");
+            switch (sub_comparison.ToLower()) {
+              case "between":
+                if (group_list.Get(0).GetList("values").Size() > 1) {
+                  rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(0).GetList("values").Get(1).GetString("value") + "\r\n");
+                }
+                else if (group_list.Get(0).GetList("values").Size() == 1) {
+                  rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + "\r\n");
+                }
+                break;
+              case "in":
+                rtn_value.Append("(");
+                for (int cntm = 0; cntm < group_list.Get(0).GetList("values").Size(); cntm++) {
+                  if (cntm > 0) {
+                    rtn_value.Append(", ");
+                  }
+                  rtn_value.AppendFormat("{0}", group_list.Get(0).GetList("values").Get(cntm).GetString("value"));
+                }
+                rtn_value.AppendFormat(") {0}", "\r\n");
+                break;
+              default:
+                rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + "\r\n");
+                break;
+            }
+          }
+        }
+        return rtn_value.ToString();
+      }
+      /// <summary></summary>
+      public Condition Clear() {
+        this.conditionalList.Clear();
+        return this;
+      }
+    }
+  }
 
 public class Basic {
 	public enum WHERETYPE {
-		GREATER_THAN, GREATER_THAN_OR_EQUAL, 
-		LESS_THAN, LESS_THAN_OR_EQUAL, 
-		EQUAL, NOT_EQUAL, 
+		GREATER_THAN, GREATER_THAN_OR_EQUAL, GT, GTE, 
+		LESS_THAN, LESS_THAN_OR_EQUAL, LT, LTE, 
+		EQUAL, NOT_EQUAL, EQ, NE, 
 		BETWEEN, 
-		IN,
+		IN, NOT_IN, NIN, 
 		LIKE
 	}
 	public enum VALUETYPE { VALUE, QUERY }
@@ -4541,11 +4544,404 @@ public class Basic {
 		}
 	}
 
+  public class Condition {
+    public string Column {get;set;}
+    public object Value {get;set;}
+    public object[] Values {get;set;}
+    public Nullable<WHERETYPE> WhereType {get;set;}
+    public Nullable<VALUETYPE> ValueType {get;set;}
+    private bool Prepared {get;set;}
+    /// <summary>기본 생성자</summary>
+    public Condition() {
+      WhereType = WHERETYPE.EQUAL;
+      ValueType = VALUETYPE.VALUE;
+      Prepared = false;
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="value"></param>
+    public Condition(string column, object value) {
+      WhereType = WHERETYPE.EQUAL;
+      ValueType = VALUETYPE.VALUE;
+      Prepared = false;
+      Set(column, value, null, null);
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="value"></param>
+    /// <param name="whereType"></param>
+    public Condition(string column, object value, WHERETYPE whereType) {
+      WhereType = WHERETYPE.EQUAL;
+      ValueType = VALUETYPE.VALUE;
+      Prepared = false;
+      Set(column, value, whereType, null);
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="value"></param>
+    /// <param name="whereType"></param>
+    /// <param name="valueType"></param>
+    public Condition(string column, object value, WHERETYPE whereType, VALUETYPE valueType) {
+      WhereType = WHERETYPE.EQUAL;
+      ValueType = VALUETYPE.VALUE;
+      Prepared = false;
+      Set(column, value, whereType, valueType);
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="value"></param>
+    /// <param name="whereType"></param>
+    /// <param name="valueType"></param>
+    public void Set(string column, object value, Nullable<WHERETYPE> whereType, Nullable<VALUETYPE> valueType) {
+      this.Column = column;
+      this.Value = value;
+      this.Values = null;
+      if (whereType.HasValue) this.WhereType = whereType.Value;
+      if (valueType.HasValue) this.ValueType = valueType.Value;
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="values"></param>
+    public Condition(string column, object[] values) {
+      Set(column, values, null, null);
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="values"></param>
+    /// <param name="whereType"></param>
+    public Condition(string column, object[] values, WHERETYPE whereType) {
+      Set(column, values, whereType, null);
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="values"></param>
+    /// <param name="whereType"></param>
+    /// <param name="valueType"></param>
+    public Condition(string column, object[] values, WHERETYPE whereType, VALUETYPE valueType) {
+      Set(column, values, whereType, valueType);
+    }
+    /// <summary></summary>
+    /// <param name="column"></param>
+    /// <param name="values"></param>
+    /// <param name="whereType"></param>
+    /// <param name="valueType"></param>
+    public void Set(string column, object[] values, Nullable<WHERETYPE> whereType, Nullable<VALUETYPE> valueType) {
+      this.Column = column;
+      this.Value = null;
+      this.Values = values;
+      if (whereType.HasValue) this.WhereType = whereType.Value;
+      if (valueType.HasValue) this.ValueType = valueType.Value;
+    }
+    public Condition SetPrepared(bool prepared) {
+      Prepared = prepared;
+      return this;
+    }
+    public bool IsPrepared() {
+      return Prepared;
+    }
+    /// <summary></summary>
+    public AZData ToAZData(ref int index) {
+      index++;
+      AZData rtnValue = new AZData();
+      if (IsPrepared()) {
+        switch (ValueType.Value) {
+          case VALUETYPE.VALUE:
+            switch (WhereType.Value) {
+              case WHERETYPE.EQUAL: case WHERETYPE.EQ: 
+              case WHERETYPE.GREATER_THAN: case WHERETYPE.GT: 
+              case WHERETYPE.GREATER_THAN_OR_EQUAL: case WHERETYPE.GTE: 
+              case WHERETYPE.LESS_THAN: case WHERETYPE.LT: 
+              case WHERETYPE.LESS_THAN_OR_EQUAL: case WHERETYPE.LTE: 
+              case WHERETYPE.NOT_EQUAL: case WHERETYPE.NE: 
+              case WHERETYPE.LIKE: 
+                rtnValue.Add(
+                  string.Format("@{0}_where_{1}", Column.Replace(".", "___"), index), 
+                  Value
+                );
+                break;
+              case WHERETYPE.BETWEEN:
+                rtnValue.Add(
+                  string.Format("@{0}_where_{1}_between_1", Column.Replace(".", "___"), index), 
+                  Values[0]
+                );
+                rtnValue.Add(
+                  string.Format("@{0}_where_{1}_between_2", Column.Replace(".", "___"), index), 
+                  Values[1]
+                );
+                break;
+              case WHERETYPE.IN: 
+              case WHERETYPE.NOT_IN: case WHERETYPE.NIN:
+                for (int cnti=0; cnti<Values.Length; cnti++) {
+                  rtnValue.Add(
+                    string.Format("@{0}_where_{1}_in_{2}", Column.Replace(".", "___"), index, cnti + 1), 
+                    Values[cnti]
+                  );
+                }
+                break;
+            }
+            break;
+        }
+      }
+      return rtnValue;
+    }
+    /// <summary></summary>
+    public string ToString(ref int index) {
+      index++;
+      int passIndex = index;
+      StringBuilder rtnValue = new StringBuilder();
+      switch (ValueType.Value) {
+        case VALUETYPE.QUERY:
+          switch (WhereType.Value) {
+            case WHERETYPE.EQUAL: case WHERETYPE.EQ:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "=", Value); break;
+            case WHERETYPE.GREATER_THAN: case WHERETYPE.GT:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, ">", Value); break;
+            case WHERETYPE.GREATER_THAN_OR_EQUAL: case WHERETYPE.GTE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, ">=", Value); break;
+            case WHERETYPE.LESS_THAN: case WHERETYPE.LT:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "<", Value); break;
+            case WHERETYPE.LESS_THAN_OR_EQUAL: case WHERETYPE.LTE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "<=", Value); break;
+            case WHERETYPE.NOT_EQUAL: case WHERETYPE.NE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "<>", Value); break;
+            case WHERETYPE.LIKE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "LIKE", Value); break;
+            case WHERETYPE.BETWEEN:
+              rtnValue.AppendFormat("{0} {1} {2} AND {3}", Column, "BETWEEN", Values[0], Values[1]); break;
+            case WHERETYPE.IN: 
+              rtnValue.AppendFormat("{0} {1} ({2})", Column, "IN", Values.Join(", ")); break;
+            case WHERETYPE.NOT_IN: case WHERETYPE.NIN:
+              rtnValue.AppendFormat("{0} {1} {2} ({3})", "NOT", Column, "IN", Values.Join(", ")); break;
+          }
+          break;
+        case VALUETYPE.VALUE:
+          string valStr = null;
+          switch (WhereType.Value) {
+            case WHERETYPE.EQUAL: case WHERETYPE.EQ: 
+            case WHERETYPE.GREATER_THAN: case WHERETYPE.GT: 
+            case WHERETYPE.GREATER_THAN_OR_EQUAL: case WHERETYPE.GTE: 
+            case WHERETYPE.LESS_THAN: case WHERETYPE.LT: 
+            case WHERETYPE.LESS_THAN_OR_EQUAL: case WHERETYPE.LTE: 
+            case WHERETYPE.NOT_EQUAL: case WHERETYPE.NE: 
+            case WHERETYPE.LIKE: 
+              valStr = IsPrepared() 
+                ? string.Format("@{0}_where_{1}", Column.Replace(".", "___"), index)
+                : string.Format("'{0}'", Value);
+              break;
+          }
+          switch (WhereType.Value) {
+            case WHERETYPE.EQUAL: case WHERETYPE.EQ:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "=", valStr); break;
+            case WHERETYPE.GREATER_THAN: case WHERETYPE.GT:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, ">", valStr); break;
+            case WHERETYPE.GREATER_THAN_OR_EQUAL: case WHERETYPE.GTE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, ">=", valStr); break;
+            case WHERETYPE.LESS_THAN: case WHERETYPE.LT:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "<", valStr); break;
+            case WHERETYPE.LESS_THAN_OR_EQUAL: case WHERETYPE.LTE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "<=", valStr); break;
+            case WHERETYPE.NOT_EQUAL: case WHERETYPE.NE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "<>", valStr); break;
+            case WHERETYPE.LIKE:
+              rtnValue.AppendFormat("{0} {1} {2}", Column, "LIKE", valStr); break;
+            case WHERETYPE.BETWEEN:
+              rtnValue.AppendFormat("{0} {1} {2} AND {3}", Column, "BETWEEN", 
+                IsPrepared() 
+                  ? string.Format("@{0}_where_{1}_between_1", Column.Replace(".", "___"), index)
+                  : string.Format("'{0}'", Values[0]),
+                IsPrepared() 
+                  ? string.Format("@{0}_where_{1}_between_2", Column.Replace(".", "___"), index)
+                  : string.Format("'{0}'", Values[1])
+              );
+              break;
+            case WHERETYPE.IN: 
+              int subInIdx = 1;
+              rtnValue.AppendFormat("{0} {1} ({2})", Column, "IN", 
+                IsPrepared()
+                  ? Values.Each(x => string.Format("@{0}_where_{1}_in_{2}", Column.Replace(".", "___"), passIndex, subInIdx++)).Join(", ")
+                  : Values.Each(x => AZString.Init(x).String("").Wrap("'")).Join(", ")
+              );
+              break;
+            case WHERETYPE.NOT_IN: case WHERETYPE.NIN:
+              int subNinIdx = 1;
+              rtnValue.AppendFormat("{0} {1} {2} ({3})", "NOT", Column, "IN", 
+                IsPrepared()
+                  ? Values.Each(x => string.Format("@{0}_where_{1}_in_{2}", Column.Replace(".", "___"), passIndex, subNinIdx++)).Join(", ")
+                  : Values.Each(x => AZString.Init(x).String("").Wrap("'")).Join(", ")
+              );
+              break;
+          }
+          break;
+      }
+      return rtnValue.ToString();
+    }
+  }
+
+  /// <summary></summary>
+  public class And {
+    private ArrayList ands;
+    private bool Prepared {get;set;}
+    public And(params object[] conditions) {
+      ands = new ArrayList();
+      ands.AddRange(conditions);
+    }
+    /// <summary></summary>
+    public And Add(params object[] conditions) {
+      ands.AddRange(conditions);
+      return this;
+    }
+    /// <summary></summary>
+    public And Add(object condition) {
+      ands.Add(condition);
+      return this;
+    }
+    public And SetPrepared(bool prepared) {
+      Prepared = prepared;
+      return this;
+    }
+    public bool IsPrepared() {
+      return Prepared;
+    }
+    /// <summary></summary>
+    public int Count() {
+      return ands.Count;
+    }
+    /// <summary></summary>
+    public AZData ToAZData(ref int index) {
+      AZData rtnValue = new AZData();
+      if (IsPrepared()) {
+        //int conditionIdx = Index;
+        foreach (object data in ands) {
+          if (data.GetType().Equals(typeof(And))) {
+            rtnValue.Add(((And)data).SetPrepared(IsPrepared()).ToAZData(ref index));
+            //conditionIdx += ((And)data).Count();
+          }
+          else if (data.GetType().Equals(typeof(Or))) {
+            rtnValue.Add(((Or)data).SetPrepared(IsPrepared()).ToAZData(ref index));
+            //conditionIdx += ((Or)data).Count();
+          }
+          else if (data.GetType().Equals(typeof(Condition))) {
+            rtnValue.Add(((Condition)data).SetPrepared(IsPrepared()).ToAZData(ref index));
+            //conditionIdx++;
+          }
+        }
+      }
+      return rtnValue;
+    }
+    /// <summary></summary>
+    public string ToString(ref int index) {
+      StringBuilder rtnValue = new StringBuilder();
+      rtnValue.Append("(");
+      int idx = 0;
+      //int conditionIdx = Index;
+      foreach (object data in ands) {
+        rtnValue.AppendFormat("{0}", idx == 0 ? "" : "AND ");
+        if (data.GetType().Equals(typeof(And))) {
+          rtnValue.Append(((And)data).SetPrepared(IsPrepared()).ToString(ref index));
+          //conditionIdx += ((And)data).Count();
+        }
+        else if (data.GetType().Equals(typeof(Or))) {
+          rtnValue.Append(((Or)data).SetPrepared(IsPrepared()).ToString(ref index));
+          //conditionIdx += ((Or)data).Count();
+        }
+        else if (data.GetType().Equals(typeof(Condition))) {
+          rtnValue.Append(((Condition)data).SetPrepared(IsPrepared()).ToString(ref index));
+          //conditionIdx++;
+        }
+        idx++;
+        if (idx < ands.Count) rtnValue.Append("\r\n");
+      }
+      rtnValue.Append(")");
+      return rtnValue.ToString();
+    }
+  }
+
+  /// <summary></summary>
+  public class Or {
+    private ArrayList ors;
+    private bool Prepared {get;set;}
+    public Or(params object[] conditions) {
+      ors = new ArrayList();
+      ors.AddRange(conditions);
+    }
+    /// <summary></summary>
+    public Or Add(params object[] conditions) {
+      ors.AddRange(conditions);
+      return this;
+    }
+    /// <summary></summary>
+    public Or Add(object condition) {
+      ors.Add(condition);
+      return this;
+    }
+    public Or SetPrepared(bool prepared) {
+      Prepared = prepared;
+      return this;
+    }
+    public bool IsPrepared() {
+      return Prepared;
+    }
+    /// <summary></summary>
+    public int Count() {
+      return ors.Count;
+    }
+    /// <summary></summary>
+    public AZData ToAZData(ref int index) {
+      AZData rtnValue = new AZData();
+      if (IsPrepared()) {
+        //int conditionIdx = Index;
+        foreach (object data in ors) {
+          if (data.GetType().Equals(typeof(And))) {
+            rtnValue.Add(((And)data).SetPrepared(IsPrepared()).ToAZData(ref index));
+            //conditionIdx += ((And)data).Count();
+          }
+          else if (data.GetType().Equals(typeof(Or))) {
+            rtnValue.Add(((Or)data).SetPrepared(IsPrepared()).ToAZData(ref index));
+            //conditionIdx += ((Or)data).Count();
+          }
+          else if (data.GetType().Equals(typeof(Condition))) {
+            rtnValue.Add(((Condition)data).SetPrepared(IsPrepared()).ToAZData(ref index));
+            //conditionIdx++;
+          }
+        }
+      }
+      return rtnValue;
+    }
+    /// <summary></summary>
+    public string ToString(ref int index) {
+      StringBuilder rtnValue = new StringBuilder();
+      rtnValue.Append("(");
+      int idx = 0;
+      //int conditionIdx = Index;
+      foreach (object data in ors) {
+        rtnValue.AppendFormat("{0}", idx == 0 ? "" : "OR ");
+        if (data.GetType().Equals(typeof(And))) {
+          rtnValue.Append(((And)data).SetPrepared(IsPrepared()).ToString(ref index));
+          //conditionIdx += ((And)data).Count();
+        }
+        else if (data.GetType().Equals(typeof(Or))) {
+          rtnValue.Append(((Or)data).SetPrepared(IsPrepared()).ToString(ref index));
+          //conditionIdx += ((Or)data).Count();
+        }
+        else if (data.GetType().Equals(typeof(Condition))) {
+          rtnValue.Append(((Condition)data).SetPrepared(IsPrepared()).ToString(ref index));
+          //conditionIdx++;
+        }
+        idx++;
+        if (idx < ors.Count) rtnValue.Append("\r\n");
+      }
+      rtnValue.Append(")");
+      return rtnValue.ToString();
+    }
+  }
+
 	private AZSql azSql;
 
 	private string table_name;
 	//private DBConnectionInfo db_info;
-	private AZList sql_where, sql_set;
+	//private AZList sql_where, sql_set;
+	private AZList sql_set;
+  private ArrayList sql_where;
 	private AZData data_schema;
 	//private string query;
 	private bool has_schema_data;
@@ -4560,7 +4956,8 @@ public class Basic {
 		//this.db_info = new DBConnectionInfo(connection_json);
 		this.azSql = new AZSql(connection_json);
 
-		sql_where = new AZList();
+		//sql_where = new AZList();
+    sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
 		data_schema = null;
@@ -4580,7 +4977,8 @@ public class Basic {
 		//this.db_info = new DBConnectionInfo(connection_json);
 		this.azSql = new AZSql(connection_json);
 
-		sql_where = new AZList();
+		//sql_where = new AZList();
+    sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
 		data_schema = null;
@@ -4600,7 +4998,8 @@ public class Basic {
 		//this.db_info = new DBConnectionInfo(connection_json);
 		this.azSql = azSql;
 
-		sql_where = new AZList();
+		//sql_where = new AZList();
+    sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
 		data_schema = null;
@@ -4621,7 +5020,8 @@ public class Basic {
 		this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
 		this.azSql = azSql;
 
-		sql_where = new AZList();
+		//sql_where = new AZList();
+    sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
 		data_schema = null;
@@ -4639,7 +5039,8 @@ public class Basic {
 		}
 		this.table_name = AZString.Encode(AZString.ENCODE.JSON, p_table_name);
 
-		sql_where = new AZList();
+		//sql_where = new AZList();
+    sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
 		data_schema = null;
@@ -4653,7 +5054,8 @@ public class Basic {
 		}
 		this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
 
-		sql_where = new AZList();
+		//sql_where = new AZList();
+    sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
 		data_schema = null;
@@ -4765,13 +5167,36 @@ public class Basic {
 
 		return this;
 	}
+  /// <summary></summary>
+  public AZSql.Basic Where(Or conditions) {
+		this.sql_where.Add(conditions);
+    return this;
+  }
+  /// <summary></summary>
+  public AZSql.Basic Where(And conditions) {
+		this.sql_where.Add(conditions);
+    return this;
+  }
+  /// <summary></summary>
+  public AZSql.Basic Where(Condition condition) {
+		if (condition.Column.Trim().Length < 1) {
+			throw new Exception("Target column name is not specified.");
+		}
+		if (HasSchemaData() && !this.data_schema.HasKey(condition.Column)) {
+			throw new Exception("Target column name is not exist.");
+		}
+		this.sql_where.Add(condition);
+		return this;
+  }
 	/// <summary></summary>
 	public AZSql.Basic Where(string p_column, object p_value) {
-		return Where(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE);
+    return Where(new Condition(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE));
+		//return Where(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE);
 	}
 	/// <summary></summary>
 	public AZSql.Basic Where(string p_column, object p_value, WHERETYPE p_wheretype) {
-		return Where(p_column, p_value, p_wheretype, VALUETYPE.VALUE);
+    return Where(new Condition(p_column, p_value, p_wheretype, VALUETYPE.VALUE));
+		//return Where(p_column, p_value, p_wheretype, VALUETYPE.VALUE);
 	}
 	/// <summary></summary>
 	public AZSql.Basic Where(string p_column, object p_value, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
@@ -4783,7 +5208,8 @@ public class Basic {
 				throw new Exception("Target column name is not exist.");
 			}
 		}
-		AZData data = new AZData();
+    return Where(new Condition(p_column, p_value, p_wheretype, p_valuetype));
+		/*AZData data = new AZData();
 		data.Attribute.Add(ATTRIBUTE.WHERE, p_wheretype);
 		data.Attribute.Add(ATTRIBUTE.VALUE, p_valuetype);
 		data.Add(p_column, p_value);
@@ -4791,7 +5217,7 @@ public class Basic {
 		this.sql_where.Add(data);
 		data = null;
 
-		return this;
+		return this;*/
 	}
 	/// <summary></summary>
 	public AZSql.Basic Where(string p_column, object[] p_value) {
@@ -4826,17 +5252,40 @@ public class Basic {
 	/// <summary>특정된 쿼리 타입에 맞게 현재의 자료를 바탕으로 쿼리 문자열 생성</summary>
 	private string CreateQuery(CREATE_QUERY_TYPE p_type) {
 		StringBuilder rtn_value = new StringBuilder();
+    int idx = 0;
 		switch (p_type) {
 			case CREATE_QUERY_TYPE.SELECT:
-				rtn_value.AppendFormat("SELECT {0}", "\r\n");
-				rtn_value.AppendFormat(" {0} {1}", this.sql_select, "\r\n");
-				rtn_value.AppendFormat("FROM {0}", "\r\n");
-				rtn_value.AppendFormat(" {0} {1}", this.table_name, "\r\n");
-				for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
-					if (cnti < 1) {
-						rtn_value.Append("WHERE " + "\r\n");
-					}
-					AZData data = this.sql_where.Get(cnti);
+				rtn_value.AppendFormat("SELECT{0}", "\r\n");
+				rtn_value.AppendFormat(" {0}{1}", this.sql_select, "\r\n");
+				rtn_value.AppendFormat("FROM{0}", "\r\n");
+				rtn_value.AppendFormat(" {0}{1}", this.table_name, "\r\n");
+        //
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					//if (cnti == 0) rtn_value.AppendFormat("WHERE{0}", "\r\n");
+          rtn_value.AppendFormat("{0}", cnti == 0 ? "WHERE\r\n" : "AND ");
+					//AZData data = this.sql_where.Get(cnti);
+          object row = this.sql_where[cnti];
+          if (row.GetType().Equals(typeof(Condition))) {
+            Condition data = (Condition)row;
+            rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+            //idx++;
+          }
+          else if (row.GetType().Equals(typeof(And))) {
+            And data = (And)row;
+            rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+            //idx += data.Count();
+          }
+          else if (row.GetType().Equals(typeof(Or))) {
+            Or data = (Or)row;
+            rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+            //idx += data.Count();
+          }
+          rtn_value.Append("\r\n");
+          /*
+          switch (data.Attribute.Get(ATTRIBUTE.VALUE)) {
+            case VALUETYPE.QUERY:
+              break;
+          }
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
 						rtn_value.Append("	" + (cnti > 0 ? " AND " : "") + data.GetKey(0));
 
@@ -4943,53 +5392,92 @@ public class Basic {
 						}
 						rtn_value.Append("\r\n");
 					}
+          */
 				}
 				break;
 			case CREATE_QUERY_TYPE.INSERT:
-				rtn_value.Append("INSERT INTO " + table_name + " ( " + "\r\n");
+				//rtn_value.Append("INSERT INTO " + table_name + " ( " + "\r\n");
+        rtn_value.AppendFormat("INSERT INTO {0} ({1}", table_name, "\r\n");
 				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
 					AZData data = this.sql_set.Get(cnti);
-					rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0));
+					//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0));
+          rtn_value.AppendFormat(" {0}{1}{2}", cnti == 0 ? "" : ",", data.GetKey(0), "\r\n");
 				}
-				rtn_value.Append("\r\n" + ") " + "\r\n");
-				rtn_value.Append("VALUES ( " + "\r\n");
+				//rtn_value.Append("\r\n" + ") " + "\r\n");
+				//rtn_value.Append("VALUES ( " + "\r\n");
+        rtn_value.AppendFormat("VALUES ({0}", "\r\n");
 				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
 					AZData data = this.sql_set.Get(cnti);
+          rtn_value.Append(cnti == 0 ? " " : " ,");
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
-						rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetString(0) + "\r\n");
+						//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetString(0) + "\r\n");
+            rtn_value.AppendFormat("{0}{1}", data.GetString(0), "\r\n");
 					}
 					else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-						if (!IsPrepared()) {
+						/*if (!IsPrepared()) {
 							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + "'" + data.GetString(0) + "'" + "\r\n");
 						}
 						else {
 							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + "\r\n");
-						}
+						}*/
+            rtn_value.AppendFormat("{0}{1}",
+              IsPrepared()
+                ? string.Format("'{0}'", data.GetString(0))
+                : string.Format("@{0}_set_{1}", data.GetKey(0).Replace(".", "___"), cnti + 1),
+              "\r\n"
+            );
 					}
 				}
 				rtn_value.Append(")");
 				break;
 			case CREATE_QUERY_TYPE.UPDATE:
-				rtn_value.Append("UPDATE " + table_name + " " + "\r\n");
-				rtn_value.Append("SET " + "\r\n");
+				//rtn_value.Append("UPDATE " + table_name + " " + "\r\n");
+				//rtn_value.Append("SET " + "\r\n");
+        rtn_value.AppendFormat("UPDATE {0}{1}", table_name, "\r\n");
+        rtn_value.AppendFormat("SET{0}", "\r\n");
 				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
 					AZData data = this.sql_set.Get(cnti);
+          rtn_value.Append(cnti > 0 ? " ," : " ");
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
-						rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + data.GetString(0) + "\r\n");
+						//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + data.GetString(0) + "\r\n");
+            rtn_value.AppendFormat(" {0}={1}{2}", data.GetKey(0), data.GetString(0), "\r\n");
 					}
 					else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-						if (!IsPrepared()) {
+						/*if (!IsPrepared()) {
 							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "'" + data.GetString(0) + "'" + "\r\n");
 						}
 						else {
 							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + "\r\n");
-						}
+						}*/
+            rtn_value.AppendFormat(" {0}={1}{2}", data.GetKey(0), 
+              IsPrepared() 
+                ? string.Format("@{0}_set_{1}", data.GetKey(0).Replace(".", "___"), (cnti + 1))
+                : string.Format("'{0}", data.GetString(0)), 
+              "\r\n"
+            );
 					}
 				}
-				for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
-					if (cnti < 1) {
-						rtn_value.Append("WHERE " + "\r\n");
-					}
+        //
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+          rtn_value.AppendFormat("{0}", cnti == 0 ? "WHERE\r\n" : "AND ");
+          object row = this.sql_where[cnti];
+          if (row.GetType().Equals(typeof(Condition))) {
+            Condition data = (Condition)row;
+            rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+            idx++;
+          }
+          else if (row.GetType().Equals(typeof(And))) {
+            And data = (And)row;
+            rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+            idx += data.Count();
+          }
+          else if (row.GetType().Equals(typeof(Or))) {
+            Or data = (Or)row;
+            rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+            idx += data.Count();
+          }
+          rtn_value.Append("\r\n");
+          /*
 					AZData data = this.sql_where.Get(cnti);
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
 						rtn_value.Append("	" + (cnti > 0 ? " AND " : "") + data.GetKey(0));
@@ -5097,14 +5585,33 @@ public class Basic {
 							}
 							rtn_value.Append("\r\n");
 						}
+            */
 					}
 					break;
 				case CREATE_QUERY_TYPE.DELETE:
-					rtn_value.Append("DELETE FROM " + table_name + " " + "\r\n");
-					for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
-						if (cnti < 1) {
-							rtn_value.Append("WHERE " + "\r\n");
-						}
+					//rtn_value.Append("DELETE FROM " + table_name + " " + "\r\n");
+          rtn_value.AppendFormat("DELETE FROM {0}{1}", table_name, "\r\n");
+          //
+					for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+            rtn_value.AppendFormat("{0}", cnti == 0 ? "WHERE\r\n" : "AND ");
+            object row = this.sql_where[cnti];
+            if (row.GetType().Equals(typeof(Condition))) {
+              Condition data = (Condition)row;
+              rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+              idx++;
+            }
+            else if (row.GetType().Equals(typeof(And))) {
+              And data = (And)row;
+              rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+              idx += data.Count();
+            }
+            else if (row.GetType().Equals(typeof(Or))) {
+              Or data = (Or)row;
+              rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
+              idx += data.Count();
+            }
+            rtn_value.Append("\r\n");
+            /*
 						AZData data = this.sql_where.Get(cnti);
 						if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
 							rtn_value.Append("	" + (cnti > 0 ? " AND " : "") + data.GetKey(0));
@@ -5212,6 +5719,7 @@ public class Basic {
 							}
 							rtn_value.Append("\r\n");
 						}
+            */
 					}
 					break;
 				}
@@ -5224,7 +5732,7 @@ public class Basic {
 			/// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
 			public int DoDelete(bool p_need_where) {
 				int rtn_value = -1;
-				if (p_need_where && this.sql_where.Size() < 1) {
+				if (p_need_where && this.sql_where.Count < 1) {
 					throw new Exception("Where datas required.");
 				}
 				if (!IsPrepared()) {
@@ -5253,7 +5761,7 @@ public class Basic {
 				if (this.sql_set.Size() < 1) {
 					throw new Exception("Set datas required.");
 				}
-				if (p_need_where && this.sql_where.Size() < 1) {
+				if (p_need_where && this.sql_where.Count < 1) {
 					throw new Exception("Where datas required.");
 				}
 				if (!IsPrepared()) {
@@ -5297,7 +5805,7 @@ public class Basic {
 			/// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
 			public async Task<int> DoDeleteAsync(bool p_need_where) {
 				int rtn_value = -1;
-				if (p_need_where && this.sql_where.Size() < 1) throw new Exception("Where datas required.");
+				if (p_need_where && this.sql_where.Count < 1) throw new Exception("Where datas required.");
 				if (!IsPrepared()) {
 					rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.DELETE));
 				}
@@ -5315,7 +5823,7 @@ public class Basic {
 			public async Task<int> DoUpdateAsync(bool p_need_where) {
 				int rtn_value = -1;
 				if (this.sql_set.Size() < 1) throw new Exception("Set datas required.");
-				if (p_need_where && this.sql_where.Size() < 1) throw new Exception("Where datas required.");
+				if (p_need_where && this.sql_where.Count < 1) throw new Exception("Where datas required.");
 				if (!IsPrepared()) {
 					rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.UPDATE));
 				}
@@ -5350,7 +5858,7 @@ public class Basic {
 			}
 			/// <summary>Prepared Statement 용 전달 인수 객체를 반환한다</summary>
 			public AZData GetPreparedParameters() {
-				AZData rtn_value = null;
+				AZData rtn_value = new AZData();
 				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
 					AZData data = this.sql_set.Get(cnti);
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
@@ -5358,8 +5866,28 @@ public class Basic {
 						rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1), data.Get(0));
 					}
 				}
-				for (int cnti = 0; cnti < this.sql_where.Size(); cnti++) {
-					AZData data = this.sql_where.Get(cnti);
+        //
+        int idx = 0;
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+          object row = this.sql_where[cnti];
+          if (row == null) continue;
+          if (row.GetType().Equals(typeof(Condition))) {
+            Condition data = (Condition)row;
+            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
+            //idx++;
+          }
+          else if (row.GetType().Equals(typeof(And))) {
+            And data = (And)row;
+            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
+            //idx += data.Count();
+          }
+          else if (row.GetType().Equals(typeof(Or))) {
+            Or data = (Or)row;
+            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
+            //idx += data.Count();
+          }
+					/*
+          AZData data = this.sql_where.Get(cnti);
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
 						if (rtn_value == null) rtn_value = new AZData();
 						switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
@@ -5379,6 +5907,7 @@ public class Basic {
 								break;
 						}
 					}
+          */
 				}
 				return rtn_value;
 			}
@@ -5418,5 +5947,39 @@ public class Basic {
 				return this.data_schema;
 			}
 		}
-	}
+  
+    public class Mongo {
+      private MongoClient client;
+
+      /// <summary>기본 생성자</summary>
+      public Mongo() {}
+      
+      /// <summary>기본 소멸자</summary>
+      ~Mongo() {}
+
+      /// <summary>생성자, DB연결을 위한 문자열을 통해 연결 생성</summary>
+      public Mongo(string connection_string) {
+        Set(connection_string);
+      }
+
+      /// <summary>생성자, 외부에서 선언된 클라이언트를 참조</summary>
+      public Mongo(ref MongoClient client) {
+        this.client = client;
+      }
+      
+      /// <summary>현재 객체에 대해 DB연결 설정</summary>
+      /// <param name="connection_string">DB연결 문자열</param>
+      public Mongo Set(string connection_string) {
+        this.client = new MongoClient(connection_string);
+        return this;
+      }
+
+      /// <summary>현재 객체에 대해 DB연결 설정</summary>
+      /// <param name="client">DB연결 객체 참조값</param>
+      public Mongo Set(ref MongoClient client) {
+        this.client = client;
+        return this;
+      }
+    }
+  }
 }
