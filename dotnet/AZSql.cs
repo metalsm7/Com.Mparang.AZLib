@@ -156,29 +156,29 @@ namespace Com.Mparang.AZLib {
 		public AZSql() {}
 
 		/// <summary>생성자, 연결 문자열</summary>
-		public AZSql(string p_json) {
-			Set(p_json);
+		public AZSql(string json) {
+			Set(json);
 		}
 
 		/// Created in 2015-08-19, leeyonghun
-		public AZSql(DBConnectionInfo p_db_connection_info) {
-			this.db_info = p_db_connection_info;
+		public AZSql(DBConnectionInfo db_connection_info) {
+			this.db_info = db_connection_info;
 		}
 
 		/// Created in 2015-08-19, leeyonghun
-		public AZSql Set(string p_json) {
-			this.db_info = new DBConnectionInfo(p_json);
+		public AZSql Set(string json) {
+			this.db_info = new DBConnectionInfo(json);
 			return this;
 		}
 
 		/// Created in 2015-08-19, leeyonghun
-		public static AZSql Init(string p_json) {
-			return new AZSql (p_json);
+		public static AZSql Init(string json) {
+			return new AZSql (json);
 		}
 
 		/// Created in 2015-08-19, leeyonghun
-		public static AZSql Init(DBConnectionInfo p_db_connection_info) {
-			return new AZSql(p_db_connection_info);
+		public static AZSql Init(DBConnectionInfo db_connection_info) {
+			return new AZSql(db_connection_info);
 		}
 		
 		/// <summary></summary>
@@ -358,7 +358,12 @@ namespace Com.Mparang.AZLib {
 		/// <summary>PreparedStatement 또는 StoredProcedure 사용의 경우 전달할 인수값 설정.
 		/// 실제 처리는 AddParameter(string, object)의 반복</summary>
 		public AZSql SetParameters(AZData parameters) {
-			this.parameters.Clear();
+			if (this.parameters == null) {
+				this.parameters = new AZData();
+			}
+			else {
+				this.parameters.Clear();
+			}
 			for (int cnti=0; cnti<parameters.Size(); cnti++) {
 				this.parameters.Add(parameters.GetKey(cnti), new ParameterData(parameters.Get(cnti)));
 			}
@@ -4426,7 +4431,7 @@ namespace Com.Mparang.AZLib {
     }
   }
 
-public class Basic {
+public class BQuery {
 	public enum WHERETYPE {
 		GREATER_THAN, GREATER_THAN_OR_EQUAL, GT, GTE, 
 		LESS_THAN, LESS_THAN_OR_EQUAL, LT, LTE, 
@@ -4437,19 +4442,9 @@ public class Basic {
 	}
 	public enum VALUETYPE { VALUE, QUERY }
 	public enum CREATE_QUERY_TYPE { INSERT, UPDATE, DELETE, SELECT }
-	private class ATTRIBUTE {
+	protected class ATTRIBUTE {
 		public const string VALUE = "value";
 		public const string WHERE = "where";
-	}
-	private bool prepared {get;set;}
-	/// <summary>Prepared Statement 사용 여부 반환</summary>
-	public bool IsPrepared() {
-		return this.prepared;
-	}
-	/// <summary>Prepared Statement 사용 여부 설정</summary>
-	public Basic SetIsPrepared(bool value) {
-		this.prepared = value;
-		return this;
 	}
 	public class SetList {
 		List<SetData> setList;
@@ -4775,6 +4770,87 @@ public class Basic {
       }
       return rtnValue.ToString();
     }
+
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary></summary>
+    public BsonDocument ToBsonDocument() {
+      BsonDocument rtnValue = new BsonDocument();
+      switch (ValueType.Value) {
+        case VALUETYPE.VALUE:
+	        string compStr = "";
+	        switch (WhereType.Value) {
+		        case WHERETYPE.EQUAL: case WHERETYPE.EQ: compStr = "$eq"; break;
+		        case WHERETYPE.GREATER_THAN: case WHERETYPE.GT: compStr = "$gt"; break;
+		        case WHERETYPE.GREATER_THAN_OR_EQUAL: case WHERETYPE.GTE: compStr = "$gte"; break;
+		        case WHERETYPE.LESS_THAN: case WHERETYPE.LT: compStr = "$lt"; break;
+		        case WHERETYPE.LESS_THAN_OR_EQUAL: case WHERETYPE.LTE: compStr = "$lte"; break;
+		        case WHERETYPE.NOT_EQUAL: case WHERETYPE.NE: compStr = "$ne"; break;
+	        }
+
+	        switch (WhereType.Value) {
+            case WHERETYPE.EQUAL: case WHERETYPE.EQ:
+            case WHERETYPE.GREATER_THAN: case WHERETYPE.GT:
+            case WHERETYPE.GREATER_THAN_OR_EQUAL: case WHERETYPE.GTE:
+            case WHERETYPE.LESS_THAN_OR_EQUAL: case WHERETYPE.LTE:
+            case WHERETYPE.LESS_THAN: case WHERETYPE.LT:
+            case WHERETYPE.NOT_EQUAL: case WHERETYPE.NE:
+	            if (Value.GetType().Equals(typeof(Int16))) {
+		            rtnValue.Add(Column, new BsonDocument(compStr, (short)Value));
+	            }
+	            else if (Value.GetType().Equals(typeof(Int32))) {
+		            rtnValue.Add(Column, new BsonDocument(compStr, (int)Value));
+	            }
+	            else if (Value.GetType().Equals(typeof(Int64))) {
+		            rtnValue.Add(Column, new BsonDocument(compStr, (long)Value));
+	            }
+	            else {
+		            rtnValue.Add(Column, new BsonDocument(compStr, AZString.Init(Value).String()));
+	            }
+	            break;
+            case WHERETYPE.IN:
+              BsonArray inArrs = new BsonArray();
+              //int inArrIdx = 0;
+	            //Values.Each(x => { inArrs.Add(Values[inArrIdx++]); });
+	            foreach (var value in Values) {
+		            if (value.GetType().Equals(typeof(string))) {
+			            inArrs.Add((string)value);
+		            }
+		            else if (value.GetType().Equals(typeof(Int16))) {
+			            inArrs.Add((short)value);
+		            }
+		            else if (value.GetType().Equals(typeof(Int32))) {
+			            inArrs.Add((int)value);
+		            }
+		            else if (value.GetType().Equals(typeof(Int64))) {
+			            inArrs.Add((long)value);
+		            }
+	            }
+              rtnValue = new BsonDocument(Column, new BsonDocument("$in", inArrs)); break;
+            case WHERETYPE.NOT_IN: case WHERETYPE.NIN: 
+              BsonArray ninArrs = new BsonArray();
+              //int ninArrIdx = 0;
+              //Values.Each(x => { ninArrs.Add(Values[ninArrIdx++]); });
+	            foreach (var value in Values) {
+		            if (value.GetType().Equals(typeof(string))) {
+			            ninArrs.Add((string)value);
+		            }
+		            else if (value.GetType().Equals(typeof(Int16))) {
+			            ninArrs.Add((short)value);
+		            }
+		            else if (value.GetType().Equals(typeof(Int32))) {
+			            ninArrs.Add((int)value);
+		            }
+		            else if (value.GetType().Equals(typeof(Int64))) {
+			            ninArrs.Add((long)value);
+		            }
+	            }
+              rtnValue = new BsonDocument(Column, new BsonDocument("$nin", ninArrs)); break;
+          }
+          break;
+      }
+      return rtnValue;
+    }
+#endif
   }
 
   /// <summary></summary>
@@ -4854,6 +4930,25 @@ public class Basic {
       rtnValue.Append(")");
       return rtnValue.ToString();
     }
+
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary></summary>
+    public BsonDocument ToBsonDocument() {
+      BsonArray arr = new BsonArray();
+      foreach (object data in ands) {
+        if (data.GetType().Equals(typeof(And))) {
+          arr.Add(((And)data).ToBsonDocument());
+        }
+        else if (data.GetType().Equals(typeof(Or))) {
+          arr.Add(((Or)data).ToBsonDocument());
+        }
+        else if (data.GetType().Equals(typeof(Condition))) {
+          arr.Add(((Condition)data).ToBsonDocument());
+        }
+      }
+      return new BsonDocument("$and", arr);
+    }
+#endif
   }
 
   /// <summary></summary>
@@ -4933,176 +5028,100 @@ public class Basic {
       rtnValue.Append(")");
       return rtnValue.ToString();
     }
+
+#if NET_STD || NET_CORE || NET_FX || NET_STORE
+    /// <summary></summary>
+    public BsonDocument ToBsonDocument() {
+      BsonArray arr = new BsonArray();
+      foreach (object data in ors) {
+        if (data.GetType().Equals(typeof(And))) {
+          arr.Add(((And)data).ToBsonDocument());
+        }
+        else if (data.GetType().Equals(typeof(Or))) {
+          arr.Add(((Or)data).ToBsonDocument());
+        }
+        else if (data.GetType().Equals(typeof(Condition))) {
+          arr.Add(((Condition)data).ToBsonDocument());
+        }
+      }
+      return new BsonDocument("$or", arr);
+    }
+#endif
   }
 
-	private AZSql azSql;
-
-	private string table_name;
+	protected string table_name;
 	//private DBConnectionInfo db_info;
 	//private AZList sql_where, sql_set;
-	private AZList sql_set;
-  private ArrayList sql_where;
-	private AZData data_schema;
+	protected AZList sql_set;
+  protected ArrayList sql_where;
 	//private string query;
-	private bool has_schema_data;
-	private string sql_select;
+	protected string sql_select;
+	protected bool prepared {get;set;}
+	/// <summary>Prepared Statement 사용 여부 반환</summary>
+	public bool IsPrepared() {
+		return this.prepared;
+	}
+	/// <summary>Prepared Statement 사용 여부 설정</summary>
+	public BQuery SetIsPrepared(bool value) {
+		this.prepared = value;
+		return this;
+	}
+
+	/// <summary>기본 생성자</summary>
+	public BQuery () {
+    sql_where = new ArrayList();
+		sql_set = new AZList();
+		sql_select = "";
+    //
+    SetIsPrepared(false);
+	}
 
 	/// <summary>생성자</summary>
-	public Basic (string table_name, string connection_json) {
+	public BQuery (string table_name) {
 		if (table_name.Trim().Length < 1) {
 			throw new Exception("Target table name not specified.");
 		}
 		this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
 		//this.db_info = new DBConnectionInfo(connection_json);
-		this.azSql = new AZSql(connection_json);
 
 		//sql_where = new AZList();
     sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
-		data_schema = null;
-
-		has_schema_data = false;
-		//
-		SetIsPrepared(false);
-		// 지정된 테이블에 대한 스키마 설정
-		SetSchemaData();
+    //
+    SetIsPrepared(false);
 	}
 	/// <summary>생성자</summary>
-	public Basic (string table_name, string connection_json, bool is_prepared) {
+	public BQuery (string table_name, bool prepared) {
 		if (table_name.Trim().Length < 1) {
 			throw new Exception("Target table name not specified.");
 		}
 		this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
 		//this.db_info = new DBConnectionInfo(connection_json);
-		this.azSql = new AZSql(connection_json);
 
 		//sql_where = new AZList();
     sql_where = new ArrayList();
 		sql_set = new AZList();
 		sql_select = "";
-		data_schema = null;
+		//data_schema = null;
 
-		has_schema_data = false;
+		//has_schema_data = false;
 		//
-		SetIsPrepared(is_prepared);
-		// 지정된 테이블에 대한 스키마 설정
-		SetSchemaData();
+		SetIsPrepared(prepared);
 	}
-	/// <summary>생성자</summary>
-	public Basic (string table_name, AZSql azSql) {
-		if (table_name.Trim().Length < 1) {
-			throw new Exception("Target table name not specified.");
-		}
-		this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
-		//this.db_info = new DBConnectionInfo(connection_json);
-		this.azSql = azSql;
-
-		//sql_where = new AZList();
-    sql_where = new ArrayList();
-		sql_set = new AZList();
-		sql_select = "";
-		data_schema = null;
-
-		has_schema_data = false;
-
-		//
-		SetIsPrepared(false);
-
-		// 지정된 테이블에 대한 스키마 설정
-		SetSchemaData();
-	}
-	/// <summary>생성자</summary>
-	public Basic (string table_name, AZSql azSql, bool is_prepared) {
-		if (table_name.Trim().Length < 1) {
-			throw new Exception("Target table name not specified.");
-		}
-		this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
-		this.azSql = azSql;
-
-		//sql_where = new AZList();
-    sql_where = new ArrayList();
-		sql_set = new AZList();
-		sql_select = "";
-		data_schema = null;
-
-		has_schema_data = false;
-		//
-		SetIsPrepared(is_prepared);
-		// 지정된 테이블에 대한 스키마 설정
-		SetSchemaData();
-	}
-	/// <summary>생성자</summary>
-	public Basic(string p_table_name) {
-		if (p_table_name.Trim().Length < 1) {
-			throw new Exception("Target table name not specified.");
-		}
-		this.table_name = AZString.Encode(AZString.ENCODE.JSON, p_table_name);
-
-		//sql_where = new AZList();
-    sql_where = new ArrayList();
-		sql_set = new AZList();
-		sql_select = "";
-		data_schema = null;
-
-		has_schema_data = false;
-	}
-	/// <summary>생성자</summary>
-	public Basic (string table_name, bool is_prepared) {
-		if (table_name.Trim().Length < 1) {
-			throw new Exception("Target table name not specified.");
-		}
-		this.table_name = AZString.Encode(AZString.ENCODE.JSON, table_name);
-
-		//sql_where = new AZList();
-    sql_where = new ArrayList();
-		sql_set = new AZList();
-		sql_select = "";
-		data_schema = null;
-		//
-		SetIsPrepared(is_prepared);
-
-		has_schema_data = false;
-	}			
 	/// <summary>Creating new class and return</summary>
-	public static AZSql.Basic Init(string p_table_name, string connection_json) {
+	public static AZSql.BQuery Init(string p_table_name) {
 		if (p_table_name.Trim().Length < 1) {
 			throw new Exception("Target table name not specified.");
 		}
-		return new AZSql.Basic(p_table_name, connection_json);
+		return new AZSql.BQuery(p_table_name);
 	}
-	/// <summary>지정된 테이블에 대한 스키마 정보 설정 처리</summary>
-	private void SetSchemaData() {
-		if (this.table_name.Trim().Length < 1) {
+	/// <summary>Creating new class and return</summary>
+	public static AZSql.BQuery Init(string p_table_name, bool prepared) {
+		if (p_table_name.Trim().Length < 1) {
 			throw new Exception("Target table name not specified.");
 		}
-		switch (this.azSql.GetSqlType()) {
-			case AZSql.SQL_TYPE.MSSQL:
-			case AZSql.SQL_TYPE.MYSQL:
-				try {
-					string mainSql = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS with (nolock) WHERE TABLE_NAME='" + this.table_name + "';";
-					AZList list = AZSql.Init(this.azSql.db_info).GetList(mainSql);
-					//AZList list = this.azSql.GetList(mainSql);
-
-					this.data_schema = new AZData();
-
-					for (int cnti = 0; cnti < list.Size(); cnti++) {
-						AZData data = list.Get(cnti);
-						AZData.AttributeData info = new AZData.AttributeData();
-						for (int cntk = 0; cntk < data.Size(); cntk++) {
-								info.Add(data.GetKey(cntk), data.GetString(cntk));
-						}
-						this.data_schema.Add(data.GetString(0), info);
-					}
-					if (list.Size() > 0) {
-						this.has_schema_data = true;
-					}
-				}
-				catch (Exception) {
-					this.data_schema = null;
-				}
-				break;
-		}
+		return new AZSql.BQuery(p_table_name, prepared);
 	}
 	/// <summary></summary>
 	public void Clear() {
@@ -5111,19 +5130,19 @@ public class Basic {
 		this.sql_select = "";
 	}
 	/// <summary></summary>
-	public AZSql.Basic Select(string value) {
+	public AZSql.BQuery Select(string value) {
 		this.sql_select = value;
 		return this;
 	}
 	/// <summary></summary>
-	public AZSql.Basic Set(SetData p_set_data) {
+	public AZSql.BQuery Set(SetData p_set_data) {
 		if (p_set_data != null) {
 			Set(p_set_data.Column, p_set_data.Value, p_set_data.ValueType);
 		}
 		return this;
 	}
 	/// <summary></summary>
-	public AZSql.Basic Set(SetData[] p_set_datas) {
+	public AZSql.BQuery Set(SetData[] p_set_datas) {
 		if (p_set_datas != null) {
 			for (int cnti = 0; cnti < p_set_datas.Length; cnti++) {
 				if (p_set_datas[cnti] != null) {
@@ -5134,7 +5153,7 @@ public class Basic {
 		return this;
 	}
 	/// <summary></summary>
-	public AZSql.Basic Set(SetList p_set_list) {
+	public AZSql.BQuery Set(SetList p_set_list) {
 		if (p_set_list != null) {
 			for (int cnti = 0; cnti < p_set_list.Size(); cnti++) {
 				if (p_set_list.Get(cnti) != null) {
@@ -5145,19 +5164,21 @@ public class Basic {
 		return this;
 	}
 	/// <summary></summary>
-	public AZSql.Basic Set(string p_column, object p_value) {
+	public AZSql.BQuery Set(string p_column, object p_value) {
 		return Set(p_column, p_value, VALUETYPE.VALUE);
 	}
 	/// <summary></summary>
-	public AZSql.Basic Set(string p_column, object p_value, VALUETYPE p_valuetype) {
+	public AZSql.BQuery Set(string p_column, object p_value, VALUETYPE p_valuetype) {
 		if (p_column.Trim().Length < 1) {
 			throw new Exception("Target column name is not specified.");
 		}
-		if (HasSchemaData()) {
+		/*
+    if (HasSchemaData()) {
 			if (!this.data_schema.HasKey(p_column)) {
 				throw new Exception("Target column name is not exist.");
 			}
 		}
+    */
 		AZData data = new AZData();
 		data.Attribute.Add(ATTRIBUTE.VALUE, p_valuetype);
 		data.Add(p_column, p_value);
@@ -5167,47 +5188,56 @@ public class Basic {
 
 		return this;
 	}
+	/// <summary></summary>
+	public AZSql.BQuery ClearSet() {
+		this.sql_set.Clear();
+		return this;
+	}
   /// <summary></summary>
-  public AZSql.Basic Where(Or conditions) {
+  public AZSql.BQuery Where(Or conditions) {
 		this.sql_where.Add(conditions);
     return this;
   }
   /// <summary></summary>
-  public AZSql.Basic Where(And conditions) {
+  public AZSql.BQuery Where(And conditions) {
 		this.sql_where.Add(conditions);
     return this;
   }
   /// <summary></summary>
-  public AZSql.Basic Where(Condition condition) {
+  public AZSql.BQuery Where(Condition condition) {
 		if (condition.Column.Trim().Length < 1) {
 			throw new Exception("Target column name is not specified.");
 		}
+    /*
 		if (HasSchemaData() && !this.data_schema.HasKey(condition.Column)) {
 			throw new Exception("Target column name is not exist.");
 		}
+    */
 		this.sql_where.Add(condition);
 		return this;
   }
 	/// <summary></summary>
-	public AZSql.Basic Where(string p_column, object p_value) {
+	public AZSql.BQuery Where(string p_column, object p_value) {
     return Where(new Condition(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE));
 		//return Where(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE);
 	}
 	/// <summary></summary>
-	public AZSql.Basic Where(string p_column, object p_value, WHERETYPE p_wheretype) {
+	public AZSql.BQuery Where(string p_column, object p_value, WHERETYPE p_wheretype) {
     return Where(new Condition(p_column, p_value, p_wheretype, VALUETYPE.VALUE));
 		//return Where(p_column, p_value, p_wheretype, VALUETYPE.VALUE);
 	}
 	/// <summary></summary>
-	public AZSql.Basic Where(string p_column, object p_value, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
+	public AZSql.BQuery Where(string p_column, object p_value, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
 		if (p_column.Trim().Length < 1) {
 			throw new Exception("Target column name is not specified.");
 		}
+    /*
 		if (HasSchemaData()) {
 			if (!this.data_schema.HasKey(p_column)) {
 				throw new Exception("Target column name is not exist.");
 			}
 		}
+    */
     return Where(new Condition(p_column, p_value, p_wheretype, p_valuetype));
 		/*AZData data = new AZData();
 		data.Attribute.Add(ATTRIBUTE.WHERE, p_wheretype);
@@ -5220,23 +5250,25 @@ public class Basic {
 		return this;*/
 	}
 	/// <summary></summary>
-	public AZSql.Basic Where(string p_column, object[] p_value) {
+	public AZSql.BQuery Where(string p_column, object[] p_value) {
 		return Where(p_column, p_value, WHERETYPE.EQUAL, VALUETYPE.VALUE);
 	}
 	/// <summary></summary>
-	public AZSql.Basic Where(string p_column, object[] p_value, WHERETYPE p_wheretype) {
+	public AZSql.BQuery Where(string p_column, object[] p_value, WHERETYPE p_wheretype) {
 		return Where(p_column, p_value, p_wheretype, VALUETYPE.VALUE);
 	}
 	/// <summary></summary>
-	public AZSql.Basic Where(string p_column, object[] p_values, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
+	public AZSql.BQuery Where(string p_column, object[] p_values, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
 		if (p_column.Trim().Length < 1) {
 			throw new Exception("Target column name is not specified.");
 		}
+    /*
 		if (HasSchemaData()) {
 			if (!this.data_schema.HasKey(p_column)) {
 				throw new Exception("Target column name is not exist.");
 			}
 		}
+    */
 		AZData data = new AZData();
 		data.Attribute.Add(ATTRIBUTE.WHERE, p_wheretype);
 		data.Attribute.Add(ATTRIBUTE.VALUE, p_valuetype);
@@ -5247,6 +5279,11 @@ public class Basic {
 		this.sql_where.Add(data);
 		data = null;
 
+		return this;
+	}
+	/// <summary></summary>
+	public AZSql.BQuery ClearWhere() {
+		this.sql_where.Clear();
 		return this;
 	}
 	/// <summary>특정된 쿼리 타입에 맞게 현재의 자료를 바탕으로 쿼리 문자열 생성</summary>
@@ -5725,6 +5762,239 @@ public class Basic {
 				}
 				return rtn_value.ToString();
 			}
+			/// <summary>특정된 쿼리 실행 종류에 맞는 쿼리 문자열 생성 후 반환</summary>
+			public string GetQuery(CREATE_QUERY_TYPE p_create_query_type) {
+				return CreateQuery(p_create_query_type);
+			}
+			/// <summary>Prepared Statement 용 전달 인수 객체를 반환한다</summary>
+			public AZData GetPreparedParameters() {
+				AZData rtn_value = new AZData();
+				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
+					AZData data = this.sql_set.Get(cnti);
+					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+						if (rtn_value == null) rtn_value = new AZData();
+						rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1), data.Get(0));
+					}
+				}
+        //
+        int idx = 0;
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+          object row = this.sql_where[cnti];
+          if (row == null) continue;
+          if (row.GetType().Equals(typeof(Condition))) {
+            Condition data = (Condition)row;
+            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
+            //idx++;
+          }
+          else if (row.GetType().Equals(typeof(And))) {
+            And data = (And)row;
+            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
+            //idx += data.Count();
+          }
+          else if (row.GetType().Equals(typeof(Or))) {
+            Or data = (Or)row;
+            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
+            //idx += data.Count();
+          }
+					/*
+          AZData data = this.sql_where.Get(cnti);
+					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
+						if (rtn_value == null) rtn_value = new AZData();
+						switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
+							case WHERETYPE.IN:
+								for (int cntk = 0; cntk < data.Size(); cntk++) {
+									rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
+								}
+								break;
+							case WHERETYPE.BETWEEN:
+								for (int cntk = 0; cntk < data.Size(); cntk++) {
+									if (cntk > 1) break;
+									rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_between_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
+								}
+								break;
+							default:
+								rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1), data.Get(0));
+								break;
+						}
+					}*/
+				}
+				return rtn_value;
+			}
+		}
+
+    public class Basic: BQuery {
+	    private AZSql azSql;
+	    private bool has_schema_data;
+	    private AZData data_schema;
+
+
+      /// <summary>생성자</summary>
+      public Basic(string table_name) : base(table_name) {
+        //
+		    data_schema = null;
+		    has_schema_data = false;
+      }
+
+      /// <summary>생성자</summary>
+      public Basic(string table_name, string connection_json) : base(table_name) {
+        //
+		    this.azSql = new AZSql(connection_json);
+        //
+		    data_schema = null;
+		    has_schema_data = false;
+    		// 지정된 테이블에 대한 스키마 설정
+    		//SetSchemaData();
+      }
+
+      /// <summary>생성자</summary>
+      public Basic(string table_name, string connection_json, bool prepared) : base(table_name, prepared) {
+        //
+		    this.azSql = new AZSql(connection_json);
+        //
+		    data_schema = null;
+		    has_schema_data = false;
+    		// 지정된 테이블에 대한 스키마 설정
+    		//SetSchemaData();
+      }
+
+      /// <summary>생성자</summary>
+      public Basic(string table_name, AZSql azSql): base(table_name) {
+        //
+		    this.azSql = azSql;
+    		//
+		    data_schema = null;
+		    has_schema_data = false;
+    		// 지정된 테이블에 대한 스키마 설정
+    		//SetSchemaData();
+      }
+
+      /// <summary>생성자</summary>
+      public Basic(string table_name, AZSql azSql, bool prepared) : base(table_name, prepared) {
+        //
+		    this.azSql = azSql;
+    		//
+		    data_schema = null;
+		    has_schema_data = false;
+    		// 지정된 테이블에 대한 스키마 설정
+    		//SetSchemaData();
+      }
+    	/// <summary>지정된 테이블에 대한 스키마 정보 설정 처리</summary>
+    	private AZSql.Basic SetSchemaData() {
+    		if (this.table_name.Trim().Length < 1) {
+    			throw new Exception("Target table name not specified.");
+    		}
+    		switch (this.azSql.GetSqlType()) {
+    			case AZSql.SQL_TYPE.MSSQL:
+    			case AZSql.SQL_TYPE.MYSQL:
+    				try {
+    					string mainSql = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS with (nolock) WHERE TABLE_NAME='" + this.table_name + "';";
+    					AZList list = AZSql.Init(this.azSql.db_info).GetList(mainSql);
+    					//AZList list = this.azSql.GetList(mainSql);
+
+    					this.data_schema = new AZData();
+
+    					for (int cnti = 0; cnti < list.Size(); cnti++) {
+    						AZData data = list.Get(cnti);
+    						AZData.AttributeData info = new AZData.AttributeData();
+    						for (int cntk = 0; cntk < data.Size(); cntk++) {
+    								info.Add(data.GetKey(cntk), data.GetString(cntk));
+    						}
+    						this.data_schema.Add(data.GetString(0), info);
+    					}
+    					if (list.Size() > 0) {
+    						this.has_schema_data = true;
+    					}
+    				}
+    				catch (Exception) {
+    					this.data_schema = null;
+    				}
+    				break;
+    		}
+        return this;
+    	}
+      /// <summary></summary>
+      public new AZSql.Basic Set(string p_column, object p_value, VALUETYPE p_valuetype) {
+        if (p_column.Trim().Length < 1) {
+          throw new Exception("Target column name is not specified.");
+        }
+        if (HasSchemaData()) {
+          if (!this.data_schema.HasKey(p_column)) {
+            throw new Exception("Target column name is not exist.");
+          }
+        }
+        AZData data = new AZData();
+        data.Attribute.Add(ATTRIBUTE.VALUE, p_valuetype);
+        data.Add(p_column, p_value);
+
+        this.sql_set.Add(data);
+        data = null;
+
+        return this;
+      }
+      /// <summary></summary>
+      public new AZSql.Basic Where(Or condition) {
+        this.sql_where.Add(condition);
+        return this;
+      }
+      /// <summary></summary>
+      public new AZSql.Basic Where(And condition) {
+        this.sql_where.Add(condition);
+        return this;
+      }
+      /// <summary></summary>
+      public new AZSql.Basic Where(Condition condition) {
+        if (condition.Column.Trim().Length < 1) {
+          throw new Exception("Target column name is not specified.");
+        }
+        if (HasSchemaData() && !this.data_schema.HasKey(condition.Column)) {
+          throw new Exception("Target column name is not exist.");
+        }
+        this.sql_where.Add(condition);
+        return this;
+      }
+      /// <summary></summary>
+      public new AZSql.Basic Where(string p_column, object[] p_values, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
+        if (p_column.Trim().Length < 1) {
+          throw new Exception("Target column name is not specified.");
+        }
+        if (HasSchemaData()) {
+          if (!this.data_schema.HasKey(p_column)) {
+            throw new Exception("Target column name is not exist.");
+          }
+        }
+        AZData data = new AZData();
+        data.Attribute.Add(ATTRIBUTE.WHERE, p_wheretype);
+        data.Attribute.Add(ATTRIBUTE.VALUE, p_valuetype);
+        for (int cnti = 0; cnti < p_values.Length; cnti++) {
+          data.Add(p_column, p_values[cnti]);
+        }
+
+        this.sql_where.Add(data);
+        data = null;
+
+        return this;
+      }
+      /// <summary></summary>
+      public new AZSql.Basic Where(string p_column, object p_value, WHERETYPE p_wheretype, VALUETYPE p_valuetype) {
+        if (p_column.Trim().Length < 1) {
+          throw new Exception("Target column name is not specified.");
+        }
+        if (HasSchemaData()) {
+          if (!this.data_schema.HasKey(p_column)) {
+            throw new Exception("Target column name is not exist.");
+          }
+        }
+        return Where(new Condition(p_column, p_value, p_wheretype, p_valuetype));
+        /*AZData data = new AZData();
+        data.Attribute.Add(ATTRIBUTE.WHERE, p_wheretype);
+        data.Attribute.Add(ATTRIBUTE.VALUE, p_valuetype);
+        data.Add(p_column, p_value);
+
+        this.sql_where.Add(data);
+        data = null;
+
+        return this;*/
+      }
 			/// <summary>주어진 자료를 바탕으로 delete 쿼리 실행</summary>
 			public int DoDelete() {
 				return DoDelete(true);
@@ -5736,7 +6006,6 @@ public class Basic {
 					throw new Exception("Where datas required.");
 				}
 				if (!IsPrepared()) {
-					//rtn_value = AZSql.Init(this.db_info).Execute(GetQuery(CREATE_QUERY_TYPE.DELETE));
 					rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.DELETE));
 				}
 				else {
@@ -5744,10 +6013,6 @@ public class Basic {
 						throw new Exception("AZSql required.");
 					}
 					rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.DELETE), GetPreparedParameters());
-					//AZSql.Prepared prepared = AZSql.Init(this.db_info).GetPrepared();
-					//prepared.SetQuery(GetQuery(CREATE_QUERY_TYPE.DELETE));
-					//prepared.SetParameters(GetPreparedParameters());
-					//rtn_value = prepared.Execute();
 				}
 				return rtn_value;
 			}
@@ -5852,65 +6117,6 @@ public class Basic {
 				return rtn_value;
 			}
 #endif
-			/// <summary>특정된 쿼리 실행 종류에 맞는 쿼리 문자열 생성 후 반환</summary>
-			public string GetQuery(CREATE_QUERY_TYPE p_create_query_type) {
-				return CreateQuery(p_create_query_type);
-			}
-			/// <summary>Prepared Statement 용 전달 인수 객체를 반환한다</summary>
-			public AZData GetPreparedParameters() {
-				AZData rtn_value = new AZData();
-				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
-					AZData data = this.sql_set.Get(cnti);
-					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-						if (rtn_value == null) rtn_value = new AZData();
-						rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1), data.Get(0));
-					}
-				}
-        //
-        int idx = 0;
-				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
-          object row = this.sql_where[cnti];
-          if (row == null) continue;
-          if (row.GetType().Equals(typeof(Condition))) {
-            Condition data = (Condition)row;
-            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
-            //idx++;
-          }
-          else if (row.GetType().Equals(typeof(And))) {
-            And data = (And)row;
-            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
-            //idx += data.Count();
-          }
-          else if (row.GetType().Equals(typeof(Or))) {
-            Or data = (Or)row;
-            rtn_value.Add(data.SetPrepared(IsPrepared()).ToAZData(ref idx));
-            //idx += data.Count();
-          }
-					/*
-          AZData data = this.sql_where.Get(cnti);
-					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
-						if (rtn_value == null) rtn_value = new AZData();
-						switch (data.Attribute.Get(ATTRIBUTE.WHERE)) {
-							case WHERETYPE.IN:
-								for (int cntk = 0; cntk < data.Size(); cntk++) {
-									rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
-								}
-								break;
-							case WHERETYPE.BETWEEN:
-								for (int cntk = 0; cntk < data.Size(); cntk++) {
-									if (cntk > 1) break;
-									rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_between_" + (cnti + 1) + "_in_" + (cntk + 1), data.Get(cntk));
-								}
-								break;
-							default:
-								rtn_value.Add("@" + data.GetKey(0).Replace(".", "___") + "_where_" + (cnti + 1), data.Get(0));
-								break;
-						}
-					}
-          */
-				}
-				return rtn_value;
-			}
 			/// <summary>Prepared 객체를 반환한다</summary>
 			public AZSql.Prepared GetPrepared(CREATE_QUERY_TYPE create_query_type) {
 				AZSql.Prepared rtn_value = null;
@@ -5946,40 +6152,633 @@ public class Basic {
 			public AZData GetSchemaData() {
 				return this.data_schema;
 			}
-		}
-  
-    public class Mongo {
-      private MongoClient client;
-
-      /// <summary>기본 생성자</summary>
-      public Mongo() {}
-      
-      /// <summary>기본 소멸자</summary>
-      ~Mongo() {}
-
-      /// <summary>생성자, DB연결을 위한 문자열을 통해 연결 생성</summary>
-      public Mongo(string connection_string) {
-        Set(connection_string);
-      }
-
-      /// <summary>생성자, 외부에서 선언된 클라이언트를 참조</summary>
-      public Mongo(ref MongoClient client) {
-        this.client = client;
-      }
-      
-      /// <summary>현재 객체에 대해 DB연결 설정</summary>
-      /// <param name="connection_string">DB연결 문자열</param>
-      public Mongo Set(string connection_string) {
-        this.client = new MongoClient(connection_string);
-        return this;
-      }
-
-      /// <summary>현재 객체에 대해 DB연결 설정</summary>
-      /// <param name="client">DB연결 객체 참조값</param>
-      public Mongo Set(ref MongoClient client) {
-        this.client = client;
-        return this;
-      }
     }
-  }
+
+		public class Mongo : BQuery {
+			private MongoClient client;
+			private IMongoDatabase database;
+			private IMongoCollection<BsonDocument> collection;
+			private List<OrderData> sorts;
+
+			/// <summary>기본 생성자</summary>
+			public Mongo() {
+			}
+
+			/// <summary>기본 소멸자</summary>
+			~Mongo() {
+			}
+
+			/// <summary>생성자, DB연결을 위한 문자열을 통해 연결 생성</summary>
+			/// <param name="connection_string"></param>
+			public Mongo(string connection_string) {
+				SetClient(connection_string);
+			}
+
+			/// <summary>생성자, 외부에서 선언된 클라이언트를 참조</summary>
+			/// <param name="client"></param>
+			public Mongo(ref MongoClient client) {
+				this.client = client;
+			}
+
+			/// <summary>현재 객체에 대해 DB연결 설정</summary>
+			/// <param name="connection_string">DB연결 문자열</param>
+			public Mongo SetClient(string connection_string) {
+				this.client = new MongoClient(connection_string);
+				return this;
+			}
+
+			/// <summary>현재 객체에 대해 DB연결 설정</summary>
+			/// <param name="client">DB연결 객체 참조값</param>
+			public Mongo SetClient(ref MongoClient client) {
+				this.client = client;
+				return this;
+			}
+
+			/// <summary>연결된 DB객체에 대한 database 설정</summary>
+			/// <param name="db_string"></param>
+			public Mongo SetDB(string db_string) {
+				if (this.client == null) {
+					throw new Exception("client is null");
+				}
+
+				this.database = this.client.GetDatabase(db_string);
+				return this;
+			}
+
+			/// <summary>database연결 객체 설정</summary>
+			/// <param name="db"></param>
+			public Mongo SetDB(ref IMongoDatabase db) {
+				this.database = db;
+				return this;
+			}
+
+			/// <summary>
+			/// 사전 지정된 database의 collection 지정.
+			/// 사전에 지정된 database가 없는 경우 예외 발생됨
+			/// </summary>
+			/// <param name="collection_string">지정한 collection의 문자열</param>
+			public Mongo SetCollection(string collection_string) {
+				if (this.client == null || this.database == null) {
+					throw new Exception("client/database is null");
+				}
+				this.collection = this.database.GetCollection<BsonDocument>(collection_string);
+				return this;
+			}
+
+			/// <summary>collection 객체 설정</summary>
+			/// <param name="collection">참조하여 사용할 IMongoCollection 객체</param>
+			public Mongo SetCollection(ref IMongoCollection<BsonDocument> collection) {
+				this.collection = collection;
+				return this;
+			}
+
+			/// <summary>INSERT 또는 UPDATE를 하기 위한 컬럼/값 설정</summary>
+			/// <param name="column"></param>
+			/// <param name="value"></param>
+			/// <exception cref="Exception"></exception>
+			public new Mongo Set(string column, object value) {
+				if (column.Trim().Length < 1) {
+					throw new Exception("Target column name is not specified.");
+				}
+				this.sql_set.Add(new AZData().Add(column, value));
+				return this;
+			}
+
+			/// <summary>Filter에 사용할 Or 조건 입력</summary>
+			/// <param name="condition"></param>
+			/// <returns></returns>
+			public new Mongo Where(Or condition) {
+				this.sql_where.Add(condition);
+				return this;
+			}
+
+			/// <summary>Filter에 사용할 And 조건 입력</summary>
+			/// <param name="condition"></param>
+			/// <returns></returns>
+			public new Mongo Where(And condition) {
+				this.sql_where.Add(condition);
+				return this;
+			}
+
+			/// <summary>Filter에 사용할 조건 입력</summary>
+			/// <param name="condition"></param>
+			/// <returns></returns>
+			/// <exception cref="Exception"></exception>
+			public new Mongo Where(Condition condition) {
+				if (condition.Column.Trim().Length < 1) {
+					throw new Exception("Target column name is not specified.");
+				}
+
+				this.sql_where.Add(condition);
+				return this;
+			}
+
+			/// <summary>Filter에 사용할 조건 입력</summary>
+			/// <param name="column"></param>
+			/// <param name="values"></param>
+			/// <param name="wheretype"></param>
+			/// <returns></returns>
+			public new Mongo Where(string column, object[] values, WHERETYPE wheretype) {
+				if (column.Trim().Length < 1) {
+					throw new Exception("Target column name is not specified.");
+				}
+
+				AZData data = new AZData();
+				data.Attribute.Add(ATTRIBUTE.WHERE, wheretype);
+				for (int cnti = 0; cnti < values.Length; cnti++) {
+					data.Add(column, values[cnti]);
+				}
+
+				this.sql_where.Add(data);
+				data = null;
+
+				return this;
+			}
+
+			/// <summary>Filter에 사용할 조건 입력</summary>
+			/// <param name="column"></param>
+			/// <param name="value"></param>
+			/// <param name="wheretype"></param>
+			/// <returns></returns>
+			public new Mongo Where(string column, object value, WHERETYPE wheretype) {
+				if (column.Trim().Length < 1) {
+					throw new Exception("Target column name is not specified.");
+				}
+				return Where(new Condition(column, value, wheretype));
+			}
+
+			/// <summary>
+			/// 정렬 처리를 위한 자료 입력.
+			/// ascending값으로 오름/내림차순 처리 하도록 한다.
+			/// 입력되는 순서별로 정렬 처리가 됨
+			/// </summary>
+			/// <param name="column">정렬 기준 column값</param>
+			/// <param name="ascending">오름/내림차순 처리 기준값. true면 오름, false면 내림</param>
+			/// <returns></returns>
+			public Mongo Order(string column, bool ascending = true) {
+				if (sorts == null) sorts = new List<OrderData>();
+				sorts.Add(new OrderData(column, ascending));
+				return this;
+			}
+
+			/// <summary>입력된 조건에 맞는 결과값 갯수 반환</summary>
+			/// <param name="size"></param>
+			/// <param name="offset"></param>
+			public long DoCount(int size = 0, int offset = 0) {
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+
+				var find = this.collection.Find(filter);
+				if (size > 0) find.Limit(size);
+				if (offset > 0) find.Skip(offset);
+				//
+				return find.CountDocuments();
+			}
+
+			/// <summary>비동기처리. 입력된 조건에 맞는 결과값 갯수 반환</summary>
+			/// <param name="size"></param>
+			/// <param name="offset"></param>
+			public async Task<long> DoCountAsync(int size = 0, int offset = 0) {
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				var find = this.collection.Find(filter);
+				if (size > 0) find.Limit(size);
+				if (offset > 0) find.Skip(offset);
+				//
+				return await find.CountDocumentsAsync();
+			}
+
+			/// <summary>입력된 조건에 맞는 결과값 목록 반환</summary>
+			/// <param name="size">가져올 목록의 최대 갯수 지정. default=0</param>
+			/// <param name="offset">가져올 목록의 시작 index 지정. default=0</param>
+			public AZList DoSelect(int size = 0, int offset = 0) {
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+
+				var find = this.collection.Find(filter);
+				if (size > 0) find.Limit(size);
+				if (offset > 0) find.Skip(offset);
+				//
+				if (this.sorts != null) {
+					SortDefinition<BsonDocument> sort = null;
+					foreach (OrderData orderData in this.sorts) {
+						if (orderData.Column.Trim().Length < 1) continue;
+						if (orderData.Ascending) {
+							if (sort == null) {
+								sort = new SortDefinitionBuilder<BsonDocument>().Ascending(orderData.Column);
+							}
+							else {
+								sort.Ascending(orderData.Column);
+							}
+						}
+						else {
+							if (sort == null) {
+								sort = new SortDefinitionBuilder<BsonDocument>().Descending(orderData.Column);
+							}
+							else {
+								sort.Descending(orderData.Column);
+							}
+						}
+					}
+					if (sort != null) find.Sort(sort);
+				}
+				return find.ToList().ToAZList();
+			}
+			
+			/// <summary>비동기처리. 입력된 조건에 맞는 결과값 목록 반환</summary>
+			/// <param name="size">가져올 목록의 최대 갯수 지정. default=0</param>
+			/// <param name="offset">가져올 목록의 시작 index 지정. default=0</param>
+			public async Task<AZList> DoSelectAsync(int size = 0, int offset = 0) {
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+
+				var find = this.collection.Find(filter);
+				if (size > 0) find.Limit(size);
+				if (offset > 0) find.Skip(offset);
+				//
+				if (this.sorts != null) {
+					SortDefinition<BsonDocument> sort = null;
+					foreach (OrderData orderData in this.sorts) {
+						if (orderData.Column.Trim().Length < 1) continue;
+						if (orderData.Ascending) {
+							if (sort == null) {
+								sort = new SortDefinitionBuilder<BsonDocument>().Ascending(orderData.Column);
+							}
+							else {
+								sort.Ascending(orderData.Column);
+							}
+						}
+						else {
+							if (sort == null) {
+								sort = new SortDefinitionBuilder<BsonDocument>().Descending(orderData.Column);
+							}
+							else {
+								sort.Descending(orderData.Column);
+							}
+						}
+					}
+					if (sort != null) find.Sort(sort);
+				}
+				return (await find.ToListAsync()).ToAZList();
+			}
+
+			/// <summary>Set으로 지정된 컬럼/값 자료를 collection에 입력 처리</summary>
+			/// <param name="data">data 인수를 받게 되면 이전의 Set으로 입력된 모든값이 무시되고 data값만 입력됩니다.</param>
+			public void DoInsert(AZData data = null) {
+				this.collection.InsertOne(data == null ? sql_set.ToBsonDocument() : data.ToBsonDocument());
+			}
+
+			/// <summary>비동기처리. Set으로 지정된 컬럼/값 자료를 collection에 입력 처리</summary>
+			/// <param name="data">data 인수를 받게 되면 이전의 Set으로 입력된 모든값이 무시되고 data값만 입력됩니다.</param>
+			public async Task DoInsertAsync(AZData data = null) {
+				await this.collection.InsertOneAsync(data == null ? sql_set.ToBsonDocument() : data.ToBsonDocument());
+			}
+
+			/// <summary>Set으로 지정된 컬럼/값 자료를 collection에 입력 처리</summary>
+			/// <param name="list"></param>
+			public void DoInsertMany(AZList list) {
+				this.collection.InsertMany(list.ToBsonDocumentList());
+			}
+
+			/// <summary>비동기처리. Set으로 지정된 컬럼/값 자료를 collection에 입력 처리</summary>
+			/// <param name="list"></param>
+			public async Task DoInsertManyAsync(AZList list) {
+				await this.collection.InsertManyAsync(list.ToBsonDocumentList());
+			}
+
+			/// <summary>Set으로 지정된 수정값과 Where로 지정된 조건값에 따라 collection의 해당 자료 수정 처리</summary>
+			public UpdateResult DoUpdateOne() {
+				//
+				AZData setData = new AZData();
+				for (int cnti = 0; cnti < sql_set.Size(); cnti++) {
+					setData.Add(sql_set.Get(cnti));
+				}
+				BsonDocument set = new BsonDocument("$set", setData.ToBsonDocument());
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				//
+				return this.collection.UpdateOne(filter, set);
+			}
+
+			/// <summary>비동기처리. Set으로 지정된 수정값과 Where로 지정된 조건값에 따라 collection의 해당 자료 수정 처리</summary>
+			/// <summary>비동기처리. Set으로 지정된 수정값과 Where로 지정된 조건값에 따라 collection의 해당 자료 수정 처리</summary>
+			public async Task<UpdateResult> DoUpdateOneAsync() {
+				//
+				AZData setData = new AZData();
+				for (int cnti = 0; cnti < sql_set.Size(); cnti++) {
+					setData.Add(sql_set.Get(cnti));
+				}
+				BsonDocument set = new BsonDocument("$set", setData.ToBsonDocument());
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				//
+				return await this.collection.UpdateOneAsync(filter, set);
+			}
+
+			/// <summary>Set으로 지정된 수정값과 Where로 지정된 조건값에 따라 collection의 해당 자료 수정 처리</summary>
+			public UpdateResult DoUpdate() {
+				//
+				AZData setData = new AZData();
+				for (int cnti = 0; cnti < sql_set.Size(); cnti++) {
+					setData.Add(sql_set.Get(cnti));
+				}
+				BsonDocument set = new BsonDocument("$set", setData.ToBsonDocument());
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				//
+				return this.collection.UpdateMany(filter, set);
+			}
+
+			/// <summary>비동기처리. Set으로 지정된 수정값과 Where로 지정된 조건값에 따라 collection의 해당 자료 수정 처리</summary>
+			public async Task<UpdateResult> DoUpdateAsync() {
+				//
+				AZData setData = new AZData();
+				for (int cnti = 0; cnti < sql_set.Size(); cnti++) {
+					setData.Add(sql_set.Get(cnti));
+				}
+				BsonDocument set = new BsonDocument("$set", setData.ToBsonDocument());
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				//
+				return await this.collection.UpdateManyAsync(filter, set);
+			}
+
+			/// <summary>Where로 지정된 조건값에 따라 collection의 해당 자료 삭제 처리</summary>
+			/// <param name="need_where">false인 경우에만 지정된 Where 자료 없이 처리 가능. default=true</param>
+			public DeleteResult DoDeleteOne(bool need_where = true) {
+				if (need_where && this.sql_where.Count < 1) {
+					throw new Exception("Where data required.");
+				}
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				return this.collection.DeleteOne(filter);
+			}
+
+			/// <summary>비동기처리. Where로 지정된 조건값에 따라 collection의 해당 자료 삭제 처리</summary>
+			/// <param name="need_where">false인 경우에만 지정된 Where 자료 없이 처리 가능. default=true</param>
+			public async Task<DeleteResult> DoDeleteOneAsync(bool need_where = true) {
+				if (need_where && this.sql_where.Count < 1) {
+					throw new Exception("Where data required.");
+				}
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				return await this.collection.DeleteOneAsync(filter);
+			}
+
+			/// <summary>Where로 지정된 조건값에 따라 collection의 해당 자료 삭제 처리</summary>
+			/// <param name="need_where">false인 경우에만 지정된 Where 자료 없이 처리 가능. default=true</param>
+			public DeleteResult DoDelete(bool need_where = true) {
+				if (need_where && this.sql_where.Count < 1) {
+					throw new Exception("Where data required.");
+				}
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				return this.collection.DeleteMany(filter);
+			}
+
+			/// <summary>비동기처리. Where로 지정된 조건값에 따라 collection의 해당 자료 삭제 처리</summary>
+			/// <param name="need_where">false인 경우에만 지정된 Where 자료 없이 처리 가능. default=true</param>
+			public async Task<DeleteResult> DoDeleteAsync(bool need_where = true) {
+				if (need_where && this.sql_where.Count < 1) {
+					throw new Exception("Where data required.");
+				}
+				//
+				BsonDocument filter = new BsonDocument();
+				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
+					object row = this.sql_where[cnti];
+					if (row.GetType() == typeof(Condition)) {
+						filter.AddRange(((Condition) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(And)) {
+						filter.AddRange(((And) row).ToBsonDocument());
+					}
+					else if (row.GetType() == typeof(Or)) {
+						filter.AddRange(((Or) row).ToBsonDocument());
+					}
+				}
+				return await this.collection.DeleteManyAsync(filter);
+			}
+
+			/// <summary>정렬순서 정보 저장용 객체</summary>
+			private class OrderData {
+				public string Column { get; set; }
+				public bool Ascending { get; set; }
+				
+				/// <summary>기본 생성자</summary>
+				public OrderData() { }
+
+				/// <summary></summary>
+				/// <param name="column"></param>
+				/// <param name="ascending"></param>
+				public OrderData(string column, bool ascending = true) {
+					this.Column = column;
+					this.Ascending = ascending;
+				}
+			}
+		}
+	}
+
+	public static class AZSqlExtend {
+		/// <summary></summary>
+		/// <param name="source"></param>
+		public static BsonDocument ToBsonDocument(this AZData source) {
+			BsonDocument rtnValue = new BsonDocument();
+			string[] keys = source.GetAllKeys();
+			foreach (string column in keys) {
+				object value = source.Get(column);
+				//
+				if (value.GetType().Equals(typeof(Int16))) {
+					rtnValue.Add(column, (short)value);
+				}
+				else if (value.GetType().Equals(typeof(Int32))) {
+					rtnValue.Add(column, (int)value);
+				}
+				else if (value.GetType().Equals(typeof(Int64))) {
+					rtnValue.Add(column, (long)value);
+				}
+				else if (value.GetType().Equals(typeof(AZData))) {
+					rtnValue.Add(column, ((AZData)value).ToBsonDocument());
+				}
+				else if (value.GetType().Equals(typeof(AZList))) {
+					rtnValue.Add(column, ((AZList)value).ToBsonArray());
+				}
+				else {
+					rtnValue.Add(column, AZString.Init(value).String());
+				}
+			}
+			return rtnValue;
+		}
+
+		/// <summary></summary>
+		/// <param name="source"></param>
+		public static BsonArray ToBsonArray(this AZList source) {
+			BsonArray rtnValue = new BsonArray();
+			for (int cnti = 0; cnti < source.Size(); cnti++) {
+				rtnValue.Add(source.Get(cnti).ToBsonDocument());
+			}
+			return rtnValue;
+		}
+
+		/// <summary></summary>
+		/// <param name="source"></param>
+		public static List<BsonDocument> ToBsonDocumentList(this AZList source) {
+			List<BsonDocument> rtnValue = new List<BsonDocument>();
+			for (int cnti = 0; cnti < source.Size(); cnti++) {
+				rtnValue.Add(source.Get(cnti).ToBsonDocument());
+			}
+			return rtnValue;
+		}
+		
+		/// <summary></summary>
+		/// <param name="source"></param>
+		public static AZData ToAZData(this BsonDocument source) {
+			AZData rtnValue = source.ToString().ToAZData();
+			if (rtnValue.HasKey("_id")) {
+				string id = rtnValue.GetString("_id");
+				if (id.StartsWith("ObjectId(") && id.EndsWith(")")) {
+					id = id.Substring(9, id.Length - 10);
+					rtnValue.Set("_id", id);
+				}
+			}
+			return source.ToString().ToAZData();
+		}
+		
+		/// <summary></summary>
+		/// <param name="source"></param>
+		public static AZList ToAZList(this List<BsonDocument> source) {
+			AZList rtnValue = new AZList();
+			foreach (BsonDocument document in source) {
+				rtnValue.Add(document.ToAZData());
+			}
+			return rtnValue;
+		}
+	}
 }
