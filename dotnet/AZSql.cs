@@ -479,7 +479,12 @@ namespace Com.Mparang.AZLib {
 		/// <summary>PreparedStatement 또는 StoredProcedure 사용의 경우 전달할 리턴 인수값 설정.
 		/// 실제 처리는 AddParameter(string, object)의 반복</summary>
 		public AZSql SetReturnParameters(AZData parameters) {
-			this.return_parameters.Clear();
+			if (this.return_parameters == null) {
+				this.return_parameters = new AZData();
+			}
+			else {
+				this.return_parameters.Clear();				
+			}
 			for (int cnti=0; cnti<parameters.Size(); cnti++) {
 				this.return_parameters.Add(parameters.GetKey(cnti), new ParameterData(parameters.Get(cnti)));
 			}
@@ -668,6 +673,27 @@ namespace Com.Mparang.AZLib {
 			SetQuery(query);
 			SetParameters(parameters);
 			SetIdentity(identity);
+			return Execute();
+		}
+		
+		/// <summary>지정된 쿼리문 실행 처리</summary>
+		/// <param name="query">실행할 쿼리문</param>
+		/// <param name="parameters"></param>
+		public int Execute(string query, AZData parameters, AZData returnParameters) {
+			SetQuery(query);
+			SetParameters(parameters);
+			SetReturnParameters(returnParameters);
+			return Execute();
+		}
+		
+		/// <summary>지정된 쿼리문 실행 처리</summary>
+		/// <param name="query">실행할 쿼리문</param>
+		/// <param name="parameters"></param>
+		public int Execute(string query, AZData parameters, AZData returnParameters, bool isStoredProcedure) {
+			SetIsStoredProcedure(isStoredProcedure);
+			SetQuery(query);
+			SetParameters(parameters);
+			SetReturnParameters(returnParameters);
 			return Execute();
 		}
 				
@@ -941,6 +967,27 @@ namespace Com.Mparang.AZLib {
 			SetQuery(query);
 			SetParameters(parameters);
 			SetIdentity(identity);
+			return await ExecuteAsync();
+		}
+		
+		/// <summary>지정된 쿼리문 실행 처리</summary>
+		/// <param name="query">실행할 쿼리문</param>
+		/// <param name="parameters"></param>
+		public async Task<int> ExecuteAsync(string query, AZData parameters, AZData returnParameters) {
+			SetQuery(query);
+			SetParameters(parameters);
+			SetReturnParameters(returnParameters);
+			return await ExecuteAsync();
+		}
+		
+		/// <summary>지정된 쿼리문 실행 처리</summary>
+		/// <param name="query">실행할 쿼리문</param>
+		/// <param name="parameters"></param>
+		public async Task<int> ExecuteAsync(string query, AZData parameters, AZData returnParameters, bool isStoredProcedure) {
+			SetIsStoredProcedure(isStoredProcedure);
+			SetQuery(query);
+			SetParameters(parameters);
+			SetReturnParameters(returnParameters);
 			return await ExecuteAsync();
 		}
 
