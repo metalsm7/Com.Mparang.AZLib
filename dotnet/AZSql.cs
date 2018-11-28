@@ -180,6 +180,14 @@ namespace Com.Mparang.AZLib {
 		public static AZSql Init(DBConnectionInfo db_connection_info) {
 			return new AZSql(db_connection_info);
 		}
+
+		public AZSql Clear() {
+			SetIsStoredProcedure(false);
+			ClearQuery();
+			ClearParameters();
+			ClearReturnParameters();
+			return this;
+		}
 		
 		/// <summary></summary>
 		/// Created in 2017-03-28, leeyonghun
@@ -353,6 +361,11 @@ namespace Com.Mparang.AZLib {
 		/// <summary>현재 AZSql 객체에 대해 설정된 쿼리문 반환</summary>
 		public string GetQuery() {
 			return this.query;
+		}
+
+		public AZSql ClearQuery() {
+			this.query = "";
+			return this;
 		}
 
 		/// <summary>PreparedStatement 또는 StoredProcedure 사용의 경우 전달할 인수값 설정.
@@ -3943,18 +3956,18 @@ namespace Com.Mparang.AZLib {
 		public static string MakeSelect(string p_select, int? p_count, Table p_table, Condition p_condition, Ordering p_order) {
 			StringBuilder rtnValue = new StringBuilder();
 			if (p_count.HasValue) {
-				rtnValue.AppendFormat("SELECT TOP {0} {1}", p_count, "\r\n");
+				rtnValue.AppendFormat("SELECT TOP {0} {1}", p_count, Environment.NewLine);
 			}
 			else {
-				rtnValue.AppendFormat("SELECT {0}", "\r\n");
+				rtnValue.AppendFormat("SELECT {0}", Environment.NewLine);
 			}
-			rtnValue.AppendFormat("	{0} {1}", p_select, "\r\n");
-			rtnValue.AppendFormat("FROM {0}", "\r\n");
-			rtnValue.AppendFormat(" {0} {1}", p_table.GetQuery(), "\r\n");
+			rtnValue.AppendFormat("	{0} {1}", p_select, Environment.NewLine);
+			rtnValue.AppendFormat("FROM {0}", Environment.NewLine);
+			rtnValue.AppendFormat(" {0} {1}", p_table.GetQuery(), Environment.NewLine);
 
 			//
 			if (p_condition != null && p_condition.Size() > 0) {
-				rtnValue.AppendFormat("WHERE {0}", "\r\n");
+				rtnValue.AppendFormat("WHERE {0}", Environment.NewLine);
 				//if (p_condition.GetFirstConjunction() == AZSql.Query.CONJUNCTION.EMPTY) {
 				//		rtnValue.Append("	 AND ");
 				//}
@@ -3962,7 +3975,7 @@ namespace Com.Mparang.AZLib {
 			}
 			//
 			if (p_order != null && p_order.Size() > 0) {
-				rtnValue.AppendFormat("ORDER BY {0}", "\r\n");
+				rtnValue.AppendFormat("ORDER BY {0}", Environment.NewLine);
 				rtnValue.AppendFormat(" {0}", p_order.GetQuery());
 			}
 			return rtnValue.ToString();
@@ -4088,9 +4101,9 @@ namespace Com.Mparang.AZLib {
 					string data_target = data.GetString("target");
 					AZList list_on = data.GetList("on");
 
-					rtn_value.AppendFormat("		{0} {1} {2}", data_join, data_target, "\r\n");
+					rtn_value.AppendFormat("		{0} {1} {2}", data_join, data_target, Environment.NewLine);
 					if (list_on.Size() > 0) {
-						rtn_value.AppendFormat("				{0} ({1}{2}				) {3}", "on", "\r\n", AZSql.Query.Condition.GetQuery(list_on.ToJsonString()).Replace("	 ", "						"), "\r\n");
+						rtn_value.AppendFormat("				{0} ({1}{2}				) {3}", "on", Environment.NewLine, AZSql.Query.Condition.GetQuery(list_on.ToJsonString()).Replace("	 ", "						"), Environment.NewLine);
 					}
 				}
 
@@ -4394,7 +4407,7 @@ namespace Com.Mparang.AZLib {
               rtn_value.Append(tab_string + group_list.Get(0).GetString("conjunction") + " ");
             }
             else {
-              rtn_value.Append(tab_string + group_list.Get(0).GetString("conjunction") + " (" + "\r\n");
+              rtn_value.Append(tab_string + group_list.Get(0).GetString("conjunction") + " (" + Environment.NewLine);
               tab_string = "			";
             }
 
@@ -4410,10 +4423,10 @@ namespace Com.Mparang.AZLib {
               switch (sub_comparison.ToLower()) {
                 case "between":
                   if (group_list.Get(cntk).GetList("values").Size() > 1) {
-                    rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(cntk).GetList("values").Get(1).GetString("value") + "\r\n");
+                    rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(cntk).GetList("values").Get(1).GetString("value") + Environment.NewLine);
                   }
                   else if (group_list.Get(cntk).GetList("values").Size() == 1) {
-                    rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + "\r\n");
+                    rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + Environment.NewLine);
                   }
                   break;
                 case "in":
@@ -4424,10 +4437,10 @@ namespace Com.Mparang.AZLib {
                     }
                     rtn_value.AppendFormat("{0}", group_list.Get(cntk).GetList("values").Get(cntm).GetString("value"));
                   }
-                  rtn_value.AppendFormat(") {0}", "\r\n");
+                  rtn_value.AppendFormat(") {0}", Environment.NewLine);
                   break;
                 default:
-                  rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + "\r\n");
+                  rtn_value.Append(group_list.Get(cntk).GetList("values").Get(0).GetString("value") + Environment.NewLine);
                   break;
               }
             }
@@ -4435,7 +4448,7 @@ namespace Com.Mparang.AZLib {
             if (group_key.Equals("_____")) {
             }
             else {
-                rtn_value.Append("	)" + "\r\n");
+                rtn_value.Append("	)" + Environment.NewLine);
             }
           }
           else {
@@ -4446,10 +4459,10 @@ namespace Com.Mparang.AZLib {
             switch (sub_comparison.ToLower()) {
               case "between":
                 if (group_list.Get(0).GetList("values").Size() > 1) {
-                  rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(0).GetList("values").Get(1).GetString("value") + "\r\n");
+                  rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + " AND " + group_list.Get(0).GetList("values").Get(1).GetString("value") + Environment.NewLine);
                 }
                 else if (group_list.Get(0).GetList("values").Size() == 1) {
-                  rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + "\r\n");
+                  rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + Environment.NewLine);
                 }
                 break;
               case "in":
@@ -4460,10 +4473,10 @@ namespace Com.Mparang.AZLib {
                   }
                   rtn_value.AppendFormat("{0}", group_list.Get(0).GetList("values").Get(cntm).GetString("value"));
                 }
-                rtn_value.AppendFormat(") {0}", "\r\n");
+                rtn_value.AppendFormat(") {0}", Environment.NewLine);
                 break;
               default:
-                rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + "\r\n");
+                rtn_value.Append(group_list.Get(0).GetList("values").Get(0).GetString("value") + Environment.NewLine);
                 break;
             }
           }
@@ -4529,10 +4542,10 @@ public class BQuery {
 			StringBuilder rtn_value = new StringBuilder();
 			for (int cnti = 0; cnti < this.setList.Count; cnti++) {
 				if (cnti < 1) {
-					rtn_value.AppendFormat("		 {0} {1}", this.setList[cnti].GetQuery(), "\r\n");
+					rtn_value.AppendFormat("		 {0} {1}", this.setList[cnti].GetQuery(), Environment.NewLine);
 				}
 				else {
-					rtn_value.AppendFormat("		,{0} {1}", this.setList[cnti].GetQuery(), "\r\n");
+					rtn_value.AppendFormat("		,{0} {1}", this.setList[cnti].GetQuery(), Environment.NewLine);
 				}
 			}
 			return rtn_value.ToString();
@@ -4972,7 +4985,7 @@ public class BQuery {
           //conditionIdx++;
         }
         idx++;
-        if (idx < ands.Count) rtnValue.Append("\r\n");
+        if (idx < ands.Count) rtnValue.Append(Environment.NewLine);
       }
       rtnValue.Append(")");
       return rtnValue.ToString();
@@ -5070,7 +5083,7 @@ public class BQuery {
           //conditionIdx++;
         }
         idx++;
-        if (idx < ors.Count) rtnValue.Append("\r\n");
+        if (idx < ors.Count) rtnValue.Append(Environment.NewLine);
       }
       rtnValue.Append(")");
       return rtnValue.ToString();
@@ -5339,13 +5352,13 @@ public class BQuery {
     int idx = 0;
 		switch (p_type) {
 			case CREATE_QUERY_TYPE.SELECT:
-				rtn_value.AppendFormat("SELECT{0}", "\r\n");
-				rtn_value.AppendFormat(" {0}{1}", this.sql_select, "\r\n");
-				rtn_value.AppendFormat("FROM{0}", "\r\n");
-				rtn_value.AppendFormat(" {0}{1}", this.table_name, "\r\n");
+				rtn_value.AppendFormat("SELECT{0}", Environment.NewLine);
+				rtn_value.AppendFormat(" {0}{1}", this.sql_select, Environment.NewLine);
+				rtn_value.AppendFormat("FROM{0}", Environment.NewLine);
+				rtn_value.AppendFormat(" {0}{1}", this.table_name, Environment.NewLine);
         //
 				for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
-					//if (cnti == 0) rtn_value.AppendFormat("WHERE{0}", "\r\n");
+					//if (cnti == 0) rtn_value.AppendFormat("WHERE{0}", Environment.NewLine);
           rtn_value.AppendFormat("{0}", cnti == 0 ? "WHERE\r\n" : "AND ");
 					//AZData data = this.sql_where.Get(cnti);
           object row = this.sql_where[cnti];
@@ -5364,7 +5377,7 @@ public class BQuery {
             rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
             //idx += data.Count();
           }
-          rtn_value.Append("\r\n");
+          rtn_value.Append(Environment.NewLine);
           /*
           switch (data.Attribute.Get(ATTRIBUTE.VALUE)) {
             case VALUETYPE.QUERY:
@@ -5415,7 +5428,7 @@ public class BQuery {
 							}
 							rtn_value.Append(" ) ");
 						}
-						rtn_value.Append("\r\n");
+						rtn_value.Append(Environment.NewLine);
 					}
 					else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
 						rtn_value.Append("	" + (cnti > 0 ? " AND " : "") + data.GetKey(0));
@@ -5474,70 +5487,70 @@ public class BQuery {
 								}
 								break;
 						}
-						rtn_value.Append("\r\n");
+						rtn_value.Append(Environment.NewLine);
 					}
           */
 				}
 				break;
 			case CREATE_QUERY_TYPE.INSERT:
-				//rtn_value.Append("INSERT INTO " + table_name + " ( " + "\r\n");
-        rtn_value.AppendFormat("INSERT INTO {0} ({1}", table_name, "\r\n");
+				//rtn_value.Append("INSERT INTO " + table_name + " ( " + Environment.NewLine);
+        rtn_value.AppendFormat("INSERT INTO {0} ({1}", table_name, Environment.NewLine);
 				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
 					AZData data = this.sql_set.Get(cnti);
 					//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0));
-          rtn_value.AppendFormat(" {0}{1}{2}", cnti == 0 ? "" : ",", data.GetKey(0), "\r\n");
+          rtn_value.AppendFormat(" {0}{1}{2}", cnti == 0 ? "" : ",", data.GetKey(0), Environment.NewLine);
 				}
-				//rtn_value.Append("\r\n" + ") " + "\r\n");
-				//rtn_value.Append("VALUES ( " + "\r\n");
-        rtn_value.AppendFormat("VALUES ({0}", "\r\n");
+				rtn_value.Append(Environment.NewLine + ") " + Environment.NewLine);
+				//rtn_value.Append("VALUES ( " + Environment.NewLine);
+        rtn_value.AppendFormat("VALUES ({0}", Environment.NewLine);
 				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
 					AZData data = this.sql_set.Get(cnti);
           rtn_value.Append(cnti == 0 ? " " : " ,");
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
-						//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetString(0) + "\r\n");
-            rtn_value.AppendFormat("{0}{1}", data.GetString(0), "\r\n");
+						//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetString(0) + Environment.NewLine);
+            rtn_value.AppendFormat("{0}{1}", data.GetString(0), Environment.NewLine);
 					}
 					else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
 						/*if (!IsPrepared()) {
-							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + "'" + data.GetString(0) + "'" + "\r\n");
+							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + "'" + data.GetString(0) + "'" + Environment.NewLine);
 						}
 						else {
-							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + "\r\n");
+							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + Environment.NewLine);
 						}*/
             rtn_value.AppendFormat("{0}{1}",
               IsPrepared()
                 ? string.Format("'{0}'", data.GetString(0))
                 : string.Format("@{0}_set_{1}", data.GetKey(0).Replace(".", "___"), cnti + 1),
-              "\r\n"
+              Environment.NewLine
             );
 					}
 				}
 				rtn_value.Append(")");
 				break;
 			case CREATE_QUERY_TYPE.UPDATE:
-				//rtn_value.Append("UPDATE " + table_name + " " + "\r\n");
-				//rtn_value.Append("SET " + "\r\n");
-        rtn_value.AppendFormat("UPDATE {0}{1}", table_name, "\r\n");
-        rtn_value.AppendFormat("SET{0}", "\r\n");
+				//rtn_value.Append("UPDATE " + table_name + " " + Environment.NewLine);
+				//rtn_value.Append("SET " + Environment.NewLine);
+        rtn_value.AppendFormat("UPDATE {0}{1}", table_name, Environment.NewLine);
+        rtn_value.AppendFormat("SET{0}", Environment.NewLine);
 				for (int cnti = 0; cnti < this.sql_set.Size(); cnti++) {
 					AZData data = this.sql_set.Get(cnti);
           rtn_value.Append(cnti > 0 ? " ," : " ");
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
-						//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + data.GetString(0) + "\r\n");
-            rtn_value.AppendFormat(" {0}={1}{2}", data.GetKey(0), data.GetString(0), "\r\n");
+						//rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + data.GetString(0) + Environment.NewLine);
+            rtn_value.AppendFormat(" {0}={1}{2}", data.GetKey(0), data.GetString(0), Environment.NewLine);
 					}
 					else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
 						/*if (!IsPrepared()) {
-							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "'" + data.GetString(0) + "'" + "\r\n");
+							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "'" + data.GetString(0) + "'" + Environment.NewLine);
 						}
 						else {
-							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + "\r\n");
+							rtn_value.Append("	" + (cnti > 0 ? ", " : "") + data.GetKey(0) + " = " + "@" + data.GetKey(0).Replace(".", "___") + "_set_" + (cnti + 1) + Environment.NewLine);
 						}*/
             rtn_value.AppendFormat(" {0}={1}{2}", data.GetKey(0), 
               IsPrepared() 
                 ? string.Format("@{0}_set_{1}", data.GetKey(0).Replace(".", "___"), (cnti + 1))
                 : string.Format("'{0}", data.GetString(0)), 
-              "\r\n"
+              Environment.NewLine
             );
 					}
 				}
@@ -5560,7 +5573,7 @@ public class BQuery {
             rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
             idx += data.Count();
           }
-          rtn_value.Append("\r\n");
+          rtn_value.Append(Environment.NewLine);
           /*
 					AZData data = this.sql_where.Get(cnti);
 					if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
@@ -5608,7 +5621,7 @@ public class BQuery {
 							}
 							rtn_value.Append(" ) ");
 						}
-						rtn_value.Append("\r\n");
+						rtn_value.Append(Environment.NewLine);
 					}
 					else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
 						rtn_value.Append("	" + (cnti > 0 ? " AND " : "") + data.GetKey(0));
@@ -5667,14 +5680,14 @@ public class BQuery {
 									}
 									break;
 							}
-							rtn_value.Append("\r\n");
+							rtn_value.Append(Environment.NewLine);
 						}
             */
 					}
 					break;
 				case CREATE_QUERY_TYPE.DELETE:
-					//rtn_value.Append("DELETE FROM " + table_name + " " + "\r\n");
-          rtn_value.AppendFormat("DELETE FROM {0}{1}", table_name, "\r\n");
+					//rtn_value.Append("DELETE FROM " + table_name + " " + Environment.NewLine);
+          rtn_value.AppendFormat("DELETE FROM {0}{1}", table_name, Environment.NewLine);
           //
 					for (int cnti = 0; cnti < this.sql_where.Count; cnti++) {
             rtn_value.AppendFormat("{0}", cnti == 0 ? "WHERE\r\n" : "AND ");
@@ -5694,7 +5707,7 @@ public class BQuery {
               rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
               idx += data.Count();
             }
-            rtn_value.Append("\r\n");
+            rtn_value.Append(Environment.NewLine);
             /*
 						AZData data = this.sql_where.Get(cnti);
 						if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.QUERY)) {
@@ -5742,7 +5755,7 @@ public class BQuery {
 								}
 								rtn_value.Append(" ) ");
 							}
-							rtn_value.Append("\r\n");
+							rtn_value.Append(Environment.NewLine);
 						}
 						else if (data.Attribute.Get(ATTRIBUTE.VALUE).Equals(VALUETYPE.VALUE)) {
 							rtn_value.Append("	" + (cnti > 0 ? " AND " : "") + data.GetKey(0));
@@ -5801,7 +5814,7 @@ public class BQuery {
 									}
 									break;
 							}
-							rtn_value.Append("\r\n");
+							rtn_value.Append(Environment.NewLine);
 						}
             */
 					}
