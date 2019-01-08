@@ -5519,8 +5519,8 @@ public class BQuery {
 						}*/
             rtn_value.AppendFormat("{0}{1}",
               IsPrepared()
-                ? string.Format("'{0}'", data.GetString(0))
-                : string.Format("@{0}_set_{1}", data.GetKey(0).Replace(".", "___"), cnti + 1),
+								? string.Format("@{0}_set_{1}", data.GetKey(0).Replace(".", "___"), cnti + 1)
+								: string.Format("'{0}'", data.GetString(0)),
               Environment.NewLine
             );
 					}

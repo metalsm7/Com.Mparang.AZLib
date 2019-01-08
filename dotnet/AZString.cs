@@ -45,6 +45,27 @@ namespace Com.Mparang.AZLib {
 				rtnValue = pDefault;
 			}
 			else {
+				switch (Type.GetTypeCode(this.value_object.GetType())) {
+					case TypeCode.DateTime:
+						try {
+						rtnValue = ((DateTime)this.value_object).ToString("yyyy-MM-dd HH:mm:ss.fff");
+						}
+						catch (Exception ex) {
+							string msg = ex.Message;
+							rtnValue = pDefault;
+						}
+						break;
+					default:
+						try {
+							rtnValue = this.value_object.ToString();
+						}
+						catch (Exception ex) {
+							string msg = ex.Message;
+							rtnValue = pDefault;
+						}
+						break;
+				}
+				/*
 				if (this.value_object is int) {
 					try {
 						rtnValue = "" + this.value_object;
@@ -63,6 +84,7 @@ namespace Com.Mparang.AZLib {
 						rtnValue = pDefault;
 					}
 				}
+				*/
 			}
 			return rtnValue;
 		}
