@@ -602,6 +602,13 @@ namespace Com.Mparang.AZLib {
 										((bool)value) ? "true" : "false"
 									);
 									break;
+								case TypeCode.DateTime:
+									str = string.Format(
+										"{0}\"{1}\":{2}", (cnti > 0 ? ", " : ""), 
+										AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)),
+										((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff")
+									);
+									break;
 								default:
 									str = string.Format(
 										"{0}\"{1}\":\"{2}\"", (cnti > 0 ? ", " : ""), 

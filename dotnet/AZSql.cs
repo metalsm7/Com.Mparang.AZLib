@@ -5561,17 +5561,17 @@ public class BQuery {
           if (row.GetType().Equals(typeof(Condition))) {
             Condition data = (Condition)row;
             rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
-            idx++;
+            //idx++;
           }
           else if (row.GetType().Equals(typeof(And))) {
             And data = (And)row;
             rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
-            idx += data.Count();
+            //idx += data.Count();
           }
           else if (row.GetType().Equals(typeof(Or))) {
             Or data = (Or)row;
             rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
-            idx += data.Count();
+            //idx += data.Count();
           }
           rtn_value.Append(Environment.NewLine);
           /*
@@ -5695,17 +5695,17 @@ public class BQuery {
             if (row.GetType().Equals(typeof(Condition))) {
               Condition data = (Condition)row;
               rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
-              idx++;
+              //idx++;
             }
             else if (row.GetType().Equals(typeof(And))) {
               And data = (And)row;
               rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
-              idx += data.Count();
+              //idx += data.Count();
             }
             else if (row.GetType().Equals(typeof(Or))) {
               Or data = (Or)row;
               rtn_value.Append(data.SetPrepared(IsPrepared()).ToString(ref idx));
-              idx += data.Count();
+              //idx += data.Count();
             }
             rtn_value.Append(Environment.NewLine);
             /*
