@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>0.4.10</VersionPrefix>
-    <TargetFrameworks>netstandard2.0;netcoreapp2.0;netcoreapp2.1;net452</TargetFrameworks>
+    <VersionPrefix>0.4.11</VersionPrefix>
+    <TargetFrameworks>netstandard2.0;netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;net452</TargetFrameworks>
     <AssemblyName>Com.Mparang.AZLib</AssemblyName>
     <PackageId>Com.Mparang.AZLib</PackageId>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netstandard2.1' ">
     <DefineConstants>NET_STD</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp2.2' ">
     <DefineConstants>NET_CORE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'net451' Or '$(TargetFramework)' == 'net452' Or '$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'net461' Or '$(TargetFramework)' == 'net462' Or '$(TargetFramework)' == 'net47' Or '$(TargetFramework)' == 'net471' Or '$(TargetFramework)' == 'net472' ">
@@ -17,19 +17,22 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcore' Or '$(TargetFramework)' == 'netcore45' Or '$(TargetFramework)' == 'netcore451' ">
     <DefineConstants>NET_STORE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.0.1" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp2.2' ">
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.2.*" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'net451' Or '$(TargetFramework)' == 'net452' Or '$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'net461' Or '$(TargetFramework)' == 'net462' Or '$(TargetFramework)' == 'net47' Or '$(TargetFramework)' == 'net471' Or '$(TargetFramework)' == 'net472' ">
     <PackageReference Include="Microsoft.Data.Sqlite" Version="1.1.1" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.*" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp2.2' ">
+    <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.7.2" />
-    <PackageReference Include="MySql.Data" Version="8.0.13" />
-    <PackageReference Include="Npgsql" Version="4.0.3" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.8.*" />
+    <PackageReference Include="MySql.Data" Version="8.0.*" />
+    <PackageReference Include="Npgsql" Version="4.0.*" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.*" />
   </ItemGroup>
 </Project>

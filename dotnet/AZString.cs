@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Com.Mparang.AZLib {
@@ -1143,6 +1144,14 @@ namespace Com.Mparang.AZLib {
 
 	/// 확장메소드
 	public static class AZStringEx {
+		public static AZList ToAZList(this IEnumerable<AZData> src) {
+			AZList rtnValue = new AZList();
+			foreach (AZData row in src) {
+				rtnValue.Add(row);
+			}
+			return rtnValue;
+		}
+		
 		/// <summary></summary>
 		public static string AZFormat(this string pSrc, string pFormat, string pTargetFormat) {
 			return AZString.Format(pSrc, pFormat, pTargetFormat);
@@ -1250,6 +1259,16 @@ namespace Com.Mparang.AZLib {
 		}
 
 		/// <summary></summary>
+		public static bool Has<T>(this T[] pSrc, T[] pValue) {
+			return IndexOf(pValue, pSrc).Count(row => row > -1) == pValue.Length;
+		}
+
+		/// <summary></summary>
+		public static bool HasAny<T>(this T[] pSrc, T[] pValue) {
+			return IndexOf(pSrc, pValue).Count(row => row > -1) > 0;
+		}
+
+		/// <summary></summary>
 		public static int IndexOf<T>(this T[] pSrc, T pValue) {
 			int rtnValue = -1;
 			for (int cnti=0; cnti<pSrc.Length; cnti++) {
@@ -1258,6 +1277,14 @@ namespace Com.Mparang.AZLib {
 					break;
 				}
 			}
+			return rtnValue;
+		}
+
+		/// <summary></summary>
+		public static int[] IndexOf<T>(this T[] pSrc, T[] pValue) {
+			int[] rtnValue = pValue
+				.Select(row => IndexOf(pSrc, row))
+				.ToArray();
 			return rtnValue;
 		}
 

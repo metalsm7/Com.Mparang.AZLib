@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Com.Mparang.AZLib {
@@ -38,6 +39,11 @@ namespace Com.Mparang.AZLib {
 			return this;
 		}
 
+		public AZData Push(AZData data) {
+			Add(data);
+			return data;
+		}
+
 		/// <summary>일치하는 AZData 자료를 현재 자료에서 삭제</summary>
 		/// <param name="data">AZData, 삭제할 AZData 자료</param>
 		public AZList Remove(AZData data) { list.Remove(data); return this; }
@@ -48,6 +54,68 @@ namespace Com.Mparang.AZLib {
 			if (list.Count > index && list[index] != null) list.RemoveAt(index);
 			return this;
 		}
+
+		public AZData Pop() {
+			if (Size() < 1) return null;
+			AZData rtnVal = Get(Size() - 1);
+			Remove(Size() - 1);
+			return rtnVal;
+		}
+
+		public AZData Shift() {
+			if (Size() < 1) return null;
+			AZData rtnVal = Get(0);
+			Remove(0);
+			return rtnVal;
+		}
+
+		public AZData Unshift(AZData data) {
+			list.Insert(0, data);
+			return data;
+		}
+
+		public AZList Splice(int idx, int length) {
+			AZList rtnVal = new AZList();
+			//
+			if (Size() < 1 || length < 1 || idx < 0) return rtnVal;
+			int sIdx = idx;
+			int eIdx = idx + length <= Size() ? idx + length : Size();
+			for (int i = sIdx; i < eIdx; i++) {
+				if (sIdx < 0 || sIdx >= Size()) continue;
+				rtnVal.Add(Get(sIdx));
+				Remove(sIdx);
+			}
+			//
+			return rtnVal;
+		}
+
+		public AZList Merge(AZList list, string key, bool overwrite = false) {
+			var rtnVal = 
+				from src in this
+				from tgt in list 
+					.Where(row => row.Get(key) == src.Get(key))
+					.DefaultIfEmpty()
+				select tgt == null ? src : src.Merge(tgt, overwrite);
+			return rtnVal.ToAZList();
+			/*
+			for (int i=0; i<Size(); i++) {
+				AZData src = Get(i);
+				if (src.HasKey(key)) {
+					for (int k=0; k<list.Size(); k++) {
+						AZData tgt = list.Get(k);
+						if (tgt.HasKey(key)) {
+							if (src.Get(key) == tgt.Get(key)) {
+								src.Merge(tgt, overwrite);
+								break;
+							}
+						}
+					}
+				}
+			}
+			return this;
+			*/
+		}
+		
 		/// <summart>모든 자료를 삭제</summary>
 		public void Clear() { list.Clear(); }
 

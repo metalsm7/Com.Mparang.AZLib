@@ -91,6 +91,24 @@ namespace Com.Mparang.AZLib {
 			return this;
 		}
 
+		/// <summary>
+		/// 현재에 자료와 통합, 동일 key값이 존재할 때, overwrite가 true이면 새로운 값으로 교체, 아닌경우 기존값 유지
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="overwrite"></param>
+		/// <returns></returns>
+		public AZData Merge(AZData value, bool overwrite = false) {
+			for (int cnti = 0; cnti < value.Size(); cnti++) {
+				if (HasKey(value.GetKey(cnti))) {
+					if (overwrite) Set(value.GetKey(cnti), value.Get(cnti));
+				}
+				else {
+					Add(value.GetKey(cnti), value.Get(cnti));
+				}
+			}
+			return this;
+		}
+
 		/// <summary>현재 객체가 가지고 있는 모든 키의 목록을 반환</summary>
 		public string[] GetAllKeys() {
 			string[] rtnValue = new string[indexer.Count];
