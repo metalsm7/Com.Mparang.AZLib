@@ -88,7 +88,25 @@ namespace Com.Mparang.AZLib {
 			//
 			return rtnVal;
 		}
+		
+		/// <summary>
+		/// 지정된 key를 기준으로 중복되는 자료를 삭제 합니다.
+		/// getFirst 값에 따라 true인 경우 처음값을, false인 경우 마지막값을 반환합니다.
+		/// </summary>
+		/// <param name="key"></param>
+		/// <param name="getFirst"></param>
+		/// <returns></returns>
+		public AZList UniqBy(string key, bool getFirst = true) {
+			return this.GroupBy(row => row.GetLong(key)).Select(row => getFirst ? row.FirstOrDefault() : row.LastOrDefault()).OrderBy(row => row.GetLong(key)).ToAZList();
+		}
 
+		/// <summary>
+		/// 지정된 key와 일치하는 자료에 대해 입력된 자료를 추가 합니다.
+		/// </summary>
+		/// <param name="list"></param>
+		/// <param name="key"></param>
+		/// <param name="overwrite"></param>
+		/// <returns></returns>
 		public AZList Merge(AZList list, string key, bool overwrite = false) {
 			var rtnVal = 
 				from src in this
