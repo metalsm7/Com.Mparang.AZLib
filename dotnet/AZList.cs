@@ -93,7 +93,7 @@ namespace Com.Mparang.AZLib {
 			var rtnVal = 
 				from src in this
 				from tgt in list 
-					.Where(row => row.Get(key) == src.Get(key))
+					.Where(row => row.Get(key).Equals(src.Get(key)))
 					.DefaultIfEmpty()
 				select tgt == null ? src : src.Merge(tgt, overwrite);
 			return rtnVal.ToAZList();
