@@ -6118,7 +6118,7 @@ public class BQuery {
 					if (this.azSql == null) {
 						throw new Exception("AZSql required.");
 					}
-					rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), GetPreparedParameters());
+					rtn_value = this.azSql.Execute(GetQuery(CREATE_QUERY_TYPE.INSERT), GetPreparedParameters(), p_identity);
 				}
 				return rtn_value;
 			}
@@ -6172,7 +6172,7 @@ public class BQuery {
 				}
 				else {
 					if (this.azSql == null) throw new Exception("AZSql required.");
-					rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.INSERT), GetPreparedParameters());
+					rtn_value = await this.azSql.ExecuteAsync(GetQuery(CREATE_QUERY_TYPE.INSERT), GetPreparedParameters(), p_identity);
 				}
 				return rtn_value;
 			}
