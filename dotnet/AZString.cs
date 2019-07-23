@@ -965,6 +965,9 @@ namespace Com.Mparang.AZLib {
 								else if (((String)value).Equals("false")) {
 									value = false;
 								}
+								else if (((String)value).Equals("null")) {
+									value = null;
+								}
 							}
 							rtnValue.Add(key, value);
 							break;
@@ -1011,11 +1014,15 @@ namespace Com.Mparang.AZLib {
 								else {
 									value = valueString.Split(',').Each(x => (x.Trim().StartsWith("'") && x.Trim().EndsWith("'") ? x.Trim().Substring(1, x.Trim().Length - 2) : x.Trim()));
 									string[] values = valueString.Split(',');
+									bool[] isNulls = new bool[values.Length];
 									TypeCode typeCode = TypeCode.String;
 									for (int cnti=0; cnti<values.Length; cnti++) {
 										string col = values[cnti];
 										if (col.Equals("true") || col.Equals("false")) {
 											typeCode = TypeCode.Boolean;
+										}
+										else if (col.Equals("null")) {
+											isNulls[cnti] = true;
 										}
 										else if (!col.StartsWith("\"")) {
 											typeCode = TypeCode.Int64;
@@ -1029,10 +1036,15 @@ namespace Com.Mparang.AZLib {
 										case TypeCode.String:
 											string[] rVal = new string[values.Length];
 											for (int cnti=0; cnti<values.Length; cnti++) {
-												string col = values[cnti];
-												if (col.StartsWith("\"")) col = col.Substring(1);
-												if (col.EndsWith("\"")) col = col.Substring(0, col.Length - 1);
-												rVal[cnti] = col;
+												if (isNulls[cnti]) {
+													rVal[cnti] = null;
+												}
+												else {
+													string col = values[cnti];
+													if (col.StartsWith("\"")) col = col.Substring(1);
+													if (col.EndsWith("\"")) col = col.Substring(0, col.Length - 1);
+													rVal[cnti] = col;
+												}
 											}
 											value = rVal;
 											break;
@@ -1078,6 +1090,9 @@ namespace Com.Mparang.AZLib {
 								}
 								else if (((String)value).Equals("false")) {
 									value = false;
+								}
+								else if (((String)value).Equals("null")) {
+									value = null;
 								}
 							}
 							rtnValue.Add(key, value);

@@ -53,6 +53,12 @@ namespace Com.Mparang.AZLib {
 			return rtnValue;
 		}
 
+		/// <summary>모델 객체로부터 AZData를 생성</summary>
+		/// <param name="source">AZData로 변경할 모델 객체</param>
+		public static AZData Parse(string source) {
+			return AZString.JSON.ToAZData(source);
+		}
+
 		/// <summary>json 형식의 문자열을 AZData로 변경, 이 자료를 현재의 자료에 추가</summary>
 		/// <param name="json">string, json형식의 문자열</param>
 		public AZData Add(string json) {
@@ -554,7 +560,10 @@ namespace Com.Mparang.AZLib {
 			StringBuilder builder = new StringBuilder();
 				for (int cnti = 0; cnti < indexer.Count; cnti++) {
 					try {
-						if (Get(cnti).GetType().Equals(typeof(AZData))) {
+						if (Get(cnti) == null) {
+							builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "null");
+						}
+						else if (Get(cnti).GetType().Equals(typeof(AZData))) {
 							builder.Append((cnti > 0 ? ", " : "") + "\"" + GetKey(cnti) + "\"" + ":" + "{" + ((AZData)Get(cnti)).ToString() + "}");
 						}
 						else if (Get(cnti).GetType().Equals(typeof(AZList))) {
@@ -564,7 +573,12 @@ namespace Com.Mparang.AZLib {
 							string[] valueSrc = (string[])Get(cnti);
 							StringBuilder sBuilder = new StringBuilder();
 							for (int cntk=0; cntk<valueSrc.Length; cntk++) {
-								sBuilder.AppendFormat("{0}\"{1}\"", cntk > 0 ? "," : "", AZString.Encode(AZString.ENCODE.JSON, valueSrc[cntk]));
+								if (valueSrc[cntk] == null) {
+									sBuilder.AppendFormat("{0}null", cntk > 0 ? "," : "");
+								}
+								else {
+									sBuilder.AppendFormat("{0}\"{1}\"", cntk > 0 ? "," : "", AZString.Encode(AZString.ENCODE.JSON, valueSrc[cntk]));
+								}
 							}
 							builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + sBuilder.ToString() + "]");
 						}
@@ -587,10 +601,6 @@ namespace Com.Mparang.AZLib {
 						else if (Get(cnti).GetType().Equals(typeof(bool[]))) {
 							string valueString = ((bool[])Get(cnti)).Join(",");
 							builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "[" + valueString + "]");
-						}
-						else if (Get(cnti) == null) {
-							string valueString = ((int[])Get(cnti)).Join(",");
-							builder.Append((cnti > 0 ? ", " : "") + "\"" + AZString.Encode(AZString.ENCODE.JSON, GetKey(cnti)) + "\"" + ":" + "null");
 						}
 						else {
 							string str;

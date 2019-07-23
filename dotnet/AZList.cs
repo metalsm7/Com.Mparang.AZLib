@@ -19,6 +19,12 @@ namespace Com.Mparang.AZLib {
 			list = new List<AZData>();
 			attribute_data = new AttributeData();
 		}
+		
+		/// <summary>모델 객체로부터 AZData를 생성</summary>
+		/// <param name="source">AZList로 변경할 모델 객체</param>
+		public static AZList Parse(string source) {
+			return AZString.JSON.ToAZList(source);
+		}
 
 		public AttributeData Attribute {
 			get { return attribute_data; }
