@@ -1018,6 +1018,20 @@ namespace Com.Mparang.AZLib {
 									TypeCode typeCode = TypeCode.String;
 									for (int cnti=0; cnti<values.Length; cnti++) {
 										string col = values[cnti];
+                                        while (true) {
+                                            if (col.StartsWith(" ") || col.StartsWith("\r") || col.StartsWith("\n") || col.StartsWith("\t")) {
+                                                col = col.Substring(1);
+                                            }
+                                            else { break; }
+                                        }
+                                        while (true) {
+                                            if (col.EndsWith(" ") || col.EndsWith("\r") || col.EndsWith("\n") || col.EndsWith("\t")) {
+                                                col = col.Substring(0, col.Length - 1);
+                                            }
+                                            else { break; }
+                                        }
+										values[cnti] = col;
+
 										if (col.Equals("true") || col.Equals("false")) {
 											typeCode = TypeCode.Boolean;
 										}
