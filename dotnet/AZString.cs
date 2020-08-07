@@ -563,6 +563,7 @@ namespace Com.Mparang.AZLib {
 			rtnValue = rtnValue.Replace("\n", "\\n");
 			rtnValue = rtnValue.Replace("\r", "\\r");
 			rtnValue = rtnValue.Replace("\t", "\\t");
+			rtnValue = rtnValue.Replace("/", "\\/");
 			return rtnValue;
 		}
 
@@ -577,6 +578,7 @@ namespace Com.Mparang.AZLib {
 			rtnValue = rtnValue.Replace("\\b", "\b");
 			rtnValue = rtnValue.Replace("\\\"", "\"");
 			rtnValue = rtnValue.Replace("\\\\", "\\");
+			rtnValue = rtnValue.Replace("\\/", "/");
 			return rtnValue;
 		}
 		#endregion

@@ -324,26 +324,83 @@ namespace Com.Mparang.AZLib {
 			IEnumerable<PropertyInfo> properties = type.GetRuntimeProperties();
 			foreach (PropertyInfo property in properties) {
 				if (HasKey(property.Name)) {
-					if (property.PropertyType.Name.Equals(typeof(String).Name)) {
+					if (property.PropertyType == typeof(string)) {
 						property.SetValue(rtnValue, GetString(property.Name), null);
 					}
-					else if (property.PropertyType.Name.Equals(typeof(int).Name) || property.PropertyType.FullName.Equals(typeof(int?).FullName)) {
+					else if (property.PropertyType == typeof(int)) {
 						property.SetValue(rtnValue, GetInt(property.Name), null);
 					}
-					else if (property.PropertyType.Name.Equals(typeof(long).Name) || property.PropertyType.FullName.Equals(typeof(long?).FullName)) {
+					else if (property.PropertyType == typeof(long)) {
 						property.SetValue(rtnValue, GetLong(property.Name), null);
 					}
-					else if (property.PropertyType.Name.Equals(typeof(float).Name) || property.PropertyType.FullName.Equals(typeof(float?).FullName)) {
+					else if (property.PropertyType == typeof(float)) {
 						property.SetValue(rtnValue, GetFloat(property.Name), null);
 					}
-					else if (property.PropertyType.Name.Equals(typeof(DateTime).Name) || property.PropertyType.FullName.Equals(typeof(DateTime?).FullName)) {
+					else if (property.PropertyType == typeof(DateTime)) {
 						property.SetValue(rtnValue, Get<DateTime>(property.Name), null);
 					}
-					else if (property.PropertyType.Name.Equals(typeof(Byte).Name) || property.PropertyType.FullName.Equals(typeof(Byte?).FullName)) {
+					else if (property.PropertyType == typeof(byte)) {
 						property.SetValue(rtnValue, Get<Byte>(property.Name), null);
 					}
 					else {
-						property.SetValue(rtnValue, Get(property.Name), null);
+						object obj = Get(property.Name);
+                        Type sourceType = obj.GetType();
+                        if (!sourceType.IsArray && property.PropertyType.IsArray) {
+                          if (property.PropertyType == typeof(string[])) {
+                            property.SetValue(rtnValue, new string[] { GetString(property.Name) }, null);
+                          }
+                          else if (property.PropertyType == typeof(int[])) {
+                            property.SetValue(rtnValue, new int[] { GetInt(property.Name) }, null);
+                          }
+                          else if (property.PropertyType == typeof(long[])) {
+                            property.SetValue(rtnValue, new long[] { GetLong(property.Name) }, null);
+                          }
+                          else if (property.PropertyType == typeof(float[])) {
+                            property.SetValue(rtnValue, new float[] { GetFloat(property.Name) }, null);
+                          }
+                          else {
+                            property.SetValue(rtnValue, Get(property.Name), null);
+                          }
+                        }
+                        else if (sourceType.IsArray && sourceType == typeof(string[]) && property.PropertyType != typeof(string[])) {
+                          //
+                          string[] srcs = (string[])obj;
+                          //
+                          if (property.PropertyType == typeof(int[])) {
+                            // int[] 의 경우
+                            List<int> res = new List<int>();
+                            for (int i = 0; i < srcs.Length; i++) {
+                              string src = srcs[i];
+                              res.Add(src.ToInt(0));
+                            }
+                            property.SetValue(rtnValue, res.ToArray(), null);
+                          }
+                          else if (property.PropertyType == typeof(long[])) {
+                            // long[] 의 경우
+                            List<long> res = new List<long>();
+                            for (int i = 0; i < srcs.Length; i++) {
+                              string src = srcs[i];
+                              res.Add(src.ToLong(0));
+                            }
+                            property.SetValue(rtnValue, res.ToArray(), null);
+                          }
+                          else if (property.PropertyType == typeof(float[])) {
+                            // float[] 의 경우
+                            List<float> res = new List<float>();
+                            for (int i = 0; i < srcs.Length; i++) {
+                              string src = srcs[i];
+                              res.Add(src.ToFloat(0));
+                            }
+                            property.SetValue(rtnValue, res.ToArray(), null);
+                          }
+                          else {
+                            property.SetValue(rtnValue, obj, null);
+                          }
+                        }
+                        else {
+                          property.SetValue(rtnValue, obj, null);
+                        }
+						// property.SetValue(rtnValue, Get(property.Name), null);
 					}
 				}
 			}
