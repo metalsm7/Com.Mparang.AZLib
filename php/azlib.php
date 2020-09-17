@@ -30,7 +30,7 @@ namespace AZLib {
         }
       }
     }
-
+  
     /**
      * 객체 생성 후 반환
      * @return AZData
@@ -38,7 +38,7 @@ namespace AZLib {
     public static function create(): AZData {
       return new AZData();
     }
-
+  
     /**
      * string 형식의 json 문자열 또는 array 객체를 기반으로 자료 생성
      * @param string|array $json = null json 문자열 또는 array 객체
@@ -47,7 +47,7 @@ namespace AZLib {
     public static function parse($json = null): AZData {
       return new AZData($json);
     }
-
+  
     /**
      * get, remove method에 대한 오버로딩 처리
      */
@@ -79,7 +79,7 @@ namespace AZLib {
         break;
       }
     }
-
+  
     // ArrayAccess 구현용
     public function offsetExists($offset) {
       switch (gettype($offset)) {
@@ -92,17 +92,17 @@ namespace AZLib {
       }
       return $this->has_key($offset);
     }
-
+  
     // ArrayAccess 구현용
     public function offsetGet($offset) {
       return $this->get($offset);
     }
-
+  
     // ArrayAccess 구현용
     public function offsetSet($offset, $value) {
       $this->set($offset, $value);
     }
-
+  
     // ArrayAccess 구현용
     public function offsetUnset($offset) {
       $this->remove($offset);
@@ -112,27 +112,27 @@ namespace AZLib {
     public function current() {
       return $this->get($this->_key);
     }
-
+  
     // iterator 구현용
     public function key() {
       return $this->_key;
     }
-
+  
     // iterator 구현용
     public function next() {
       ++$this->_key;
     }
-
+  
     // iterator 구현용
     public function rewind() {
       $this->_key = 0;
     }
-
+  
     // iterator 구현용
     public function valid() {
       return isset($this->_keys[$this->_key]);
     }
-
+  
     /**
      * 지정된 키값이 정의되어 있는지 여부 반환
      * @param string $key 정의 여부 확인을 위한 키값
@@ -142,7 +142,7 @@ namespace AZLib {
       return array_key_exists($key, $this->_data) > 0;
       // return isset($this->_data[$key]);
     }
-
+  
     /**
      * 현재 가지고 있는 전체 키 목록을 배열로 반환
      * @return array
@@ -150,7 +150,7 @@ namespace AZLib {
     public function keys() {
       return array_keys($this->_data);
     }
-
+  
     /**
      * 지정된 index에 위치한 자료의 key 반환
      * @return string
@@ -158,20 +158,21 @@ namespace AZLib {
     public function get_key($idx): string {
       return array_keys($this->_data)[$idx];
     }
-
+  
     /**
      * index값 기준 자료 반환
      * @param $idx index값
      * @return mixed
      */
     protected function get_by_index($idx) {
+      if (is_null($this->_data)) return null;
       $cnt = count($this->_data);
       if ($idx < 0 || $idx >= $cnt) {
         return null;
       }
       return $this->_data[$this->_keys[$idx]];
     }
-
+  
     /**
      * key값 기준 자료 반환
      * @param string $key key값
@@ -183,11 +184,11 @@ namespace AZLib {
       }
       return $this->_data[$key];
     }
-
+  
     public function size() {
       return count($this->_keys);
     }
-
+  
     /**
      * 자료 추가
      * @param string $key 키값
@@ -203,7 +204,7 @@ namespace AZLib {
       array_push($this->_keys, $key);
       return $this;
     }
-
+  
     public function set(string $key, $value) {
       if (!is_null($this->_data)) {
         if (!$this->has_key($key)) {
@@ -215,13 +216,13 @@ namespace AZLib {
       }
       return $this;
     }
-
+  
     protected function remove_by_key(string $key) {
       $this->_data[$key] = null;
       unset($this->_data[$key]);
       return $this;
     }
-
+  
     protected function remove_by_index($idx) {
       if ($idx > -1 && $idx < count($this->_data)) {
         $key = $this->_keys[$idx];
@@ -233,7 +234,7 @@ namespace AZLib {
       }
       return $this;
     }
-
+  
     public function convert($model) {
       if (gettype($model) === 'string') {
         $reflection = new ReflectionClass($model);
@@ -251,7 +252,7 @@ namespace AZLib {
       }
       return $model;
     }
-
+  
     public function to_json() {
       $rtn_val = $this->_data;
       if (is_null($this->_data)) {
@@ -269,11 +270,11 @@ namespace AZLib {
       }
       return $rtn_val;
     }
-
+  
     public function to_json_string(): string {
       return json_encode($this->to_json());
     }
-
+  
     public function jsonSerialize(): string {
       return $this->to_json_string();
     }
@@ -290,84 +291,84 @@ namespace AZLib {
         $this->_data = json_decode($json, true);
       }
     }
-
+  
     public static function create(): AZList {
       return new AZList();
     }
-
+  
     public static function parse(string $json = null): AZList {
       return new AZList($json);
     }
-
+  
     // iterator 구현용
     public function current() {
       return $this->_data[$this->_key];
     }
-
+  
     // iterator 구현용
     public function key() {
       return $this->_key;
     }
-
+  
     // iterator 구현용
     public function next() {
       ++$this->_key;
     }
-
+  
     // iterator 구현용
     public function rewind() {
       $this->_key = 0;
     }
-
+  
     // iterator 구현용
     public function valid() {
       return isset($this->_data[$this->_key]);
     }
-
+  
     public function size() {
       if (is_null($this->_data)) {
         return 0;
       }
       return count($this->_data);
     }
-
+  
     public function get(int $idx) {
       if ($this->size() >= $idx + 1) {
         return $this->_data[$idx];
       }
       return null;
     }
-
+  
     public function add(AZData $data) {
       array_push($this->_data, $data);
       return $this;
     }
-
+  
     public function remove(int $idx) {
       if ($this->size() >= $idx + 1) {
         unset($this->_data[$idx]);
       }
       return $this;
     }
-
+  
     public function push(AZData $data) {
       array_push($this->_data, $data);
       return $this;
     }
-
+  
     public function pop() {
       return array_pop($this->_data);
     }
-
+  
     public function shift() {
       return array_shift($this->_data);
     }
-
+  
     public function unshift(AZData $data) {
       array_unshift($this->_data, $data);
       return $this;
     }
-
+  
     public function convert($model): array {
       $rtn_val = array();
       foreach ($this->_data as $data) {
@@ -375,7 +376,7 @@ namespace AZLib {
       }
       return $rtn_val;
     }
-
+  
     public function to_json() {
       $rtn_val = $this->_data;
       if (!is_null($rtn_val)) {
@@ -387,11 +388,11 @@ namespace AZLib {
       }
       return $rtn_val;
     }
-
+  
     public function to_json_string(): string {
       return json_encode($this->to_json());
     }
-
+  
     public function jsonSerialize(): string {
       return $this->to_json_string();
     }
@@ -413,6 +414,7 @@ namespace AZLib {
     private $_action_tran_on_rollback;
     private $_is_stored_procedure = false;
     private $_is_prepared = false;
+    private $_statement; // prepared statement 사용시 prepare() 결과 객체 저장용
     //
     public function __construct(&$db = null) {
       //
@@ -423,23 +425,33 @@ namespace AZLib {
       $this->_parameters = AZData::create();
     }
 
+    function __destruct() {
+      $this->clear();
+    }
+
     public static function create(&$db = null) {
       return new AZSql($db);
     }
 
     /**
-     * 연결 객체에 대한 class 명을 통해 mysqli 여부 반환
+     * 연결 객체에 대한 class 명을 통해 mysqli 여부 반환, CI에서 사용을 위한 conn_id 확인
      * @return boolean
      */
     protected function is_mysqli() {
-      return get_class($this->_db->conn_id) == 'mysqli';
+      if (!isset($this->_db)) {
+        throw new \Exception('database object is not defined');
+      }
+      if (isset($this->_db->conn_id)) {
+        return get_class($this->_db->conn_id) == 'mysqli';
+      }
+      return get_class($this->_db) == 'mysqli';
     }
     
     /**
      * mysqli 객체를 반환
      */
     protected function get_mysqli() {
-      return $this->is_mysqli() ? $this->_db->conn_id : null;
+      return $this->is_mysqli() ? (isset($this->_db->conn_id) ? $this->_db->conn_id : $this->_db ) : null;
     }
 
     /**
@@ -450,20 +462,21 @@ namespace AZLib {
      * @return string
      */
     private function param_replacer(string $query, string $key, $value) {
-      $query = preg_replace("/{$key}$/", $this->_db->escape($value), $query);
-      $query = preg_replace("/{$key}\r\n/", $this->_db->escape($value)."\r\n", $query);
-      $query = preg_replace("/{$key}\n/", $this->_db->escape($value)."\n", $query);
-      $query = preg_replace("/{$key}\s/", $this->_db->escape($value)." ", $query);
-      $query = preg_replace("/{$key}\t/", $this->_db->escape($value)."\t", $query);
-      $query = preg_replace("/{$key},/", $this->_db->escape($value).",", $query);
-      $query = preg_replace("/{$key}\)/", $this->_db->escape($value).")", $query);
-      $query = preg_replace("/{$key};/", $this->_db->escape($value).";", $query);
+      if (is_null($query) || !is_null($query) && strlen($query) < 1) throw new \Exception('query is empty');
+      $query = preg_replace("/{$key}$/", $this->get_mysqli()->escape_string($value), $query);
+      $query = preg_replace("/{$key}\r\n/", $this->get_mysqli()->escape_string($value)."\r\n", $query);
+      $query = preg_replace("/{$key}\n/", $this->get_mysqli()->escape_string($value)."\n", $query);
+      $query = preg_replace("/{$key}\s/", $this->get_mysqli()->escape_string($value)." ", $query);
+      $query = preg_replace("/{$key}\t/", $this->get_mysqli()->escape_string($value)."\t", $query);
+      $query = preg_replace("/{$key},/", $this->get_mysqli()->escape_string($value).",", $query);
+      $query = preg_replace("/{$key}\)/", $this->get_mysqli()->escape_string($value).")", $query);
+      $query = preg_replace("/{$key};/", $this->get_mysqli()->escape_string($value).";", $query);
       return $query;
     }
 
-    /**
+    /*
      * 특정 양식의 쿼리문에 대해 prepared statement 사용을 위한 전달값 생성 및 반환
-     */
+     *
     private function prepared_query_param_replacer(string &$query, $data) {
       // 반환자료 생성
       $rtn_val = array('types' => array(), 'values' => array());
@@ -499,24 +512,28 @@ namespace AZLib {
       }
       return $rtn_val;
     }
+    */
 
     /**
-     * 특정 양식의 쿼리문에 대해 prepared statement 사용을 위한 쿼리문으로 변경 처리
+     * 특정 양식의 쿼리문에 대해 prepared statement 사용을 위한 쿼리문으로 변경 처리.
      */
     private function prepared_query_replacer(string &$query, $data) {
       // 반환자료 생성
       $rtn_val = array('types' => array(), 'keys' => array());
+      if (strlen($query) < 1 || count($data) < 1) return $rtn_val;
       //
-      foreach ($data as $key => $value) {
+      $reg_str = "/(".join(')|(', array_keys($data)).")/";
+      preg_match_all($reg_str, $query, $matches, PREG_PATTERN_ORDER);
+      foreach ($matches[0] as $key) {
         $replace_cnt = 0;
-        $query = preg_replace_callback("/{$key}$/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'; }, $query);
-        $query = preg_replace_callback("/{$key}\r\n/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'."\r\n"; }, $query);
-        $query = preg_replace_callback("/{$key}\n/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'."\n"; }, $query);
-        $query = preg_replace_callback("/{$key}\s/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'." "; }, $query);
-        $query = preg_replace_callback("/{$key}\t/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'."\t"; }, $query);
-        $query = preg_replace_callback("/{$key},/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'.","; }, $query);
-        $query = preg_replace_callback("/{$key}\)/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'.")"; }, $query);
-        $query = preg_replace_callback("/{$key};/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'.";"; }, $query);
+        $query = preg_replace_callback("/{$key}$/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'; }, $query, 1);
+        if ($replace_cnt < 1) $query = preg_replace_callback("/{$key}\r\n/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'."\r\n"; }, $query, 1);
+        if ($replace_cnt < 1) $query = preg_replace_callback("/{$key}\n/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'."\n"; }, $query, 1);
+        if ($replace_cnt < 1) $query = preg_replace_callback("/{$key}\s/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'." "; }, $query, 1);
+        if ($replace_cnt < 1) $query = preg_replace_callback("/{$key}\t/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'."\t"; }, $query, 1);
+        if ($replace_cnt < 1) $query = preg_replace_callback("/{$key},/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'.","; }, $query, 1);
+        if ($replace_cnt < 1) $query = preg_replace_callback("/{$key}\)/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'.")"; }, $query, 1);
+        if ($replace_cnt < 1) $query = preg_replace_callback("/{$key};/", function ($match) use (&$replace_cnt) { $replace_cnt++; return '?'.";"; }, $query, 1);
         //
         for ($i = 0; $i < $replace_cnt; $i++) {
           $type_str = 's';
@@ -540,7 +557,8 @@ namespace AZLib {
     }
 
     /**
-     * prepared statement 를 사용하지 않은 경우에 한하여, 요청시 컬럼정보의 type에 따른 반환값에 대한 타입 캐스팅 처리
+     * prepared statement 를 사용하지 않은 경우에 한하여, 
+     * 요청시 컬럼정보의 type에 따른 반환값에 대한 타입 캐스팅 처리.
      */
     private function value_caster(&$value, $type) {
       switch ($type) {
@@ -563,7 +581,8 @@ namespace AZLib {
     }
 
     /**
-     * prepared statement 를 사용하지 않은 경우에 한하여, 요청시 컬럼정보의 type에 따른 반환값에 대한 타입 캐스팅 처리
+     * prepared statement 를 사용하지 않은 경우에 한하여, 
+     * 요청시 컬럼정보의 type에 따른 반환값에 대한 타입 캐스팅 처리.
      */
     private function data_value_caster(array &$data, $metadata) {
       foreach ($data as $key => &$value) {
@@ -577,7 +596,7 @@ namespace AZLib {
     }
 
     /**
-     * method overloading 을 위한 처리(magic method)
+     * method overloading 을 위한 처리(magic method).
      */
     public function __call($name, $args) {
       switch ($name) {
@@ -602,9 +621,18 @@ namespace AZLib {
               return call_user_func_array(array($this, "{$name}_with_params"), $args);
           }
           break;
+        case 'add_return_parameter':
+          if (count($args) == 1) array_push($args, null);
+          return call_user_func_array(array($this, $name), $args);
       }
     }
 
+    /**
+     * 실행할 쿼리문 설정.
+     * 현재 설정된 DB드라이버에 맞게 변경된 쿼리문과
+     * prepared statement 사용을 위한 전달자료도 같이 초기화 처리.
+     * @return AZSql
+     */
     public function set_query($query) {
       //
       $this->_query = $query;
@@ -616,10 +644,19 @@ namespace AZLib {
       return $this;
     }
 
+    /**
+     * set_query()로 설정된 쿼리문 반환.
+     */
     public function get_query(): string {
       return $this->_query;
     }
 
+    /**
+     * set_query()로 설정된 쿼리문 초기화.
+     * 현재 설정된 DB드라이버에 맞게 변경된 쿼리문과
+     * prepared statement 사용을 위한 전달자료도 같이 초기화 처리.
+     * @return AZSql
+     */
     public function clear_query() {
       //
       $this->_query = null;
@@ -631,6 +668,7 @@ namespace AZLib {
       return $this;
     }
 
+    /*
     public function get_compiled_query(): string {
       if ($this->is_prepared()) {
         $this->compile_prepared();
@@ -640,7 +678,12 @@ namespace AZLib {
       }
       return $this->_compiled_query;
     }
+    */
 
+    /**
+     * 현재 사용중인 DB드라이버에 맞게 변경된 쿼리문 생성
+     * @return AZSql
+     */
     protected function compile() {
       if ($this->_compiled_query) return;
       //
@@ -658,6 +701,11 @@ namespace AZLib {
       return $this;
     }
 
+    /**
+     * 현재 사용중인 DB드라이버에 맞게
+     * prepared statement 사용을 위한 변경된 쿼리문과
+     * 전달 인자 생성 처리.
+     */
     protected function compile_prepared() {
       //
       if (
@@ -674,11 +722,20 @@ namespace AZLib {
         $this->_compiled_query = $query;
         $this->_prepared_parameter_types = $result['types'];
         $this->_prepared_parameter_keys = $result['keys'];
+        //
+        $this->_statement = null;
+        //
+        return true;
       }
       //
-      return $this;
+      return false;
     }
 
+    /**
+     * 쿼리 전달값 설정.
+     * @param $param AZData|array array 사용시 내부적으로 AZData로 변경 처리
+     * @return AZSql
+     */
     public function set_parameters($params) {
     // public function set_parameters(&$params) {
       if (gettype($params) === 'array') {
@@ -695,47 +752,105 @@ namespace AZLib {
       return $this;
     }
 
+    /**
+     * 쿼리 전달값 반환.
+     * @return AZData
+     */
     public function get_parameters() {
       return $this->_parameters;
     }
 
+    /**
+     * $key 값으로 특정된 쿼리 전달값 반환.
+     * @param $key string 키값
+     * @return mixed
+     */
     public function get_parameter(string $key) {
       return $this->_parameters->get($key);
     }
 
+    /**
+     * 쿼리 전달값 개별 추가 처리.
+     * @param $key string 키값
+     * @param $value mixed 키값에 1:1로 대응하는 값
+     * @return AZSql
+     */
     public function add_parameter(string $key, $value) {
-      if (!$this->is_prepared()) $this->_compiled_query = null;
+      if (!$this->is_prepared()) {
+        $this->_compiled_query = null;
+        $this->_statement = null;
+      }
       $this->_parameters->add($key, $value);
       return $this;
     }
 
+    /**
+     * $key 값으로 특정된 쿼리 전달값 개별 삭제 처리
+     * @param $key string 키값
+     * @return AZSql
+     */
     public function remove_parameter(string $key) {
-      if (!$this->is_prepared()) $this->_compiled_query = null;
+      if (!$this->is_prepared()) {
+        $this->_compiled_query = null;
+        $this->_statement = null;
+      }
       $this->_parameters->remove($key);
       return $this;
     }
 
+    /**
+     * 쿼리 전달값 초기화.
+     * 현재 설정된 DB드라이버에 맞게 변경된 쿼리문과
+     * 생성된 prepared statement 객체도 초기화.
+     * @return AZSql
+     */
     public function clear_parameters() {
-      if (!$this->is_prepared()) $this->_compiled_query = null;
+      if (!$this->is_prepared()) {
+        $this->_compiled_query = null;
+        $this->_statement = null;
+      }
       $this->_parameters->clear();
       return $this;
     }
 
+    /**
+     * stored procedure 실행 후 반환값을 받기 위한 반환값 설정.
+     * @param &$params AZData
+     * @return AZSql
+     */
     public function set_return_parameters(AZData &$params) {
       $this->_return_parameters = $params;
       return $this;
     }
 
+    /**
+     * 쿼리 반환값 반환.
+     * @return AZData
+     */
     public function get_return_parameters() {
       return $this->_return_parameters;
     }
 
+    /**
+     * $key로 특정되는 쿼리 반환값 반환.
+     * @param $key string
+     * @return mixed
+     */
     public function get_return_parameter(string $key) {
       return $this->_return_parameters->get($key);
     }
 
-    public function add_return_parameter(string $key, $value) {
-      if (!$this->is_prepared()) $this->_compiled_query = null;
+    /**
+     * 쿼리 반환값 개별 추가.
+     * @param $key string 키값
+     * @param $value 생략가능, 반환값이 발생하는 경우 해당 값으로 변경
+     * @return AZSql
+     */
+    public function add_return_parameter(string $key, $value = null) {
+      if (!$this->is_prepared()) {
+        $this->_compiled_query = null;
+        $this->_statement = null;
+      }
       if (is_null($this->_return_parameters)) {
         $this->_return_parameters = AZData::create();
       }
@@ -743,6 +858,12 @@ namespace AZLib {
       return $this;
     }
 
+    /**
+     * $key로 특정되는 쿼리 반환값의 개별값 수정.
+     * @param $key string 키값
+     * @param $value 변경할 값
+     * @return AZSql
+     */
     public function update_return_parameter(string $key, $value) {
       if (!is_null($this->_return_parameters)) {
         $this->_return_parameters->set($key, $value);
@@ -750,25 +871,47 @@ namespace AZLib {
       return $this;
     }
 
+    /**
+     * $key로 특정되는 쿼리 반환값 삭제.
+     * @param $key string 키값
+     * @return AZSql
+     */
     public function remove_return_parameter(string $key) {
-      if (!$this->is_prepared()) $this->_compiled_query = null;
+      if (!$this->is_prepared()) {
+        $this->_compiled_query = null;
+        $this->_statement = null;
+      }
       if (is_null($this->_return_parameters)) {
         $this->_return_parameters->remove($key);
       }
       return $this;
     }
 
+    /**
+     * 쿼리 반환값 초기화.
+     * @return AZSql
+     */
     public function clear_return_parameters() {
-      if (!$this->is_prepared()) $this->_compiled_query = null;
+      if (!$this->is_prepared()) {
+        $this->_compiled_query = null;
+        $this->_statement = null;
+      }
       $this->_return_parameters = null;
       return $this;
     }
 
+    /**
+     * prepared statement 사용 여부 설정
+     * @param $state boolean
+     * @return AZSql
+     */
     public function set_prepared($state) {
       //
       $this->_is_prepared = $state;
       //
       $this->_compiled_query = null;
+      //
+      $this->_statement = null;
       //
       $this->_prepared_parameter_types = null;
       $this->_prepared_parameter_keys = null;
@@ -776,27 +919,37 @@ namespace AZLib {
       return $this;
     }
 
+    /**
+     * prepared statement 사용여부 반환
+     * @return boolean
+     */
     public function is_prepared() {
       return $this->_is_prepared;
     }
 
+    /**
+     * stored procedure 사용 여부 설정
+     * @param $state boolean
+     * @return AZSql
+     */
     public function set_stored_procedure($state) {
       $this->_is_stored_procedure = $state;
       return $this;
     }
 
+    /**
+     * stored procedure 사용 여부 반환
+     * @return boolean
+     */
     public function is_stored_procedure() {
       return $this->_is_stored_procedure;
     }
 
+    /**
+     * 모든 설정 자료 초기화.
+     * @return AZSql
+     */
     public function clear() {
-      // private $_query; // string
-      // private $_compiled_query; // 실제 요청시 사용될 쿼리문
-      // private $_parameters; // AZData
-      // private $_prepared_parameter_types; // array, prepared statement 사용시 사용될 parameters 의 type 목록
-      // private $_prepared_parameter_keys; // array, prepared statement 사용시 사용될 parameters 의 key 목록
-      // private $_return_parameters; // AZData, out 반환값 설정 자료
-
       //
       $this->clear_query();
       $this->clear_parameters();
@@ -813,6 +966,11 @@ namespace AZLib {
       return $this;
     }
 
+    /**
+     * transaction 사용
+     * @param @on_commit callable 커밋 성공시 처리 함수
+     * @param @on_rollback callable 커밋 실패시 rollback 처리 후 처리 함수
+     */
     public function begin_tran(callable $on_commit, callable $on_rollback) {
       $this->get_mysqli()->autocommit(false);
       //
@@ -822,6 +980,9 @@ namespace AZLib {
       if ($on_rollback) $this->_action_tran_on_rollback = $on_rollback;
     }
 
+    /**
+     * transaction commit.
+     */
     public function commit() {
       $is_success = true;
       try {
@@ -843,6 +1004,11 @@ namespace AZLib {
       }
     }
 
+    /**
+     * 결과값이 필요하지 않는 단순 쿼리 실행시 사용.
+     * @param $identity boolean = false insert 처리에 한하여 생성된 id값 반환 요청
+     * @return int $identity가 참이며 id값이 생성된 경우 생성된 id값을, 그 외의 경우는 쿼리에 대해 적용받은 행의 갯수
+     */
     protected function execute(bool $identity = false): int {
       //
       $rtn_val = 0;
@@ -852,12 +1018,16 @@ namespace AZLib {
 
         $this->compile_prepared();
         //
-        $stmt = $this->get_mysqli()->prepare($this->_compiled_query);
-        if (!$stmt) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (is_null($this->_statement)) {
+          $this->_statement = $this->get_mysqli()->prepare($this->_compiled_query);
         }
-        if ($stmt && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (!$this->_statement) {
+          // throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
+        }
+        if ($this->_statement && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          // throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
         //
         if (
@@ -871,25 +1041,25 @@ namespace AZLib {
           foreach ($this->_prepared_parameter_keys as $key) {
             array_push($values, $this->get_parameter($key));
           }
-          $stmt->bind_param($types, ...$values);
+          $this->_statement->bind_param($types, ...$values);
         }
         //
-        if ($stmt->execute()) {
+        if ($this->_statement->execute()) {
           if (gettype($result) == 'object') {
             $result->free_result();
           }
           //
-          $rtn_val = $identity ? $stmt->insert_id() : $stmt->affected_rows();
+          $rtn_val = $identity ? $this->_statement->insert_id() : $this->_statement->affected_rows();
           //
           // $idx = 0;
-          while ($stmt->more_results() && $stmt->next_result()) {
-            if ($result = $stmt->get_result()) {
+          while ($this->_statement->more_results() && $this->_statement->next_result()) {
+            if ($result = $this->_statement->get_result()) {
               $result->free_result();
             }
           }
           //
-          $stmt->free_result();
-          $stmt->close();
+          $this->_statement->free_result();
+          // $this->_statement->close();
         }
       }
       else {
@@ -897,14 +1067,14 @@ namespace AZLib {
 
         $this->compile();
         //
-        $result = $this->_db->query($this->_compiled_query);
-        if ($result == false) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        $result = $this->get_mysqli()->query($this->_compiled_query);
+        if (!$result) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        if ($result && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if ($result && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        $rtn_val = $identity ? $this->_db->insert_id() : $this->_db->affected_rows();
+        $rtn_val = $identity ? $this->get_mysqli()->insert_id() : $this->get_mysqli()->affected_rows();
         //
         if (gettype($result) == 'object') {
           $this->free_results($result);
@@ -915,6 +1085,9 @@ namespace AZLib {
       return $rtn_val;
     }
 
+    /**
+     * execute() overload
+     */
     protected function execute_with_query(string $query, bool $identity = false): int {
       //
       $this->set_query($query);
@@ -923,6 +1096,9 @@ namespace AZLib {
       return $this->execute($identity);
     }
 
+    /**
+     * execute() overload
+     */
     protected function execute_with_params(string $query, $params, bool $identity = false): int {
       //
       $this->set_query($query);
@@ -961,12 +1137,14 @@ namespace AZLib {
 
         $this->compile_prepared();
         //
-        $stmt = $this->get_mysqli()->prepare($this->_compiled_query);
-        if (!$stmt) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (is_null($this->_statement)) {
+          $this->_statement = $this->get_mysqli()->prepare($this->_compiled_query);
         }
-        if ($stmt && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (!$this->_statement) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
+        }
+        if ($this->_statement && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
         //
         if (
@@ -980,11 +1158,11 @@ namespace AZLib {
           foreach ($this->_prepared_parameter_keys as $key) {
             array_push($values, $this->get_parameter($key));
           }
-          $stmt->bind_param($types, ...$values);
+          $this->_statement->bind_param($types, ...$values);
         }
         //
-        if ($stmt->execute()) {
-          $result = $stmt->get_result();
+        if ($this->_statement->execute()) {
+          $result = $this->_statement->get_result();
           $fields = array();
           while ($field = $result->fetch_field()) {
             array_push($fields, $field->name);
@@ -999,14 +1177,14 @@ namespace AZLib {
           }
           $result->free_result();
           //
-          while ($stmt->more_results() && $stmt->next_result()) {
-            if ($result = $stmt->get_result()) {
+          while ($this->_statement->more_results() && $this->_statement->next_result()) {
+            if ($result = $this->_statement->get_result()) {
               $result->free_result();
             }
           }
           //
-          $stmt->free_result();
-          $stmt->close();
+          $this->_statement->free_result();
+          // $this->_statement->close();
         }
       }
       else {
@@ -1014,14 +1192,14 @@ namespace AZLib {
 
         $this->compile();
         //
-        $result = $this->_db->query($this->_compiled_query);
+        $result = $this->get_mysqli()->query($this->_compiled_query);
         if (!$result) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        if ($result && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if ($result && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        $data = $result->row_array();
+        $data = $result->fetch_array(MYSQLI_ASSOC);
         if ($type_cast) {
           $field = $result->field_data();
           $this->data_value_caster($data, $field);
@@ -1118,12 +1296,14 @@ namespace AZLib {
 
         $this->compile_prepared();
         //
-        $stmt = $this->get_mysqli()->prepare($this->_compiled_query);
-        if (!$stmt) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (is_null($this->_statement)) {
+          $this->_statement = $this->get_mysqli()->prepare($this->_compiled_query);
         }
-        if ($stmt && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (!$this->_statement) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
+        }
+        if ($this->_statement && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
         //
         if (
@@ -1137,11 +1317,11 @@ namespace AZLib {
           foreach ($this->_prepared_parameter_keys as $key) {
             array_push($values, $this->get_parameter($key));
           }
-          $stmt->bind_param($types, ...$values);
+          $this->_statement->bind_param($types, ...$values);
         }
         //
-        if ($stmt->execute()) {
-          $result = $stmt->get_result();
+        if ($this->_statement->execute()) {
+          $result = $this->_statement->get_result();
           $fields = array();
           while ($field = $result->fetch_field()) {
             array_push($fields, $field->name);
@@ -1159,14 +1339,14 @@ namespace AZLib {
           }
           $result->free_result();
           //
-          while ($stmt->more_results() && $stmt->next_result()) {
-            if ($result = $stmt->get_result()) {
+          while ($this->_statement->more_results() && $this->_statement->next_result()) {
+            if ($result = $this->_statement->get_result()) {
               $result->free_result();
             }
           }
           //
-          $stmt->free_result();
-          $stmt->close();
+          $this->_statement->free_result();
+          // $this->_statement->close();
         }
       }
       else {
@@ -1174,14 +1354,16 @@ namespace AZLib {
 
         $this->compile();
         //
-        $result = $this->_db->query($this->_compiled_query);
+        $result = $this->get_mysqli()->query($this->_compiled_query);
         if (!$result) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        if ($result && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if ($result && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        $list = $result->result_array();
+        // $list = $result->result_array();
+        // $result = $this->get_mysqli()->get_result();
+        $list = $result->fetch_all(MYSQLI_ASSOC);
         $field = null;
         if ($type_cast) {
           $field = $result->field_data();
@@ -1266,12 +1448,14 @@ namespace AZLib {
 
         $this->compile_prepared();
         //
-        $stmt = $this->get_mysqli()->prepare($this->_compiled_query);
-        if (!$stmt) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (is_null($this->_statement)) {
+          $this->_statement = $this->get_mysqli()->prepare($this->_compiled_query);
         }
-        if ($stmt && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if (!$this->_statement) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
+        }
+        if ($this->_statement && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
         //
         if (
@@ -1285,14 +1469,14 @@ namespace AZLib {
           foreach ($this->_prepared_parameter_keys as $key) {
             array_push($values, $this->get_parameter($key));
           }
-          $stmt->bind_param($types, ...$values);
+          $this->_statement->bind_param($types, ...$values);
         }
         //
-        if ($stmt->execute()) {
+        if ($this->_statement->execute()) {
           //
           while (
-              ($result = $stmt->get_result()) ||
-              ($stmt->more_results() && $stmt->next_result() && $result = $stmt->get_result())
+              ($result = $this->_statement->get_result()) ||
+              ($this->_statement->more_results() && $this->_statement->next_result() && $result = $this->_statement->get_result())
             ) {
             $fields = array();
             while ($field = $result->fetch_field()) {
@@ -1314,8 +1498,8 @@ namespace AZLib {
             $result->free_result();
           }
           //
-          $stmt->free_result();
-          $stmt->close();
+          $this->_statement->free_result();
+          // $this->_statement->close();
         }
       }
       else {
@@ -1323,29 +1507,38 @@ namespace AZLib {
 
         $this->compile();
         //
-        $result = $this->_db->query($this->_compiled_query);
-        if (!$result) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        $success = $this->get_mysqli()->multi_query($this->_compiled_query);
+        if (!$success) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        if ($result && $this->_db->error() && $this->_db->error()->code != 0) {
-          throw new \Exception($this->_db->error()['message'], $this->_db->error()['code']);
+        if ($success && $this->get_mysqli()->error && $this->get_mysqli()->errno != 0) {
+          throw new \Exception($this->get_mysqli()->error, $this->get_mysqli()->errno);
         }
-        $list = $result->result_array();
-        $field = null;
-        if ($type_cast) {
-          $field = $result->field_data();
-        }
-        foreach ($list as $data) {
-          if ($type_cast) {
-            $this->data_value_caster($data, $field);
+        while (
+            ($result = $this->get_mysqli()->store_result()) ||
+            ($this->get_mysqli()->more_results() && $this->get_mysqli()->next_result() && $result = $this->get_mysqli()->store_result())
+          ) {
+          $fields = array();
+          while ($field = $result->fetch_field()) {
+            array_push($fields, $field->name);
           }
-          $rtn_val->add(AZData::parse($data));
+          $list = AZList::create();
+          while ($row = $result->fetch_array(MYSQLI_NUM)) {
+            $rtn_data = AZData::create();
+            //
+            $idx = 0;
+            foreach ($fields as $field) {
+              $rtn_data->add($field, $row[$idx]);
+              $idx++;
+            }
+            //
+            $list->add($rtn_data);
+          }
+          array_push($rtn_val, $list);
+          unset($field);
+          unset($type_cast);
+          $result->free_result();
         }
-        //
-        unset($field);
-        unset($type_cast);
-        $this->free_results($result);
-        $result->free_result();
       }
 
       //
@@ -1407,7 +1600,7 @@ namespace AZLib {
     }
 
     private function free_results(&$results) {
-      while(mysqli_more_results($results->conn_id) && mysqli_next_result($results->conn_id)) {
+      while(isset($results->conn_id) && mysqli_more_results($results->conn_id) && mysqli_next_result($results->conn_id)) {
         if($l_result = mysqli_store_result($results->conn_id)) {
           mysqli_free_result($l_result);
         }
@@ -1571,7 +1764,7 @@ namespace AZLib\AZSql {
           //
           $idx = 0;
           foreach ($this->_set_datas as $set) {
-            $col_str .= "\n".($idx > 0 ? ' ,' : ' ').$set->_column;
+            $col_str .= PHP_EOL.($idx > 0 ? ' ,' : ' ').$set->_column;
             //
             if ($this->is_prepared() && $set->_VALUETYPE == VALUETYPE::VALUE) {
               // prepared statement 사용시
@@ -1579,7 +1772,7 @@ namespace AZLib\AZSql {
               //
               $key = "@__set_{$idx}_{$set->_column}";
               $params->add($key, $set->_value);
-              $val_str .= "\n".($idx > 0 ? ' ,' : ' ').$key;
+              $val_str .= PHP_EOL.($idx > 0 ? ' ,' : ' ').$key;
             }
             else {
               // prepared statement 미사용시
@@ -1587,17 +1780,17 @@ namespace AZLib\AZSql {
               if ($set->_VALUETYPE == VALUETYPE::VALUE) {
                 $q_mark = $this->get_qmark($set->_value);
               }
-              $val_str .= "\n".($idx > 0 ? ' ,' : ' ')."$q_mark{$set->_value}$q_mark";
+              $val_str .= PHP_EOL.($idx > 0 ? ' ,' : ' ')."$q_mark{$set->_value}$q_mark";
             }
             $idx++;
           }
-          $query = "INSERT INTO $this->_table_name ($col_str\n)\nVALUES ($val_str\n)";
+          $query = "INSERT INTO $this->_table_name ($col_str".PHP_EOL.")".PHP_EOL."VALUES ($val_str".PHP_EOL.")";
           return array('query' => $query, 'parameters' => $params);
         case CREATE_QUERY_TYPE::UPDATE:
           $query = "UPDATE $this->_table_name";
           //
           if (!is_null($this->_set_datas)) {
-            $query .= "\nSET";
+            $query .= PHP_EOL."SET";
             $idx = 0;
             foreach ($this->_set_datas as $set) {
               if ($this->is_prepared() && $set->_VALUETYPE == VALUETYPE::VALUE) {
@@ -1606,7 +1799,7 @@ namespace AZLib\AZSql {
                 //
                 $key = "@__set_{$idx}_{$set->_column}";
                 $params->add($key, $set->_value);
-                $query .= ($idx > 0 ? ',' : '')."\n {$set->_column} = $key";
+                $query .= ($idx > 0 ? ',' : '').PHP_EOL." {$set->_column} = $key";
               }
               else {
                 // prepared statement 미사용시
@@ -1614,7 +1807,7 @@ namespace AZLib\AZSql {
                 if ($set->_VALUETYPE == VALUETYPE::VALUE) {
                   $q_mark = $this->get_qmark($set->_value);
                 }
-                $query .= ($idx > 0 ? ',' : '')."\n {$set->_column} = $q_mark{$set->_value}$q_mark";
+                $query .= ($idx > 0 ? ',' : '').PHP_EOL." {$set->_column} = $q_mark{$set->_value}$q_mark";
               }
               $idx++;
             }
@@ -1623,7 +1816,7 @@ namespace AZLib\AZSql {
           if (is_null($query)) $query = $query = "DELETE FROM $this->_table_name";
           //
           if (!is_null($this->_where_datas)) {
-            $query .= "\nWHERE";
+            $query .= PHP_EOL."WHERE";
             $idx = 0;
             foreach ($this->_where_datas as $where) {
               $val_cnt = 1;
@@ -1670,7 +1863,7 @@ namespace AZLib\AZSql {
                   $condition = 'LIKE';
                   break;
               }
-              $query .= "\n".($idx > 0 ? ' AND ' : ' ')."{$where->_column} $condition ";
+              $query .= PHP_EOL.($idx > 0 ? ' AND ' : ' ')."{$where->_column} $condition ";
               if ($this->is_prepared() && $where->_VALUETYPE == VALUETYPE::VALUE) {
                 // prepared statement 사용시
                 if (is_null($params)) $params = AZData::create();
